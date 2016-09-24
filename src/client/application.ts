@@ -13,7 +13,7 @@ class Application extends chitu.Application {
 
                 var c: chitu.PageContainer = chitu.PageContainerFactory.createInstance({ app, routeData, previous });
                 //
-                if (routeData.pageName == 'user.login') {
+                if (routeData.pageName == 'home.login') {
                     let container_host_element = document.getElementById('login-container');
                     console.assert(container_host_element != null);
                     container_host_element.appendChild(c.element);
