@@ -11,7 +11,8 @@ class Application extends chitu.Application {
                 var css_path = chitu.Utility.format(`c!css/${routeData.actionPath}.css`);
                 routeData.resource = [css_path];
 
-                var c: chitu.PageContainer = chitu.PageContainerFactory.createInstance({ app, routeData, previous });
+                let element = document.createElement('div');
+                var c: chitu.PageContainer = chitu.PageContainerFactory.createInstance({ app, routeData, previous, element });
                 //
                 if (routeData.pageName == 'home.login') {
                     let container_host_element = document.getElementById('login-container');

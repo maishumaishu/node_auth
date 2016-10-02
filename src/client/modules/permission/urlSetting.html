@@ -1,0 +1,9 @@
+<div name="tabs" class="tabbable">
+    <ul class="nav nav-tabs">
+        <li data-bind="visible:tabs.current() == 'all'" class="pull-right">
+            <a data-bind="click:productAdd" href="javascript:" class="btn btn-primary btn-sm pull-right">添加</a>
+            <button data-bind="click:search" class="btn btn-primary btn-sm pull-right">搜索</button>
+            <input type="text" data-bind="value:searchText" class="nav-search-input pull-right" style="width: 300px" placeholder="请输入SKU或名称、类别" />
+        </li>
+    </ul>
+</div>
