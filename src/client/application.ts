@@ -29,13 +29,14 @@ class Application extends chitu.Application {
                     console.assert(_contentElement != null);
                     _contentElement.appendChild(c.element);
                 }
+
                 c.shown.add((sender, args) => {
-                    $('.main-container:visible').hide();
-                    $(sender.element).parents('.main-container').first().show();
+                    $('.main-container').hide();
+                    $(sender.element).parents('.main-container').show();
                 });
-                c.closing.add((sender, args) => {
-                    $(sender.element).parents('.main-container').first().hide();
-                })
+                // c.closing.add((sender, args) => {
+                //     $(sender.element).parents('.main-container').hide();
+                // })
 
 
                 return c;

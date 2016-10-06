@@ -5,6 +5,7 @@ import * as validation from 'knockout.validation';
 class ApplicationsPage extends chitu.Page {
 
     private applicationName = ko.observable<string>().extend({ required: { message: '请输入应用名称' } });
+    private targetUrl = ko.observable<string>().extend({ required: { message: '请输入转发的目标URL' } });
     private val: KnockoutValidationErrors;
 
     constructor(params) {
@@ -27,7 +28,8 @@ class ApplicationsPage extends chitu.Page {
     // 绑定
     private items: KnockoutObservableArray<any>;
 
-    private newApp() {
+    private newApp(model: ApplicationsPage) {
+        model.val.showAllMessages(false);
         (<any>$(this.element).find('[name="dlg_application"]')).modal();
     }
 

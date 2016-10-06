@@ -6,10 +6,19 @@
       </p>
     </div>
     <div class="body">
-      <div class="pull-left">
-        名称
+      <div>
+        <div class="pull-left">
+          编号
+        </div>
+        <div data-bind="text:id" class="interception">
+        </div>
       </div>
-      <div data-bind="text:name">
+      <div>
+        <div class="pull-left">
+          名称
+        </div>
+        <div data-bind="text:name">
+        </div>
       </div>
     </div>
     <div class="footer">
@@ -47,6 +56,12 @@
             <label class="col-sm-2 control-label">名称</label>
             <div class="col-sm-10">
               <input type="text" class="form-control" placeholder="请输入应用名称" autofocus="autofocus" data-bind="value:applicationName">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="col-sm-2 control-label">转发至</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control" placeholder="请输入转发的目标URL" autofocus="autofocus" data-bind="value:targetUrl">
             </div>
           </div>
           <div class="form-group">
