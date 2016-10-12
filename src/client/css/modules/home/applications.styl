@@ -1,6 +1,14 @@
 #applications-container.main-container-inner {
       padding: 20px;
 } 
+
+app_item_width = 250px;
+app_item_height = 250px;
+app_body_height = 150px;
+
+label_width = 60px;
+add_icon_size = 120px;
+
 .home_applications 
     ul.apps {
         padding: 0px;
@@ -9,8 +17,8 @@
         li {
             float: left;
             list-style-type: none;
-            width: 200px;
-            height: 200px;
+            width: app_item_width;
+            height: app_item_height;
             border: solid 1px;
             margin: 4px;
             padding: 4px;
@@ -21,7 +29,7 @@
                 padding-bottom: 4px;
             }
             .pull-left {
-                width: 60px;
+                width: label_width;
                 padding-left: 14px;
             }
             .header {
@@ -35,17 +43,21 @@
                 }
             }
             .body {
-                height: 102px;
-                .interception {
-                    width: 120px;
-                }
+                height: app_body_height;
             }
             .footer {
                 .col-xs-6 {
                     padding: 0px;
                 }
             }
-            
+            .add {
+                text-align: center;
+                padding-top: ((app_body_height + 40px - add_icon_size) / 2);// 40px 约为 footer 高度
+
+                i {
+                    font-size: add_icon_size
+                }
+            }
         }
     }  
 
