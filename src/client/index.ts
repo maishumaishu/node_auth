@@ -31,6 +31,7 @@ requirejs.config({
         jquery: 'js/jquery-2.1.0',
         knockout: 'js/knockout-3.2.0.debug',
         'knockout.validation': 'js/knockout.validation',
+        'knockout.mapping': 'js/knockout.mapping',
         move: 'js/move',
         react: 'js/react',
         'react-dom': 'js/react-dom',

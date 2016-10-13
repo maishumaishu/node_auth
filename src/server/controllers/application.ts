@@ -38,12 +38,15 @@ export class ApplicationController extends BaseController {
 
         let db = await data.Database.createInstance(this.applicationId);
         let item = await db.applications.findOne({ name: app.name });
-        if (item != null) {
-            return errors.applicationExists(app.name);
-        }
-
         let error = await db.applications.updateOne(app);
         return error;
+    }
+    async save(app: data.Appliation) {
+        if (app.id) {
+            return this.update(app);
+        }
+
+        return this.add(app);
     }
 
 }

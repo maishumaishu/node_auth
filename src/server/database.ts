@@ -39,12 +39,20 @@ export class Table<T extends Entity>{
                 return;
             }
 
-            this.source.updateOne({ _id: entity.id }, entity, (err, result) => {
+            let obj = { };
+            for (let key in entity) {
+                if (key == 'id')
+                    continue;
+
+                obj[key] = entity[key];
+            }
+
+            this.source.updateOne({ _id: new mongodb.ObjectID(entity.id) }, { $set: obj }, (err, result) => {
                 if (err) {
                     reject(err);
                     return;
                 }
-                if (result.upsertedCount == 0) {
+                if (result.matchedCount == 0) {
                     reject(errors.updateResultZero());
                     return;
                 }

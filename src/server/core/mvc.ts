@@ -87,7 +87,7 @@ export class ObjectTraver {
 
     protected visitArray(obj: Array<any>): any {
         let result = [];
-        for (let i = 0; i < (obj as []).length; i++) {
+        for (let i = 0; i < obj.length; i++) {
             result[i] = this.visit(obj[i]);
         }
         return result;
@@ -139,7 +139,7 @@ export class ObjectTraver {
         if (type == 'array') {
             return this.visitArray(obj);
         }
-        else if (type == 'number' || type == 'string') {
+        else if (type == 'number' || type == 'string' || type == 'boolean') {
             return this.visitValue(obj);
         }
         else if (type == 'date') {

@@ -1,11 +1,13 @@
 import * as service from './service';
 
-interface Application {
-
+export interface Application {
+    id: number,
+    name: string,
+    targetUrl: string
 }
 
-export function add() {
-
+export function save(app: Application) {
+    return service.ajax('application/save', app);
 }
 export function list(): JQueryPromise<Array<Application>> {
     return service.ajax<Array<Application>>('application/list');
