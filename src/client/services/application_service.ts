@@ -1,14 +1,20 @@
 import * as service from './service';
+import * as ko from 'knockout';
+import * as mapping from 'knockout.mapping';
 
-export interface Application {
-    id: number,
-    name: string,
-    targetUrl: string
+export class Application {
+    id = ko.observable<number>();
+    name = ko.observable<string>();
+    targetUrl = ko.observable<string>();
 }
 
 export function save(app: Application) {
-    return service.ajax('application/save', app);
+    let obj = mapping.toJS(app);
+    return service.ajax('application/save', obj);
 }
 export function list(): JQueryPromise<Array<Application>> {
-    return service.ajax<Array<Application>>('application/list');
+    return service.ajax<Array<any>>('application/list').then(function (items) {
+        let result: Array<Application> = items.map(o => mapping.fromJS(o, {}, new Application()));
+        return result;
+    });
 }

@@ -10,7 +10,6 @@ class UserGroups {
     static normal = 'normal'
 }
 
-settings.registerMode = 'username';
 export class UserController extends BaseController {
     async  test() {
         let db = await Database.createInstance(this.applicationId);

@@ -2,18 +2,20 @@ import * as application_service from 'services/application_service';
 import * as validation from 'knockout.validation';
 import * as mapping from 'knockout.mapping';
 
+//let app_fields = ['id', 'name', 'targetUrl'];
 class ApplicationsPage extends chitu.Page {
-    private app = {
-        id: ko.observable<number>(),
-        name: ko.observable<string>().extend({ required: { message: '请输入应用名称' } }),
-        targetUrl: ko.observable<string>().extend({ required: { message: '请输入转发的目标URL' } }),
-    };
+
+    private app: application_service.Application;
 
     private val: KnockoutValidationErrors;
     private $dialog: JQuery;
 
     constructor(params) {
         super(params);
+
+        this.app = new application_service.Application();
+        this.app.name.extend({ required: { message: '请输入应用名称' } });
+        this.app.targetUrl.extend({ required: { message: '请输入转发的目标URL' } });
 
         this.items = ko.observableArray<application_service.Application>();
         ko.applyBindings(this, this.element);
@@ -25,9 +27,6 @@ class ApplicationsPage extends chitu.Page {
 
     private page_load(sender: chitu.Page, args) {
         return application_service.list().done((data: Array<any>) => {
-            for(let item of data)
-                item.targetUrl = '';
-                
             this.items(data);
         })
     }
@@ -37,16 +36,13 @@ class ApplicationsPage extends chitu.Page {
     private items: KnockoutObservableArray<application_service.Application>;
 
     private newApp = () => {
-        let keys = ['id', 'name', 'targetUrl'];
-        for (let key of keys) {
-            this.app[key](null);
-        }
+        mapping.fromJS({}, {}, this.app);
         this.val.showAllMessages(false);
         (<any>this.$dialog).modal();
     }
 
     private editApp = (item: application_service.Application) => {
-        mapping.fromJS(item, {}, this.app);
+        mapping.fromJS(mapping.toJS(item), {}, this.app);
         this.val.showAllMessages(false);
         (<any>this.$dialog).modal();
     }
@@ -56,7 +52,8 @@ class ApplicationsPage extends chitu.Page {
             this.val.showAllMessages();
             return;
         }
-        application_service.save(mapping.toJS(this.app));
+
+        application_service.save(this.app);
     }
     //==========================================================
 }

@@ -18,7 +18,15 @@ export class Table<T extends Entity>{
             if (entity.createDateTime == null)
                 entity.createDateTime = new Date(Date.now());
 
-            this.source.insertOne(entity, (err, result) => {
+            let obj = { };
+            for (let key in entity) {
+                if (key == 'id')
+                    continue;
+
+                obj[key] = entity[key];
+            }
+
+            this.source.insertOne(obj, (err, result) => {
                 if (err != null) {
                     reject(err);
                     return;

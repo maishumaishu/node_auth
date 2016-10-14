@@ -18,7 +18,7 @@ let HTTP = 'http://';
 let host = 'http://localhost:3000/';
 const HTTP_LENGTH = 7;
 
-export function ajax<T>(url: string, data?: any): JQueryDeferred<T> {
+export function ajax<T>(url: string, data?: any): JQueryPromise<T> {
 
     if (url.length < HTTP_LENGTH || url.substr(0, HTTP_LENGTH).toLowerCase() != HTTP) {
         url = host + url;
