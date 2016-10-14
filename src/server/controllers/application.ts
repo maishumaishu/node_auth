@@ -8,7 +8,7 @@ export class ApplicationController extends BaseController {
         if (!app) throw errors.argumentNull('app');
         if (!app.name) throw errors.fieldNull('name', 'app');
 
-        let db = await data.Database.createInstance(this.applicationId);
+        let db = await data.SystemDatabase.createInstance();
         let item = await db.applications.findOne({ name: app.name });
         if (item != null) {
             return errors.applicationExists(app.name);
@@ -20,12 +20,12 @@ export class ApplicationController extends BaseController {
         if (id == null)
             return errors.argumentNull('id');
 
-        let db = await data.Database.createInstance(this.applicationId);
+        let db = await data.SystemDatabase.createInstance();
         await db.applications.deleteOne({ _id: id });
         return errors.success();
     }
     async list(): Promise<Array<data.Appliation>> {
-        let db = await data.Database.createInstance(this.applicationId);
+        let db = await data.SystemDatabase.createInstance();
         let apps = await db.applications.find({});
         return apps;
     }
@@ -36,7 +36,7 @@ export class ApplicationController extends BaseController {
         if (app.id == null)
             return errors.fieldNull('id', 'app');
 
-        let db = await data.Database.createInstance(this.applicationId);
+        let db = await data.SystemDatabase.createInstance();
         let item = await db.applications.findOne({ name: app.name });
         let error = await db.applications.updateOne(app);
         return error;

@@ -6,6 +6,7 @@ export class Application {
     id = ko.observable<number>();
     name = ko.observable<string>();
     targetUrl = ko.observable<string>();
+    port = ko.observable<number>();
 }
 
 export function save(app: Application) {

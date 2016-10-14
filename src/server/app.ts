@@ -1,9 +1,11 @@
 
+
+import * as settings from './settings';
+import { BaseController } from './controllers/baseController';
+
 //==============================================================
 // 说明：启动反向代理服务器
-import * as settings from './settings';
 import { ProxyServer } from './proxyServer';
-import { BaseController } from './controllers/baseController';
 let proxyServer = new ProxyServer({ port: 9000, targetHost: settings.serviceHost });
 proxyServer.start();
 //==============================================================
@@ -36,6 +38,8 @@ app.start();
 
 class MyObjectTraver extends mvc.ObjectTraver {
   protected visitObject(obj) {
+    //==============================================================
+    // 说明：将 _id 改为 id
     let keys = Object.keys(obj).concat(Object.getOwnPropertyNames(obj));
     let result = {};
     for (let i = 0; i < keys.length; i++) {
@@ -53,6 +57,7 @@ class MyObjectTraver extends mvc.ObjectTraver {
       let fieldValue = this.visitField(obj, key);
       result[key] = fieldValue;
     }
+    //==============================================================
     return result;
   }
 }

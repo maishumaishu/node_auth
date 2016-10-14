@@ -36,7 +36,7 @@ class ApplicationsPage extends chitu.Page {
     private items: KnockoutObservableArray<application_service.Application>;
 
     private newApp = () => {
-        mapping.fromJS({}, {}, this.app);
+        mapping.fromJS(mapping.toJS(new application_service.Application()), {}, this.app);
         this.val.showAllMessages(false);
         (<any>this.$dialog).modal();
     }

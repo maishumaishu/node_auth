@@ -22,6 +22,13 @@
 			</div>
 			<div>
 				<div class="pull-left">
+					端口
+				</div>
+				<div data-bind="text:port" class="text">
+				</div>
+			</div>
+			<div>
+				<div class="pull-left">
 					转发至
 				</div>
 				<div data-bind="text:targetUrl" class="text interception">
@@ -69,13 +76,19 @@
 					<div class="form-group">
 						<label class="col-sm-2 control-label">名称</label>
 						<div class="col-sm-10">
-							<input type="text" class="form-control" placeholder="请输入应用名称" autofocus="autofocus" data-bind="value:name">
+							<input type="text" class="form-control" placeholder="请输入应用名称" data-bind="value:name">
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-sm-2 control-label">端口</label>
+						<div class="col-sm-10">
+							<input type="text" class="form-control" placeholder="请输入应用名称" data-bind="value:port">
 						</div>
 					</div>
 					<div class="form-group">
 						<label class="col-sm-2 control-label">转发至</label>
 						<div class="col-sm-10">
-							<input type="text" class="form-control" placeholder="请输入转发的目标URL" autofocus="autofocus" data-bind="value:targetUrl">
+							<input type="text" class="form-control" placeholder="请输入转发的目标URL" data-bind="value:targetUrl">
 						</div>
 					</div>
 					<div class="form-group">

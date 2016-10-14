@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { User, Database } from '../server/database';
+import { User, ApplicationDatabase } from '../server/database';
 import { ApplicationController } from '../server/controllers/application';
 import * as Errors from '../server/errors';
 
@@ -18,4 +18,5 @@ describe('ApplicationController', function () {
         return controller.list();
     });
     //})
+    ApplicationDatabase.createInstance(appId);
 })
