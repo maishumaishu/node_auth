@@ -246,17 +246,6 @@ export class Application {
 
             actionResult = new Promise((reslove, reject) => {
                 p.then(() => {
-                    //如果含有 JSON ，则转化为对象
-                    for (let key in query) {
-                        if (typeof query[key] != 'string')
-                            continue;
-
-                        let value = (<string>query[key]).trim();
-                        if (value[0] == '{' && value[value.length - 1] == '}') {
-                            query[key] = JSON.parse(value);
-                        }
-                    }
-
                     let r: Promise<any> = controller[actionName](query);
                     if (r == null || r.then == null || r.catch == null) {
                         reslove(r);
