@@ -296,14 +296,17 @@ export class Application {
             return Promise.resolve({});
 
         return new Promise((reslove, reject) => {
-            let query: any = {};
-            request.on('data', (data) => {
+            request.on('data', (data: { toString: () => string }) => {
                 try {
-                    let obj = url.parse('?' + data.toString(), true).query;
-                    for (let key in obj) {
-                        query[key] = obj[key];
+                    let obj;
+                    let content_type: string = request.headers['content-type'] || '';
+                    if (content_type.startsWith('application/json')) {
+                        obj = JSON.parse(data.toString())
                     }
-                    reslove(query);
+                    else {
+                        obj = url.parse('?' + data.toString(), true).query;
+                    }
+                    reslove(obj);
                 }
                 catch (exc) {
                     reject(exc);
@@ -319,6 +322,7 @@ export class Application {
 
         response.statusCode = 200;
         response.setHeader('Access-Control-Allow-Origin', '*');
+        response.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
         response.setHeader('Content-Type', 'application/json;charset=utf-8');
 
         //===================================================
