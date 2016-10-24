@@ -8,13 +8,6 @@
 		<div class="body">
 			<div>
 				<div class="pull-left">
-					编号
-				</div>
-				<div data-bind="text:id" class="text interception">
-				</div>
-			</div>
-			<div>
-				<div class="pull-left">
 					名称
 				</div>
 				<div data-bind="text:name" class="text interception">
@@ -38,7 +31,7 @@
 				<div class="pull-left">
 					开放注册
 				</div>
-				<div data-bind="" class="text interception">
+				<div data-bind="text:allowRegister" class="text interception">
 				</div>
 			</div>
 		</div>
@@ -82,7 +75,7 @@
 					<div class="form-group">
 						<label class="col-sm-2 control-label">端口</label>
 						<div class="col-sm-10">
-							<input type="text" class="form-control" placeholder="请输入应用名称" data-bind="value:port">
+							<input type="text" class="form-control" placeholder="请设置本地服务端口" data-bind="value:port">
 						</div>
 					</div>
 					<div class="form-group">

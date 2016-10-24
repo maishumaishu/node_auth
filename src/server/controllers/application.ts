@@ -1,9 +1,10 @@
 import * as mongodb from 'mongodb';
-import { BaseController } from './baseController'
+import { Controller } from './../core/mvc';
 import * as errors from '../errors';
 import * as data from '../database';
 
-export class ApplicationController extends BaseController {
+
+export class ApplicationController extends Controller {
     async add(app: data.Appliation): Promise<Error> {
         if (!app) throw errors.argumentNull('app');
         if (!app.name) throw errors.fieldNull('name', 'app');

@@ -7,7 +7,7 @@ let appId = "4C22F420-475F-4085-AA2F-BE5269DE6043";
 
 function createController(): ApplicationController {
     let controller = new ApplicationController();
-    controller.applicationId = appId;
+    //controller.applicationId = appId;
     return controller;
 }
 

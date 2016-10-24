@@ -23,7 +23,7 @@ const controllersPath = '../controllers';
 class MyApplication extends mvc.Application {
   protected createController(Controller) {
     let controller = super.createController(Controller) as BaseController;
-    controller.applicationId = '4C22F420-475F-4085-AA2F-BE5269DE6043';
+    //controller.applicationId = '4C22F420-475F-4085-AA2F-BE5269DE6043';
     return controller;
   }
   protected outputToResponse(obj: any, response: http.ServerResponse) {
