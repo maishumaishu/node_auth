@@ -27,8 +27,9 @@ class ApplicationsPage extends chitu.Page {
     // 绑定
     private items: KnockoutObservableArray<any>;
 
-    private newApp() {
+    private newApp(model: ApplicationsPage) {
         (<any>$(this.element).find('[name="dlg_application"]')).modal();
+        model.val.showAllMessages(false);
     }
 
     private addApp(model: ApplicationsPage) {

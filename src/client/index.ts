@@ -22,6 +22,7 @@ requirejs.config({
     },
     paths: {
         ace: 'js/ace',
+        bootbox: 'js/bootbox',
         bootstrap: 'js/bootstrap',
         c: 'js/css',
         chitu: 'js/chitu',

@@ -15,6 +15,7 @@ export let error = $.Callbacks();
 export let ajaxTimeout = 5000;
 
 let HTTP = 'http://';
+//let host = 'http://localhost:3000/';
 let host = 'http://localhost:3000/';
 const HTTP_LENGTH = 7;
 
