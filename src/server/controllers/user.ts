@@ -1,7 +1,7 @@
 
 /// <reference path="./../typings/validator/validator.d.ts"/>
 import * as validator from 'validator';
-import { Database, User, Token } from './../database';
+import { ApplicationDatabase as Database, User, Token } from './../database';
 import * as Errors from '../errors';
 import { BaseController } from './baseController'
 import * as settings from '../settings';
@@ -10,7 +10,6 @@ class UserGroups {
     static normal = 'normal'
 }
 
-settings.registerMode = 'username';
 export class UserController extends BaseController {
     async  test() {
         let db = await Database.createInstance(this.applicationId);

@@ -11,7 +11,8 @@ class Application extends chitu.Application {
                 var css_path = chitu.Utility.format(`c!css/${routeData.actionPath}.css`);
                 routeData.resource = [css_path];
 
-                var c: chitu.PageContainer = chitu.PageContainerFactory.createInstance({ app, routeData, previous });
+                let element = document.createElement('div');
+                var c: chitu.PageContainer = chitu.PageContainerFactory.createInstance({ app, routeData, previous, element });
                 //
                 if (routeData.pageName == 'home.login') {
                     let container_host_element = document.getElementById('login-container');
@@ -28,13 +29,14 @@ class Application extends chitu.Application {
                     console.assert(_contentElement != null);
                     _contentElement.appendChild(c.element);
                 }
+
                 c.shown.add((sender, args) => {
-                    $('.main-container:visible').hide();
-                    $(sender.element).parents('.main-container').first().show();
+                    $('.main-container').hide();
+                    $(sender.element).parents('.main-container').show();
                 });
-                c.closing.add((sender, args) => {
-                    $(sender.element).parents('.main-container').first().hide();
-                })
+                // c.closing.add((sender, args) => {
+                //     $(sender.element).parents('.main-container').hide();
+                // })
 
 
                 return c;

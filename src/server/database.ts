@@ -18,7 +18,15 @@ export class Table<T extends Entity>{
             if (entity.createDateTime == null)
                 entity.createDateTime = new Date(Date.now());
 
-            this.source.insertOne(entity, (err, result) => {
+            let obj = {};
+            for (let key in entity) {
+                if (key == 'id')
+                    continue;
+
+                obj[key] = entity[key];
+            }
+
+            this.source.insertOne(obj, (err, result) => {
                 if (err != null) {
                     reject(err);
                     return;
@@ -39,12 +47,20 @@ export class Table<T extends Entity>{
                 return;
             }
 
-            this.source.updateOne({ _id: entity.id }, entity, (err, result) => {
+            let obj = {};
+            for (let key in entity) {
+                if (key == 'id')
+                    continue;
+
+                obj[key] = entity[key];
+            }
+
+            this.source.updateOne({ _id: new mongodb.ObjectID(entity.id) }, { $set: obj }, (err, result) => {
                 if (err) {
                     reject(err);
                     return;
                 }
-                if (result.upsertedCount == 0) {
+                if (result.matchedCount == 0) {
                     reject(errors.updateResultZero());
                     return;
                 }
@@ -119,7 +135,7 @@ function guid() {
         s4() + '-' + s4() + s4() + s4();
 }
 
-export class Database {
+export class ApplicationDatabase {
     private source: mongodb.Db;
     private _users: Users;
     private _tokens: Table<Token>;
@@ -133,7 +149,7 @@ export class Database {
     }
 
     static async createInstance(appId: string) {
-        return new Promise<Database>((reslove, reject) => {
+        return new Promise<ApplicationDatabase>((reslove, reject) => {
             let connectionString = `mongodb://${settings.monogoHost}/${appId}`;
             MongoClient.connect(connectionString, (err, db) => {
                 if (err != null) {
@@ -141,7 +157,7 @@ export class Database {
                     return;
                 }
 
-                let instance = new Database(db);
+                let instance = new ApplicationDatabase(db);
                 reslove(instance);
             })
         });
@@ -151,9 +167,7 @@ export class Database {
         return this._users;
     }
 
-    get applications(): Table<Appliation> {
-        return this._applications;
-    }
+
 
     get tokens(): Table<Token> {
         return this._tokens;
@@ -161,6 +175,35 @@ export class Database {
 
     close() {
         this.source.close();
+    }
+}
+
+export class SystemDatabase {
+    private source: mongodb.Db;
+    private _applications: Table<Appliation>;
+    
+    constructor(source: mongodb.Db) {
+        this.source = source;
+        this._applications = new Table<Appliation>(source, 'Appliation');
+    }
+
+    static async createInstance() {
+        return new Promise<SystemDatabase>((reslove, reject) => {
+            let connectionString = `mongodb://${settings.monogoHost}/node_auth`;
+            MongoClient.connect(connectionString, (err, db) => {
+                if (err != null) {
+                    reject(err);
+                    return;
+                }
+
+                let instance = new SystemDatabase(db);
+                reslove(instance);
+            })
+        })
+    }
+
+    get applications(): Table<Appliation> {
+        return this._applications;
     }
 }
 
@@ -212,7 +255,7 @@ export class Token implements Entity {
         token.objectId = objectId;
         token.type = type;
 
-        let db = await Database.createInstance(appId);
+        let db = await ApplicationDatabase.createInstance(appId);
         await db.tokens.insertOne(token);
         return token;
     }
@@ -223,7 +266,7 @@ export class Token implements Entity {
      * @tokenValue 令牌字符串
      */
     static async parse(appId: string, tokenValue: string): Promise<Error | Token> {
-        let db = await Database.createInstance(appId);
+        let db = await ApplicationDatabase.createInstance(appId);
         let token = await db.tokens.findOne({ value: tokenValue });
         if (token == null) {
             throw errors.invalidToken(tokenValue);

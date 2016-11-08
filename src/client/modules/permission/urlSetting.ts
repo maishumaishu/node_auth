@@ -4,6 +4,7 @@ class UrlSettingPage extends chitu.Page {
 
         let dataSource = new wuzhui.ArrayDataSource([]);
         let gridViewElement = document.createElement('table');
+        gridViewElement.className = 'table table-striped table-bordered table-hover';
         this.element.appendChild(gridViewElement);
         let gridView = new wuzhui.GridView({
             dataSource: dataSource,

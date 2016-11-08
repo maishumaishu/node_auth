@@ -6,15 +6,49 @@
 			</p>
 		</div>
 		<div class="body">
-			<div class="pull-left">
-				名称
+
+			<div>
+				<div class="pull-left">
+					编号
+				</div>
+				<div data-bind="text:id" class="text interception">
+				</div>
 			</div>
-			<div data-bind="text:name">
+			<div>
+				<div class="pull-left">
+					名称
+				</div>
+				<div data-bind="text:name" class="text interception">
+				</div>
+			</div>
+			<div>
+				<div class="pull-left">
+					端口
+				</div>
+				<div data-bind="text:port" class="text">
+				</div>
+			</div>
+			<div>
+				<div class="pull-left">
+					转发至
+				</div>
+				<div data-bind="text:targetUrl" class="text interception">
+				</div>
+			</div>
+			<div>
+				<div class="pull-left">
+					开放注册
+				</div>
+				<div data-bind="" class="text interception">
+				</div>
+
 			</div>
 		</div>
 		<div class="footer">
 			<div class="col-xs-6">
-				<button class="btn btn-primary btn-block">编辑</button>
+
+				<button data-bind="click:$parent.editApp" class="btn btn-primary btn-block">编辑</button>
+
 			</div>
 			<div class="col-xs-6">
 				<button class="btn btn-success btn-block">详细</button>
@@ -28,7 +62,9 @@
 				添加应用
 			</p>
 		</div>
-		<div data-bind="click:newApp" style="padding-left:50px;padding-top:8px;">
+
+		<div data-bind="click:newApp" class="add">
+
 			<i class="icon-plus" style="font-size:120px"></i>
 		</div>
 	</li>
@@ -41,20 +77,38 @@
 				<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
 				<h4 class="modal-title">添加应用</h4>
 			</div>
-			<div class="modal-body">
+
+			<div data-bind="with:app" class="modal-body">
+
 				<form class="form-horizontal" role="form">
 					<div class="form-group">
 						<label class="col-sm-2 control-label">名称</label>
 						<div class="col-sm-10">
-							<input type="text" class="form-control" placeholder="请输入应用名称" autofocus="autofocus" data-bind="value:applicationName">
+
+							<input type="text" class="form-control" placeholder="请输入应用名称" data-bind="value:name">
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-sm-2 control-label">端口</label>
+						<div class="col-sm-10">
+							<input type="text" class="form-control" placeholder="请输入应用名称" data-bind="value:port">
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-sm-2 control-label">转发至</label>
+						<div class="col-sm-10">
+							<input type="text" class="form-control" placeholder="请输入转发的目标URL" data-bind="value:targetUrl">
+
 						</div>
 					</div>
 					<div class="form-group">
 						<div class="col-sm-offset-2 col-sm-10">
 							<div class="checkbox">
 								<label>
-                  <input type="checkbox"/> 开放注册接口
-                </label>
+
+									<input data-bind="checked:allowRegister" type="checkbox"/> 开放注册接口
+								</label>
+
 							</div>
 						</div>
 					</div>
@@ -62,8 +116,8 @@
 			</div>
 			<div class="modal-footer">
 				<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
-				<button data-bind="click:addApp" type="button" class="btn btn-primary">确定</button>
+
+				<button data-bind="click:saveApp" type="button" class="btn btn-primary">确定</button>
 			</div>
 		</div>
 	</div>
-</div>

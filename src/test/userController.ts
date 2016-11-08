@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import {User, Database} from '../server/database';
+import {User, ApplicationDatabase as Database} from '../server/database';
 import {UserController} from '../server/controllers/user';
 import * as Errors from '../server/errors';
 

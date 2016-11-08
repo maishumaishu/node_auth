@@ -87,7 +87,7 @@ export class ObjectTraver {
 
     protected visitArray(obj: Array<any>): any {
         let result = [];
-        for (let i = 0; i < (obj as []).length; i++) {
+        for (let i = 0; i < obj.length; i++) {
             result[i] = this.visit(obj[i]);
         }
         return result;
@@ -139,7 +139,7 @@ export class ObjectTraver {
         if (type == 'array') {
             return this.visitArray(obj);
         }
-        else if (type == 'number' || type == 'string') {
+        else if (type == 'number' || type == 'string' || type == 'boolean') {
             return this.visitValue(obj);
         }
         else if (type == 'date') {
@@ -246,17 +246,6 @@ export class Application {
 
             actionResult = new Promise((reslove, reject) => {
                 p.then(() => {
-                    //如果含有 JSON ，则转化为对象
-                    for (let key in query) {
-                        if (typeof query[key] != 'string')
-                            continue;
-
-                        let value = (<string>query[key]).trim();
-                        if (value[0] == '{' && value[value.length - 1] == '}') {
-                            query[key] = JSON.parse(value);
-                        }
-                    }
-
                     let r: Promise<any> = controller[actionName](query);
                     if (r == null || r.then == null || r.catch == null) {
                         reslove(r);
@@ -296,14 +285,17 @@ export class Application {
             return Promise.resolve({});
 
         return new Promise((reslove, reject) => {
-            let query: any = {};
-            request.on('data', (data) => {
+            request.on('data', (data: { toString: () => string }) => {
                 try {
-                    let obj = url.parse('?' + data.toString(), true).query;
-                    for (let key in obj) {
-                        query[key] = obj[key];
+                    let obj;
+                    let content_type: string = request.headers['content-type'] || '';
+                    if (content_type.startsWith('application/json')) {
+                        obj = JSON.parse(data.toString())
                     }
-                    reslove(query);
+                    else {
+                        obj = url.parse('?' + data.toString(), true).query;
+                    }
+                    reslove(obj);
                 }
                 catch (exc) {
                     reject(exc);
@@ -319,6 +311,7 @@ export class Application {
 
         response.statusCode = 200;
         response.setHeader('Access-Control-Allow-Origin', '*');
+        response.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
         response.setHeader('Content-Type', 'application/json;charset=utf-8');
 
         //===================================================
