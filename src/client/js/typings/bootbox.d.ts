@@ -3,7 +3,8 @@ declare module "bootbox" {
 }
 
 declare namespace Bootbox {
-    function alert(message: string);
+    function alert(options: any);
+    //function alert(options: any);
     function dialog(message: string);
-    function confirm(message: string);
+    function confirm(options: any);
 }
