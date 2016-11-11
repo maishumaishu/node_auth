@@ -5,11 +5,14 @@ export class ProxyServer {
     private server: http.Server;
     private port: number;
     private proxyHost: string;
+    private baseUrl: string;
 
-    constructor(params: { port: number, targetHost: string }) {
+    constructor(params: { port: number, targetHost: string, baseUrl: string }) {
+        //TODO:判断参数
         this.createServer();
         this.port = params.port;
         this.proxyHost = params.targetHost;
+        this.baseUrl = params.baseUrl;
     }
 
 
@@ -24,10 +27,11 @@ export class ProxyServer {
             headers['Content-Type'] = 'application/x-www-form-urlencoded'
         }
 
+        let requestUrl = this.baseUrl + req.url;
         let request = http.request(
             {
                 host: host,
-                path: req.url,
+                path: requestUrl,
                 method: req.method,
                 headers: headers,
             },
@@ -69,6 +73,6 @@ export class ProxyServer {
         return this.server;
     }
     start() {
-        this.server.listen(9000);
+        this.server.listen(this.port);
     }
 }

@@ -181,7 +181,7 @@ export class ApplicationDatabase {
 export class SystemDatabase {
     private source: mongodb.Db;
     private _applications: Table<Appliation>;
-    
+
     constructor(source: mongodb.Db) {
         this.source = source;
         this._applications = new Table<Appliation>(source, 'Appliation');
@@ -227,7 +227,9 @@ export interface User extends Entity {
 }
 
 export interface Appliation extends Entity {
-    name: string
+    name: string,
+    port: number,
+    targetUrl: string,
 }
 
 // interface MobileBinding extends Entity {

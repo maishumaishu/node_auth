@@ -5,9 +5,16 @@ import { BaseController } from './controllers/baseController';
 
 //==============================================================
 // 说明：启动反向代理服务器
+import { SystemDatabase } from './database';
 import { ProxyServer } from './proxyServer';
-let proxyServer = new ProxyServer({ port: 9000, targetHost: settings.serviceHost });
-proxyServer.start();
+SystemDatabase.createInstance().then(async (sys_db) => {
+  let apps = await sys_db.applications.find(null);
+  for (let app of apps) {
+    let u = url.parse(app.targetUrl);
+    let proxyServer = new ProxyServer({ port: app.port, targetHost: u.host, baseUrl: u.path });
+    proxyServer.start();
+  }
+});
 //==============================================================
 
 import * as http from 'http';
