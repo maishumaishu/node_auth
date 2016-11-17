@@ -2,8 +2,10 @@ import * as application_service from 'services/application_service';
 import * as validation from 'knockout.validation';
 import * as mapping from 'knockout.mapping';
 
-let app_fields = ['id', 'name', 'targetUrl'];
-export  class ApplicationsPage {
+
+//let app_fields = ['id', 'name', 'targetUrl'];
+class ApplicationsPage {
+
 
     private app: application_service.Application;
 
@@ -11,26 +13,22 @@ export  class ApplicationsPage {
     private $dialog: JQuery;
 
     constructor(page: chitu.Page) {
-        debugger;
-        requirejs([`c!css/${page.routeData.actionPath}`])
-        requirejs([`text!${page.routeData.actionPath}.html`], (html) => {
-            page.element.innerHTML = html;
 
-            this.app = new application_service.Application();
-            this.app.name.extend({ required: { message: '请输入应用名称' } });
-            this.app.targetUrl.extend({ required: { message: '请输入转发的目标URL' } });
 
-            this.items = ko.observableArray<application_service.Application>();
-            ko.applyBindings(this, page.element);
+        this.app = new application_service.Application();
+        this.app.name.extend({ required: { message: '请输入应用名称' } });
+        this.app.targetUrl.extend({ required: { message: '请输入转发的目标URL' } });
 
-            this.val = validation.group(this.app);
-            this.$dialog = $(page.element).find('[name="dlg_application"]');
-        });
+        this.items = ko.observableArray<application_service.Application>();
 
-        page.load.add((sender, args) => this.page_load(this, args));
+        page.load.add(() => this.page_load(page));
     }
 
-    private page_load(sender: ApplicationsPage, args) {
+    private page_load(sender: chitu.Page) {
+        ko.applyBindings(this, sender.element);
+        this.val = validation.group(this.app);
+        this.$dialog = $(sender.element).find('[name="dlg_application"]');
+
         return application_service.list().done((data: Array<any>) => {
             this.items(data);
         })
