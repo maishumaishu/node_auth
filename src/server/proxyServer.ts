@@ -34,6 +34,8 @@ export class ProxyServer {
                 for (var key in response.headers) {
                     res.setHeader(key, response.headers[key]);
                 }
+                res.setHeader('Access-Control-Allow-Origin', '*');
+                res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
                 response.pipe(res);
             }
         );
