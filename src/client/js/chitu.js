@@ -37,7 +37,6 @@
             if (search) {
                 this._parameters = this.pareeUrlQuery(search);
             }
-
             let route_parts = routePath.split(this.path_spliter_char).map(o => o.trim());
             if (route_parts.length < 2) {
                 throw chitu.Errors.canntParseRouteString(routeString);
@@ -72,7 +71,6 @@
     var ACTION_LOCATION_FORMATER = '{controller}/{action}';
     var VIEW_LOCATION_FORMATER = '{controller}/{action}';
     class Application {
-
         constructor() {
             this.pageCreated = chitu.Callbacks();
             this._runned = false;
@@ -97,7 +95,6 @@
         }
         createPage(routeData) {
             let previous_page = this.pages[this.pages.length - 1];
-
             let element = this.createPageElement(routeData);
             let displayer = new chitu.PageDisplayerImplement();
             element.setAttribute('name', routeData.pageName);
@@ -115,7 +112,6 @@
             }
             return page;
         }
-
         createPageElement(routeData) {
             let element = document.createElement('page');
             document.body.appendChild(element);
@@ -164,7 +160,6 @@
             if (routeData == null) {
                 throw chitu.Errors.noneRouteMatched(routeString);
             }
-
             routeData.values = chitu.extend(routeData.values, args || {});
             let previous = this.currentPage;
             let result = new Promise((resolve, reject) => {
@@ -180,7 +175,6 @@
         }
         changeLocationHash(hash) {
             let location = window.location;
-
             location.skipHashChanged = true;
             location.hash = '#' + hash;
         }
@@ -328,7 +322,6 @@ var chitu;
         }
     }
     chitu.Callback = Callback;
-
     class Callback2 extends Callback {
         constructor(source) {
             super(source);
@@ -473,12 +466,10 @@ var chitu;
         return new Callback(self);
     }
     chitu.Callbacks = Callbacks;
-
     function fireCallback(callback, sender, ...args) {
         let context = sender;
         args.unshift(sender);
         var results = callback.fireWith(context, args);
-
         var deferreds = new Array();
         for (var i = 0; i < results.length; i++) {
             if (results[i] instanceof Promise)
@@ -513,7 +504,6 @@ var chitu;
             this._displayer = params.displayer;
             this.loadPageAction(params.routeData);
         }
-
         on_load(...resources) {
             return chitu.fireCallback(this.load, this, resources);
         }
@@ -577,7 +567,6 @@ var chitu;
             });
         }
         loadPageAction(routeData) {
-
             var action_deferred = new Promise((reslove, reject) => {
                 this.createActionDeferred(routeData).then((actionResult) => {
                     let actionName = routeData.actionName || 'default';
@@ -621,7 +610,6 @@ var chitu;
         }
     }
     chitu.PageDisplayerImplement = PageDisplayerImplement;
-
 })(chitu || (chitu = {}));
 
 
@@ -629,7 +617,6 @@ var chitu;
 (function (chitu) {
     var e = chitu.Errors;
     class Utility {
-
         static isType(targetType, obj) {
             for (var key in targetType.prototype) {
                 if (obj[key] === undefined)
@@ -674,7 +661,6 @@ var chitu;
             var txt = this.format.apply(this, arguments);
             console.log(txt);
         }
-
     }
     Utility.loadjs = loadjs;
     chitu.Utility = Utility;

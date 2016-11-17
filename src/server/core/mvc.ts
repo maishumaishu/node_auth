@@ -111,6 +111,10 @@ export class ObjectTraver {
         return this.visit(obj[fieldName]);
     }
 
+    // protected visitProperty(obj: any, propertyName: string) {
+    //     return this.visit(obj[propertyName]);
+    // }
+
     protected visitDate(obj: Date) {
         let d = obj;
         return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()} ${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}`;

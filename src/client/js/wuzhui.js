@@ -1216,7 +1216,6 @@ var wuzhui;
                 showHeader: true, showFooter: false,
                 allowPaging: false
             }, params);
-            this._params = params;
             this._columns = params.columns || [];
             if (this._columns.length == 0)
                 throw wuzhui.Errors.columnsCanntEmpty();
@@ -1264,9 +1263,6 @@ var wuzhui;
             var textElement = document.createElement('span');
             textElement.innerText = this.emptyDataText;
             cell.appendChild(textElement);
-            if (!this._params.emptyDataRowStyle) {
-                wuzhui.applyStyle(cell, this._params.emptyDataRowStyle);
-            }
             this._emtpyRow.appendChild(cell);
             this._body.appendChild(this._emtpyRow);
             wuzhui.fireCallback(this.rowCreated, this, { row: this._emtpyRow });

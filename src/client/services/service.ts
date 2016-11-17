@@ -72,6 +72,8 @@ export function post<T>(url: string, data?: any): JQueryPromise<T> {
     data = data || {};
     $.ajax(url, {
         type: "post",
+        //processData: false,
+        //contentType: 'application/json',
         contentType: 'application/json; charset=UTF-8',
         dataType: 'json',
         data: JSON.stringify(data),

@@ -15,7 +15,6 @@ declare namespace chitu {
         private _cssPath;
         private _parameters;
         private _pageName;
-
         private _pathBase;
         private HASH_MINI_LENGTH;
         constructor(basePath: string);
@@ -28,7 +27,6 @@ declare namespace chitu {
         private _runned;
         private zindex;
         private page_stack;
-
         fileBasePath: string;
         backFail: Callback<Application>;
         constructor();
@@ -43,7 +41,6 @@ declare namespace chitu {
         getPage(name: string): Page;
         showPage<T extends Page>(routeString: string, args?: any): Promise<T>;
         private changeLocationHash(hash);
-
         redirect<T extends Page>(routeString: string, args?: any): Promise<T>;
         back(args?: any): Promise<void>;
     }
@@ -82,14 +79,12 @@ declare namespace chitu {
     class Callback<S> {
         source: any;
         constructor(source: any);
-
         add(func: (sender: S, ...args: Array<any>) => any): void;
         remove(func: Function): void;
         has(func: Function): boolean;
         fireWith(context: any, args: any): any;
         fire(arg1?: any, arg2?: any, arg3?: any, arg4?: any): any;
     }
-
     class Callback2<S, A> extends Callback<S> {
         constructor(source: any);
         add(func: (sender: S, arg: A) => any): void;
@@ -105,7 +100,6 @@ declare namespace chitu {
     interface PageDisplayer {
         show(page: Page): any;
         hide(page: Page): any;
-
     }
     class Page {
         private animationTime;
@@ -115,7 +109,6 @@ declare namespace chitu {
         private _app;
         private _routeData;
         private _displayer;
-
         load: Callback<Page>;
         showing: Callback<Page>;
         shown: Callback<Page>;
@@ -130,7 +123,6 @@ declare namespace chitu {
             displayer: PageDisplayer;
             previous?: Page;
         });
-
         on_load(...resources: Array<any>): Promise<any>;
         on_showing(): Promise<any>;
         on_shown(): Promise<any>;
@@ -147,7 +139,6 @@ declare namespace chitu {
         name: string;
         private createActionDeferred(routeData);
         private loadPageAction(routeData);
-
     }
     class PageDisplayerImplement implements PageDisplayer {
         show(page: Page): void;
@@ -158,13 +149,11 @@ declare namespace chitu {
 
 declare namespace chitu {
     class Utility {
-        static extend(obj1: any, obj2: any): any;
         static isType(targetType: Function, obj: any): boolean;
         static isDeferred(obj: any): boolean;
         static format(source: string, ...params: string[]): string;
         static fileName(url: any, withExt: any): string;
         static log(msg: any, args?: any[]): void;
-
         static loadjs: typeof loadjs;
     }
     function extend(obj1: any, obj2: any): any;
