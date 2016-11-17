@@ -1,5 +1,3 @@
-class LoginPage extends chitu.Page {
+export default class LoginPage extends chitu.Page {
 
 }
-
-export = LoginPage;

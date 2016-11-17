@@ -6,41 +6,41 @@ class Application extends chitu.Application {
 
     constructor() {
         super({
-            container: (routeData: chitu.RouteData, previous: chitu.PageContainer) => {
+            // container: (routeData: chitu.RouteData, previous: chitu.PageContainer) => {
 
-                var css_path = chitu.Utility.format(`c!css/${routeData.actionPath}.css`);
-                routeData.resource = [css_path];
+            //     var css_path = chitu.Utility.format(`c!css/${routeData.actionPath}.css`);
+            //     routeData.resource = [css_path];
 
-                let element = document.createElement('div');
-                var c: chitu.PageContainer = chitu.PageContainerFactory.createInstance({ app, routeData, previous, element });
-                //
-                if (routeData.pageName == 'home.login') {
-                    let container_host_element = document.getElementById('login-container');
-                    console.assert(container_host_element != null);
-                    container_host_element.appendChild(c.element);
-                }
-                else if (routeData.pageName == 'home.applications') {
-                    let container_host_element = document.getElementById('applications-container');
-                    console.assert(container_host_element != null);
-                    container_host_element.appendChild(c.element);
-                }
-                else {
-                    let _contentElement = document.getElementById('mainContent');
-                    console.assert(_contentElement != null);
-                    _contentElement.appendChild(c.element);
-                }
+            //     let element = document.createElement('div');
+            //     var c: chitu.PageContainer = chitu.PageContainerFactory.createInstance({ app, routeData, previous, element });
+            //     //
+            //     if (routeData.pageName == 'home.login') {
+            //         let container_host_element = document.getElementById('login-container');
+            //         console.assert(container_host_element != null);
+            //         container_host_element.appendChild(c.element);
+            //     }
+            //     else if (routeData.pageName == 'home.applications') {
+            //         let container_host_element = document.getElementById('applications-container');
+            //         console.assert(container_host_element != null);
+            //         container_host_element.appendChild(c.element);
+            //     }
+            //     else {
+            //         let _contentElement = document.getElementById('mainContent');
+            //         console.assert(_contentElement != null);
+            //         _contentElement.appendChild(c.element);
+            //     }
 
-                c.shown.add((sender, args) => {
-                    $('.main-container').hide();
-                    $(sender.element).parents('.main-container').show();
-                });
-                // c.closing.add((sender, args) => {
-                //     $(sender.element).parents('.main-container').hide();
-                // })
+            //     c.shown.add((sender, args) => {
+            //         $('.main-container').hide();
+            //         $(sender.element).parents('.main-container').show();
+            //     });
+            //     // c.closing.add((sender, args) => {
+            //     //     $(sender.element).parents('.main-container').hide();
+            //     // })
 
 
-                return c;
-            }
+            //     return c;
+            // }
         });
     }
 }

@@ -107,21 +107,41 @@ export class Table<T extends Entity>{
                         reject(err);
                         return;
                     }
-                    reslove(items);
+
+                    let result = new Array<T>();
+                    for (let item of items) {
+                        let obj = this.toEntity(item);
+                        result.push(obj);
+                    }
+
+                    reslove(result);
                 });
             });
         });
     }
     findOne(selector): Promise<T> {
         return new Promise((reslove, reject) => {
-            this.source.findOne(selector, (err: Error, result: T) => {
+            this.source.findOne(selector, (err: Error, dataItem: T) => {
                 if (err != null) {
                     reject(err);
                     return;
                 }
+                let result = this.toEntity(dataItem);
                 reslove(result);
             });
         });
+    }
+
+    private toEntity(dataItem: any) {
+        let obj = {} as T;
+        for (let key in dataItem) {
+            if (key == '_id') {
+                obj.id = dataItem[key].toString();
+            } else {
+                obj[key] = dataItem[key];
+            }
+        }
+        return obj;
     }
 }
 
@@ -231,17 +251,6 @@ export interface Appliation extends Entity {
     port: number,
     targetUrl: string,
 }
-
-// interface MobileBinding extends Entity {
-//     mobile: string,
-//     userId: string
-// }
-
-// interface EmailBinding extends Entity {
-//     email: string,
-//     userId: string
-// }
-
 
 /**
  * 用于解释和生成 token 。

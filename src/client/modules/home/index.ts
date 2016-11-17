@@ -1,4 +1,5 @@
-class IndexPage extends chitu.Page {
+import {ApplicationsPage} from 'applications' 
+export class IndexPage extends chitu.Page {
 
 }
 

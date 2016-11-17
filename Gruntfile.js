@@ -1,17 +1,18 @@
 
-var release = 'release';
+let build = 'build';
+let release = 'release';
 module.exports = function (grunt) {
     var config = {
         ts: {
             server: {
                 src: ['src/server/**/*.ts'],
-                dest: `${release}/server`,
+                dest: `${build}/server`,
                 options: {
                     target: 'es6',
                     module: 'commonjs',
                     removeComments: true,
                     declaration: false,
-                    sourceMap: true,
+                    sourceMap: false,
                     references: [
                         "src/server/**/*.ts",
                     ],
@@ -19,7 +20,7 @@ module.exports = function (grunt) {
             },
             client: {
                 src: ['src/client/**/*.ts','src/client/**/*.tsx'],
-                dest: `${release}/client`,
+                dest: `${build}/client`,
                 options: {
                     target: 'es6',
                     module: 'amd',
@@ -34,7 +35,7 @@ module.exports = function (grunt) {
             },
             test: {
                 src: ['src/test/**/*.ts'],
-                dest: `${release}`,
+                dest: `${build}`,
                 options: {
                     target: 'es6',
                     module: 'commonjs',
@@ -43,6 +44,20 @@ module.exports = function (grunt) {
                     sourceMap: false,
                     references: [
                         "src/test/**/*.ts"
+                    ],
+                }
+            },
+            server_release: {
+                src: ['src/server/**/*.ts'],
+                dest: `${release}/server`,
+                options: {
+                    target: 'es6',
+                    module: 'commonjs',
+                    removeComments: true,
+                    declaration: false,
+                    sourceMap: false,
+                    references: [
+                        "src/server/**/*.ts",
                     ],
                 }
             }
@@ -56,7 +71,7 @@ module.exports = function (grunt) {
                     expand: true,
                     cwd: 'src/client/css/',
                     src: ['**/*.styl'],
-                    dest: 'release/client/css',
+                    dest: `${build}/client/css`,
                     ext: '.css'
                 }]
             },
@@ -67,8 +82,13 @@ module.exports = function (grunt) {
                     {
                         expand: true, cwd: 'src/client',
                         src: ['**/*.html', '**/*.js', '**/*.css', 'font/*.*'],
-                        dest: `${release}/client`
+                        dest: `${build}/client`
                     },
+                    {
+                        expand: true, cwd: `${build}/client`,
+                        src: ['**/*.html', '**/*.js', '**/*.css', 'font/*.*'],
+                        dest: `${release}/client`
+                    }
                 ]
             }
         }
