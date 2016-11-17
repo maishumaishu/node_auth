@@ -16,16 +16,11 @@ export class ProxyServer {
     }
 
 
-    private request(req: http.IncomingMessage, res: http.ServerResponse, data?: string) {
+    private request(req: http.IncomingMessage, res: http.ServerResponse, data?: string | Uint8Array) {
         let host = this.proxyHost;
 
         let headers: any = req.headers;
         headers.host = host;
-
-        if (data) {
-            headers['Content-Length'] = data.length;
-            headers['Content-Type'] = 'application/x-www-form-urlencoded'
-        }
 
         let requestUrl = this.baseUrl + req.url;
         let request = http.request(
@@ -43,8 +38,10 @@ export class ProxyServer {
             }
         );
 
-        if (data)
+        if (data) {
+            let text = String.fromCharCode.apply(null, data);
             request.write(data);
+        }
 
         request.end();
     }
