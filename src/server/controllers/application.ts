@@ -33,8 +33,8 @@ export class ApplicationController extends BaseController {
         if (app == null)
             return errors.argumentNull('app');
 
-        if (app.id == null)
-            return errors.fieldNull('id', 'app');
+        if (app._id == null)
+            return errors.fieldNull('_id', 'app');
 
         let db = await data.SystemDatabase.createInstance();
         let item = await db.applications.findOne({ name: app.name });
@@ -42,7 +42,7 @@ export class ApplicationController extends BaseController {
         return error;
     }
     async save(app: data.Appliation) {
-        if (app.id) {
+        if (app._id) {
             return this.update(app);
         }
 

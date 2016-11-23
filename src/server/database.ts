@@ -42,20 +42,20 @@ export class Table<T extends Entity>{
                 return;
             }
 
-            if (entity.id == null) {
+            if (entity._id == null) {
                 reject(errors.fieldNull('id', 'entity'));
                 return;
             }
 
-            let obj = {};
-            for (let key in entity) {
-                if (key == 'id')
-                    continue;
+            // let obj = {};
+            // for (let key in entity) {
+            //     if (key == 'id')
+            //         continue;
 
-                obj[key] = entity[key];
-            }
+            //     obj[key] = entity[key];
+            // }
 
-            this.source.updateOne({ _id: new mongodb.ObjectID(entity.id) }, { $set: obj }, (err, result) => {
+            this.source.updateOne({ _id: new mongodb.ObjectID(entity._id) }, { $set: entity }, (err, result) => {
                 if (err) {
                     reject(err);
                     return;
@@ -167,8 +167,6 @@ export class ApplicationDatabase {
         return this._users;
     }
 
-
-
     get tokens(): Table<Token> {
         return this._tokens;
     }
@@ -214,7 +212,7 @@ export class Users extends Table<User> {
 }
 
 export interface Entity {
-    id?: string,
+    _id?: string,
     createDateTime?: Date,
 }
 
@@ -224,12 +222,14 @@ export interface User extends Entity {
     group?: string,
     mobile?: string,
     email?: string,
+    guid?: string,    
 }
 
 export interface Appliation extends Entity {
     name: string,
     port: number,
     targetUrl: string,
+    guid: string,    
 }
 
 // interface MobileBinding extends Entity {

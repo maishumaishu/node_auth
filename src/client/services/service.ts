@@ -16,7 +16,7 @@ export let ajaxTimeout = 5000;
 
 let HTTP = 'http://';
 //let host = 'http://localhost:3000/';
-let host = 'http://localhost:3000/';
+let host = 'http://localhost:3013/';
 const HTTP_LENGTH = 7;
 
 export function ajax<T>(url: string, data?: any): JQueryPromise<T> {
@@ -72,8 +72,6 @@ export function post<T>(url: string, data?: any): JQueryPromise<T> {
     data = data || {};
     $.ajax(url, {
         type: "post",
-        //processData: false,
-        //contentType: 'application/json',
         contentType: 'application/json; charset=UTF-8',
         dataType: 'json',
         data: JSON.stringify(data),

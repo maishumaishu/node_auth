@@ -14,6 +14,7 @@ export let names = {
     InvalidToken: 'InvalidToken',
     DeleteResultZero: 'DeleteResultZero',
     UpdateResultZero: 'UpdateResultZero',
+    PostIsRequired: 'PostIsRequired'
 }
 
 export function fieldNull(fieldName: string, objectName: string): Error {
@@ -102,5 +103,12 @@ export function updateResultZero() {
     let msg = 'Updated count is zero, maybe the object is not exists.'
     let error = new Error(msg);
     error.name = names.UpdateResultZero;
+    return error;
+}
+
+export function postIsRequired() {
+    let msg = 'Post request is required.';
+    let error = new Error(msg);
+    error.name = names.PostIsRequired;
     return error;
 }

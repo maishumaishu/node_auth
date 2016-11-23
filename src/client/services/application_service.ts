@@ -16,7 +16,7 @@ export function save(app: Application) {
     return service.post('application/save', obj);
 }
 export function list(): JQueryPromise<Array<Application>> {
-    return service.ajax<Array<any>>('application/list').then(function (items) {
+    return service.post<Array<any>>('application/list').then(function (items) {
         let result: Array<Application> = items.map(o => mapping.fromJS(o, {}, new Application()));
         return result;
     });

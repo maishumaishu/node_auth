@@ -2,6 +2,7 @@
 
 import * as settings from './settings';
 import { BaseController } from './controllers/baseController';
+import * as Errors from './errors';
 
 //==============================================================
 // 说明：启动反向代理服务器
@@ -68,3 +69,59 @@ class MyObjectTraver extends mvc.ObjectTraver {
     return result;
   }
 }
+
+
+//==============================================================
+import * as express from 'express';
+import { ApplicationController } from './modules/application';
+(function () {
+
+  let app = express();
+
+  app.get('/', function (req, res) {
+    res.send('hello world');
+  });
+
+  app.post('/applications/list', async function (req, res) {
+    let controller = new ApplicationController();
+    let applications = await controller.list();
+    let str = JSON.stringify(applications);
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    res.setHeader('Content-Type', 'application/json;charset=utf-8');
+    res.send(str);
+  });
+
+  app.post('/applications/save', async function (req, res) {
+    let controller = new ApplicationController();
+    let postData = await getPostObject(req);
+    controller.save(postData);
+  });
+
+  function getPostObject(request: http.IncomingMessage): Promise<any> {
+    let method = (request.method || '').toLowerCase();
+    if (method != 'post') {
+      return Promise.reject(Errors.postIsRequired());
+    }
+
+    let length = request.headers['content-length'] || 0;
+    if (length <= 0)
+      return Promise.resolve({});
+
+    return new Promise((reslove, reject) => {
+      request.on('data', (data: { toString: () => string }) => {
+        try {
+          let obj;
+          obj = JSON.parse(data.toString())
+          reslove(obj);
+        }
+        catch (exc) {
+          reject(exc);
+        }
+      });
+    });
+  }
+
+  app.listen(3010);
+
+})();

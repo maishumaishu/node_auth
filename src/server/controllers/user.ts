@@ -84,7 +84,7 @@ export class UserController extends BaseController {
         if (user.password != password) {
             throw Errors.passwordIncorect(username);
         }
-        let token = await Token.create(this.applicationId, user.id, 'user');
+        let token = await Token.create(this.applicationId, user._id, 'user');
         return { token: token.value };
     }
     update(args: any) {
