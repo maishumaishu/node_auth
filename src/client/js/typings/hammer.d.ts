@@ -1,4 +1,3 @@
-
 declare module Hammer {
     const INPUT_START: number;
     const INPUT_MOVE: number;
@@ -34,26 +33,15 @@ declare module Hammer {
         evTarget: string;
     }
 
-    interface Behavior {
-        contentZooming: string;
-        tapHighlightColor: string;
-        touchAction: string;
-        touchCallout: string;
-        userDrag: string;
-        userSelect: string;
-    }
-
     class Manager {
         constructor(element: HTMLElement);//, options: Object = undefined
-        constructor(element: HTMLElement, options: {
-            behavior: Behavior
-        });//, options: Object = undefined
+        constructor(element: HTMLElement, options: Object);//, options: Object = undefined
 
         element: HTMLElement;
         handlers: { [idnex: string]: Array<Function> };
         input: TouchInput;
 
-        on(event: string, callback: (event: any) => void);
+        on(event: 'pan'| 'panstart' | 'panend' | 'panup' | 'pandown' | 'panleft' | 'panright' , callback: (event: any) => void);
         'get'(recognizer: 'pan' | 'pinch' | 'rotate' | 'swipe'): Recognizer;
         add(recognizer: Recognizer);
     }
@@ -98,14 +86,6 @@ declare module Hammer {
         velocity: number
         velocityX: number
         velocityY: number
-    }
-
-    //class utils {
-    function extend(dest: any, src: any): any;
-    //}
-
-    class defaults {
-        //static behavior: Behavior
     }
 }
 

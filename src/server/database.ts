@@ -47,15 +47,15 @@ export class Table<T extends Entity>{
                 return;
             }
 
-            // let obj = {};
-            // for (let key in entity) {
-            //     if (key == 'id')
-            //         continue;
+            let obj = {};
+            for (let key in entity) {
+                if (key == '_id')
+                    continue;
 
-            //     obj[key] = entity[key];
-            // }
+                obj[key] = entity[key];
+            }
 
-            this.source.updateOne({ _id: new mongodb.ObjectID(entity._id) }, { $set: entity }, (err, result) => {
+            this.source.updateOne({ _id: new mongodb.ObjectID(entity._id) }, { $set: obj }, (err, result) => {
                 if (err) {
                     reject(err);
                     return;

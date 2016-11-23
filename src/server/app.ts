@@ -82,7 +82,7 @@ import { ApplicationController } from './modules/application';
     res.send('hello world');
   });
 
-  app.post('/applications/list', async function (req, res) {
+  app.post('/application/list', async function (req, res) {
     let controller = new ApplicationController();
     let applications = await controller.list();
     let str = JSON.stringify(applications);
@@ -92,18 +92,33 @@ import { ApplicationController } from './modules/application';
     res.send(str);
   });
 
-  app.post('/applications/save', async function (req, res) {
-    let controller = new ApplicationController();
-    let postData = await getPostObject(req);
-    controller.save(postData);
+  app.post('/application/save', async function (req, res) {
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    res.setHeader('Content-Type', 'application/json;charset=utf-8');
+
+    try {
+      let controller = new ApplicationController();
+      let postData = await getPostObject(req);
+      let result = await controller.save(postData);
+      res.send(JSON.stringify(result));
+    }
+    catch (exc) {
+      res.send(JSON.stringify(exc));
+    }
+
+  });
+
+  app.options('/*', function (req, res) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    res.setHeader('Content-Type', 'application/json;charset=utf-8');
+    res.send(JSON.stringify({}));
   });
 
   function getPostObject(request: http.IncomingMessage): Promise<any> {
     let method = (request.method || '').toLowerCase();
-    if (method != 'post') {
-      return Promise.reject(Errors.postIsRequired());
-    }
-
     let length = request.headers['content-length'] || 0;
     if (length <= 0)
       return Promise.resolve({});

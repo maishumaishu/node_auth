@@ -25,7 +25,7 @@ class ApplicationsPage {
         ko.applyBindings(this, sender.element);
         this.val = validation.group(this.app);
         this.$dialog = $(sender.element).find('[name="dlg_application"]');
-        return application_service.list().done((data: Array<any>) => {
+        return application_service.list().then((data: Array<any>) => {
             this.items(data);
         })
     }

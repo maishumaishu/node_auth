@@ -21,16 +21,18 @@ class Application extends chitu.Application {
 
     protected parseRouteString(routeString: string) {
         let routeData = super.parseRouteString(routeString);
-        routeData.resource = [
-            `text!${routeData.actionPath}.html`,
-            `c!css/${routeData.actionPath}.css`
-        ];
+        // routeData.resource = [
+        //     `text!${routeData.actionPath}.html`,
+        //     `c!css/${routeData.actionPath}.css`
+        // ];
+        routeData.resources.push({ name: 'html', path: `text!${routeData.actionPath}.html` });
+        routeData.resources.push({ name: 'css', path: `c!css/${routeData.actionPath}.css` });
         return routeData;
     }
 
     protected createPage(routeData) {
         let page = super.createPage(routeData);
-        page.load.add((sender: chitu.Page, html: string) => {
+        page.load.add((sender: chitu.Page, { html, css }) => {
             sender.element.innerHTML = html;
         });
         page.shown.add((sender: chitu.Page) => {

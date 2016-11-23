@@ -7,9 +7,9 @@
         "*.doc": true,
         "**/*.intellisense.js": true,
         ".tscache": true,
-        "**/.baseDir.*": true
+        "**/.baseDir.*": true,
+        "release": true
         //"src/**/typings":true
-    }
-,
-"typescript.check.workspaceVersion": false
+    },
+    "typescript.check.workspaceVersion": false
 }
