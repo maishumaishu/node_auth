@@ -29,7 +29,7 @@ export class ApplicationController extends BaseController {
         let apps = await db.applications.find({});
         return apps;
     }
-    async update(app: data.Appliation): Promise<Error> {
+    async update(app: data.Appliation) {
         if (app == null)
             return errors.argumentNull('app');
 

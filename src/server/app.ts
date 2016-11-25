@@ -9,12 +9,12 @@ import * as Errors from './errors';
 import { SystemDatabase } from './database';
 import { ProxyServer } from './proxyServer';
 SystemDatabase.createInstance().then(async (sys_db) => {
-  let apps = await sys_db.applications.find(null);
-  for (let app of apps) {
-    let u = url.parse(app.targetUrl);
-    let proxyServer = new ProxyServer({ port: app.port, targetHost: u.host, baseUrl: u.path });
+  //let apps = await sys_db.applications.find(null);
+  //for (let app of apps) {
+    //let u = url.parse(app.targetUrl);
+    let proxyServer = new ProxyServer({ port: 2014 });
     proxyServer.start();
-  }
+  //}
 });
 //==============================================================
 
@@ -83,13 +83,14 @@ import { ApplicationController } from './modules/application';
   });
 
   app.post('/application/list', async function (req, res) {
-    let controller = new ApplicationController();
-    let applications = await controller.list();
-    let str = JSON.stringify(applications);
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-    res.setHeader('Content-Type', 'application/json;charset=utf-8');
-    res.send(str);
+    try {
+      let controller = new ApplicationController();
+      let applications = await controller.list();
+      outputToResponse(res, applications);
+    }
+    catch (exc) {
+      outputError(res, exc);
+    }
   });
 
   app.post('/application/save', async function (req, res) {
@@ -106,7 +107,7 @@ import { ApplicationController } from './modules/application';
     }
     catch (exc) {
       //res.send(JSON.stringify(exc));
-      outputToResponse(res, exc);
+      outputError(res, exc);
     }
 
   });
@@ -145,12 +146,23 @@ import { ApplicationController } from './modules/application';
     response.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
     response.setHeader('Content-Type', 'application/json;charset=utf-8');
 
-    let outputObject = {};
-    let keys = Object.keys(obj).concat(Object.getOwnPropertyNames(obj));
-    for (let i = 0; i < keys.length; i++) {
-      outputObject[keys[i]] = obj[keys[i]];
-    }
+    // let outputObject = {};
+    // let keys = Object.keys(obj).concat(Object.getOwnPropertyNames(obj));
+    // for (let i = 0; i < keys.length; i++) {
+    //   outputObject[keys[i]] = obj[keys[i]];
+    // }
 
+    response.write(JSON.stringify(obj));
+    response.end();
+  }
+
+  function outputError(response: http.ServerResponse, err: Error) {
+    console.assert(err != null);
+    response.statusCode = 200;
+    response.setHeader('Access-Control-Allow-Origin', '*');
+    response.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    response.setHeader('Content-Type', 'application/json;charset=utf-8');
+    let outputObject = { message: err.message, name: err.name, stack: err.stack };
     response.write(JSON.stringify(outputObject));
     response.end();
   }

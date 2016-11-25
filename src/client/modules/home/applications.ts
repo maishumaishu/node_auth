@@ -38,7 +38,8 @@ export default function action(page: chitu.Page) {
                     }
 
                     app_service.save(item).then((result) => {
-                        item._id = result._id;
+                        //item._id = result._id;
+                        Object.assign(item, result);
                     });
                 },
                 newApp: function () {
@@ -66,9 +67,10 @@ export default function action(page: chitu.Page) {
         let validator = (<any>modalElement).validator;
         if (validator == null) {
             validator = new FormValidator(modalElement, [
-                { name: 'name', rules: 'required' },
-                { name: 'port', rules: 'required' },
-                { name: 'targetUrl', rules: 'required' }
+                { name: '编号', rules: 'required' },
+                { name: '名称', rules: 'required' },
+                { name: '端口', rules: 'required' },
+                { name: '目标URL', rules: 'required' }
             ]);
             (<any>modalElement).validator = validator;
         }

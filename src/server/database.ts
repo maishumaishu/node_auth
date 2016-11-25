@@ -35,7 +35,7 @@ export class Table<T extends Entity>{
             });
         });
     }
-    updateOne(entity: T): Promise<Error> {
+    updateOne(entity: T): Promise<Error | T> {
         return new Promise((reslove, reject) => {
             if (entity == null) {
                 reject(errors.argumentNull('entity'));
@@ -64,7 +64,7 @@ export class Table<T extends Entity>{
                     reject(errors.updateResultZero());
                     return;
                 }
-                reject(errors.success());
+                reslove(obj);
                 return;
             });
         })
@@ -222,14 +222,14 @@ export interface User extends Entity {
     group?: string,
     mobile?: string,
     email?: string,
-    guid?: string,    
+    guid?: string,
 }
 
 export interface Appliation extends Entity {
     name: string,
     port: number,
     targetUrl: string,
-    guid: string,    
+    guid: string,
 }
 
 // interface MobileBinding extends Entity {

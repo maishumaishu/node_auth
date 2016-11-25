@@ -13,7 +13,7 @@
 						编号
 					</div>
 					<div class="text interception">
-						{{item._id}}
+						{{item.guid}}
 					</div>
 				</div>
 				<div>
@@ -87,21 +87,27 @@
 			<div class="modal-body">
 				<form class="form-horizontal" role="form">
 					<div class="form-group">
+						<label class="col-sm-2 control-label">编号</label>
+						<div class="col-sm-10">
+							<input name="编号" v-model="app.guid" type="text" class="form-control" placeholder="请输入应用编号">
+						</div>
+					</div>
+					<div class="form-group">
 						<label class="col-sm-2 control-label">名称</label>
 						<div class="col-sm-10">
-							<input name="name" v-model="app.name" type="text" class="form-control" placeholder="请输入应用名称">
+							<input name="名称" v-model="app.name" type="text" class="form-control" placeholder="请输入应用名称">
 						</div>
 					</div>
 					<div class="form-group">
 						<label class="col-sm-2 control-label">端口</label>
 						<div class="col-sm-10">
-							<input name="port" v-model="app.port" type="text" class="form-control" placeholder="请输入应用名称">
+							<input name="端口" v-model="app.port" type="text" class="form-control" placeholder="请输入应用名称">
 						</div>
 					</div>
 					<div class="form-group">
 						<label class="col-sm-2 control-label">转发至</label>
 						<div class="col-sm-10">
-							<input name="targetUrl" v-model="app.targetUrl" type="text" class="form-control" placeholder="请输入转发的目标URL">
+							<input name="目标URL" v-model="app.targetUrl" type="text" class="form-control" placeholder="请输入转发的目标URL">
 						</div>
 					</div>
 					<div class="form-group">

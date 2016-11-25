@@ -13,7 +13,7 @@ export class ApplicationController {
 
         return this.add(app);
     }
-    async update(app: data.Appliation): Promise<Error> {
+    async update(app: data.Appliation) {
         if (app == null)
             return errors.argumentNull('app');
 

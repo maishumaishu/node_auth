@@ -3,6 +3,7 @@
 //export class Errors {
 export let names = {
     ApplicationExists: 'ApplicationExists',
+    ApplicationExistsWithGuid: 'ApplicationExistsWithGuid',
     ArgumentNull: 'ArgumentNull',
     FieldNull: 'FieldNull',
     NotAllowRegister: 'NotAllowRegister',
@@ -14,7 +15,8 @@ export let names = {
     InvalidToken: 'InvalidToken',
     DeleteResultZero: 'DeleteResultZero',
     UpdateResultZero: 'UpdateResultZero',
-    PostIsRequired: 'PostIsRequired'
+    PostIsRequired: 'PostIsRequired',
+    CanntGetAppIdFromHeader:'CanntGetAppIdFromHeader'
 }
 
 export function fieldNull(fieldName: string, objectName: string): Error {
@@ -92,6 +94,14 @@ export function applicationExists(name: string) {
     return error;
 }
 
+export function applicationExistsWithGuid(guid: string) {
+    let msg = `Application with guid '${guid}' is exists.`;
+    let error = new Error(msg);
+    error.name = names.ApplicationExistsWithGuid;
+    (<any>error).arguments = { guid };
+    return error;
+}
+
 export function deleteResultZero() {
     let msg = 'Deleted count is zero, maybe the object is not exists.'
     let error = new Error(msg);
@@ -111,4 +121,11 @@ export function postIsRequired() {
     let error = new Error(msg);
     error.name = names.PostIsRequired;
     return error;
+}
+
+export function canntGetAppIdFromHeader(){
+    let msg = `Can not get appid from header.`;
+    let error = new Error(msg);
+    error.name = names.CanntGetAppIdFromHeader;
+    return  error;
 }
