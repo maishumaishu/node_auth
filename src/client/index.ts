@@ -7,17 +7,11 @@ requirejs.config({
         bootstrap: {
             deps: ['jquery']
         },
-        chitu: {
-            deps: ['jquery', 'hammer', 'move'],
-        },
-        move: {
-            exports: window['move']
-        },
         wuzhui: {
             deps: ['jquery']
         },
         application: {
-            deps: ['errorHandle']
+            deps: ['errorHandle', 'fetch']
         }
     },
     paths: {
@@ -27,29 +21,24 @@ requirejs.config({
         c: 'js/css',
         chitu: 'js/chitu',
         crossroads: 'js/crossroads',
+        fetch: 'js/fetch',
         hammer: 'js/hammer',
         iscroll: 'js/iscroll-probe',
         jquery: 'js/jquery-2.1.0',
-        knockout: 'js/knockout-3.2.0.debug',
-        'knockout.validation': 'js/knockout.validation',
-        'knockout.mapping': 'js/knockout.mapping',
-        move: 'js/move',
-        react: 'js/react',
-        'react-dom': 'js/react-dom',
-        reactstrap: 'js/react-bootstrap',
         text: 'js/text',
+        validate: 'js/validate',
+        vue: 'js/vue',
         wuzhui: 'js/wuzhui',
     }
 });
 
 
-requirejs(['application', 'knockout', 'menus', 'ace', 'wuzhui'], (app: chitu.Application, ko: KnockoutStatic, menus) => {
+requirejs(['application', 'menus', 'ace', 'wuzhui', 'validate'], (app: chitu.Application, menus) => {
     if (!location.hash) {
         location.hash = '#home/index';
     }
-    window['ko'] = window['ko'] || ko;
     var model = {
-        menus: ko.observableArray()
+        menus: []
     };
     var stack = [];
     for (var i = 0; i < menus.length; i++)
@@ -71,7 +60,7 @@ requirejs(['application', 'knockout', 'menus', 'ace', 'wuzhui'], (app: chitu.App
         }
     }
 
-    model.menus(menus);
-    ko.applyBindings(model, document.getElementById('sidebar'));
-    ko.applyBindings(model, document.getElementById('navbar'));
+    // model.menus(menus);
+    // ko.applyBindings(model, document.getElementById('sidebar'));
+    // ko.applyBindings(model, document.getElementById('navbar'));
 });

@@ -1,12 +1,16 @@
 
 import * as $ from 'jquery';
 
-function isError(data) {
-    if ((data.name as string || '').toLowerCase() == 'success')
-        return false;
+function isError(data: Error) {
 
-    if (data.name != undefined && data.message != undefined && data.stack != undefined)
+    if (data.name == 'Success') {
+        return false;
+    }
+
+    let keys = Object.keys(data);
+    if (keys.indexOf('name') >= 0 && keys.indexOf('message') >= 0) {
         return true;
+    }
 
     return false;
 }
@@ -15,7 +19,6 @@ export let error = $.Callbacks();
 export let ajaxTimeout = 5000;
 
 let HTTP = 'http://';
-//let host = 'http://localhost:3000/';
 let host = 'http://localhost:3010/';
 const HTTP_LENGTH = 7;
 
@@ -62,12 +65,17 @@ export function ajax<T>(url: string, data?: any): JQueryPromise<T> {
     return result;
 }
 
-export function post<T>(url: string, data?: any): Promise<T> {
+export function post<T>(url: string, obj?: any): Promise<T> {
     if (url.length < HTTP_LENGTH || url.substr(0, HTTP_LENGTH).toLowerCase() != HTTP) {
         url = host + url;
     }
 
-    data = data || {};
+    obj = obj || {};
+    let keys = Object.keys(obj);
+    let data = {};
+    for (let key of keys)
+        data[key] = obj[key];
+
     let options = {
         headers: {
             'Content-Type': 'application/json'
@@ -91,21 +99,19 @@ export function post<T>(url: string, data?: any): Promise<T> {
         return p.then((text) => {
             return new Promise((resolve, reject) => {
                 let data = JSON.parse(text);
-                if (data.Type != 'ErrorObject')
-                    resolve(data);
 
-
-                if (data.Code == 'Success') {
-                    resolve(data);
+                if (isError(data)) {
+                    error.fire(data);
+                    reject(data);
                     return;
                 }
 
-                let err = new Error(data.Message);
-                err.name = data.Code;
-                reject(err);
+                resolve(data);
                 return;
             });
         })
     });
 }
+
+
 

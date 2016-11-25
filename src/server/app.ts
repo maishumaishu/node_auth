@@ -102,10 +102,11 @@ import { ApplicationController } from './modules/application';
       let controller = new ApplicationController();
       let postData = await getPostObject(req);
       let result = await controller.save(postData);
-      res.send(JSON.stringify(result));
+      outputToResponse(res, result);
     }
     catch (exc) {
-      res.send(JSON.stringify(exc));
+      //res.send(JSON.stringify(exc));
+      outputToResponse(res, exc);
     }
 
   });
@@ -135,6 +136,23 @@ import { ApplicationController } from './modules/application';
         }
       });
     });
+  }
+
+  function outputToResponse(response: http.ServerResponse, obj: any) {
+    console.assert(obj != null);
+    response.statusCode = 200;
+    response.setHeader('Access-Control-Allow-Origin', '*');
+    response.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    response.setHeader('Content-Type', 'application/json;charset=utf-8');
+
+    let outputObject = {};
+    let keys = Object.keys(obj).concat(Object.getOwnPropertyNames(obj));
+    for (let i = 0; i < keys.length; i++) {
+      outputObject[keys[i]] = obj[keys[i]];
+    }
+
+    response.write(JSON.stringify(outputObject));
+    response.end();
   }
 
   app.listen(3010);

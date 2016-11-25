@@ -3,6 +3,7 @@ declare interface VueInstance {
     $el: HTMLElement;
     $watch(expOrFn: string | Function, callback: Function, options?: { deep?: boolean, immediate?: boolean }): Function;
     $set(object: Object, key: string, value: any);
+    $nextTick(callback: Function)
 }
 
 interface VueOptions<T> {

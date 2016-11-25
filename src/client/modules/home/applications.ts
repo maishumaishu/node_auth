@@ -1,63 +1,82 @@
-import * as application_service from 'services/application_service';
-import * as validation from 'knockout.validation';
-import * as mapping from 'knockout.mapping';
-
-//let app_fields = ['id', 'name', 'targetUrl'];
-class ApplicationsPage {
-
-    private app: application_service.Application;
-
-    private val: KnockoutValidationErrors;
-    private $dialog: JQuery;
-
-    constructor(page: chitu.Page) {
-
-        this.app = new application_service.Application();
-        this.app.name.extend({ required: { message: '请输入应用名称' } });
-        this.app.targetUrl.extend({ required: { message: '请输入转发的目标URL' } });
-
-        this.items = ko.observableArray<application_service.Application>();
-
-        page.load.add(() => this.page_load(page));
-    }
-
-    private page_load(sender: chitu.Page) {
-        ko.applyBindings(this, sender.element);
-        this.val = validation.group(this.app);
-        this.$dialog = $(sender.element).find('[name="dlg_application"]');
-        return application_service.list().then((data: Array<any>) => {
-            this.items(data);
-        })
-    }
-
-    //==========================================================
-    // 绑定
-    private items: KnockoutObservableArray<application_service.Application>;
+import * as app_service from 'services/application_service';
+import { Application } from 'services/application_service';
+import Vue = require('vue');
 
 
 
-    private newApp = () => {
-        mapping.fromJS(mapping.toJS(new application_service.Application()), {}, this.app);
-        this.val.showAllMessages(false);
-        (<any>this.$dialog).modal();
+export default function action(page: chitu.Page) {
 
-    }
+    let loadPromise = new Promise((reslove, reject) => {
+        page.load.add(() => reslove());
+    });
 
-    private editApp = (item: application_service.Application) => {
-        mapping.fromJS(mapping.toJS(item), {}, this.app);
-        this.val.showAllMessages(false);
-        (<any>this.$dialog).modal();
-    }
+    let self = this;
+    Promise.all([app_service.list(), loadPromise]).then((results) => {
+        debugger;
+        let items = results[0];
 
-    private saveApp = () => {
-        if (!this.app['isValid']()) {
-            this.val.showAllMessages();
-            return;
+        let data = { items };
+        let vm = new Vue({
+            el: page.element,
+            data,
+            methods: {
+                editApp: function (index: number) {
+                    let element = this.$el as HTMLElement;
+                    let dialogElements = element.querySelectorAll('[name="dlg_application"]');
+                    let dialogElement = dialogElements.item(index) as HTMLElement;
+                    let validator = getModalValidator(dialogElement);
+                    validator.clearErrors();
+                    (<any>$(dialogElement)).modal();
+                },
+                saveApp: function (item: Application, event: MouseEvent) {
+                    let self = this as VueInstance;
+
+                    let modal = (<any>event.target).closest('[name="dlg_application"]') as HTMLElement;
+                    let validator = getModalValidator(modal);
+                    if (!validator.validateForm()) {
+                        return;
+                    }
+
+                    app_service.save(item).then((result) => {
+                        item._id = result._id;
+                    });
+                },
+                newApp: function () {
+                    if (!data.items[data.items.length - 1]._id) {
+                        data.items.pop();
+                    }
+
+                    let app = new Application();
+                    data.items.push(app);
+                    let self = this as VueInstance;
+                    (this as VueInstance).$nextTick(() => {
+                        let element = this.$el as HTMLElement;
+                        let dialogElements = element.querySelectorAll('[name="dlg_application"]');
+                        let dialogElement = dialogElements.item(dialogElements.length - 1) as HTMLElement;
+                        let validator = getModalValidator(dialogElement);
+                        validator.clearErrors();
+                        (<any>$(dialogElement)).modal();
+                    });
+                }
+            }
+        });
+    });
+
+    function getModalValidator(modalElement: HTMLElement): FormValidator {
+        let validator = (<any>modalElement).validator;
+        if (validator == null) {
+            validator = new FormValidator(modalElement, [
+                { name: 'name', rules: 'required' },
+                { name: 'port', rules: 'required' },
+                { name: 'targetUrl', rules: 'required' }
+            ]);
+            (<any>modalElement).validator = validator;
         }
-
-        application_service.save(this.app);
+        return validator;
     }
-    //==========================================================
+
+
 }
 
-export default ApplicationsPage;
+
+
