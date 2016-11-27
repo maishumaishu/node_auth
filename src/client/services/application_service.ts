@@ -4,7 +4,6 @@ import * as mapping from 'knockout.mapping';
 
 export class Application {
     _id: string;
-    guid: string;
     name: string;
     targetUrl: string;
     port: number;
