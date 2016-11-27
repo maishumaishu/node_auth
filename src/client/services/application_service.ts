@@ -15,5 +15,5 @@ export function save(app: Application) {
     return service.post<Application>('application/save', app);
 }
 export function list() {
-    return service.post<Array<Application>>('application/list');
+    return service.get<Array<Application>>('application/list');
 }

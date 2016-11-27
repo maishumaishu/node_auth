@@ -16,7 +16,9 @@ export let names = {
     DeleteResultZero: 'DeleteResultZero',
     UpdateResultZero: 'UpdateResultZero',
     PostIsRequired: 'PostIsRequired',
-    CanntGetAppIdFromHeader:'CanntGetAppIdFromHeader'
+    CanntGetHeaderFromRequest: 'CanntGetHeaderFromRequest',
+    ControllerNotExist: 'ControllerNotExist',
+    ActionNotExists: 'ActionNotExists'
 }
 
 export function fieldNull(fieldName: string, objectName: string): Error {
@@ -123,9 +125,23 @@ export function postIsRequired() {
     return error;
 }
 
-export function canntGetAppIdFromHeader(){
-    let msg = `Can not get appid from header.`;
+export function canntGetHeaderFromRequest(headerName) {
+    let msg = `Can not get header '${headerName}' from the request.`;
     let error = new Error(msg);
-    error.name = names.CanntGetAppIdFromHeader;
-    return  error;
+    error.name = names.CanntGetHeaderFromRequest;
+    return error;
+}
+
+export function controllerNotExist(path) {
+    let msg = `Controller is not exists in path '${path}'.`;
+    let error = new Error(msg);
+    error.name = names.ControllerNotExist;
+    return error;
+}
+
+export function actionNotExists(action: string, controller: string) {
+    let msg = `Action '${action}' is not exists in controller '${controller}'`;
+    let error = new Error(msg);
+    error.name = names.ActionNotExists;
+    return error;
 }

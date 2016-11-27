@@ -4,22 +4,22 @@ let release = 'release';
 module.exports = function (grunt) {
     var config = {
         ts: {
-            server: {
-                src: ['src/server/**/*.ts'],
-                dest: `${build}/server`,
-                options: {
-                    target: 'es6',
-                    module: 'commonjs',
-                    removeComments: true,
-                    declaration: false,
-                    sourceMap: false,
-                    references: [
-                        "src/server/**/*.ts",
-                    ],
-                }
-            },
+            // server: {
+            //     src: ['src/server/**/*.ts'],
+            //     dest: `${build}/server`,
+            //     options: {
+            //         target: 'es6',
+            //         module: 'commonjs',
+            //         removeComments: true,
+            //         declaration: false,
+            //         sourceMap: false,
+            //         references: [
+            //             "src/server/**/*.ts",
+            //         ],
+            //     }
+            // },
             client: {
-                src: ['src/client/**/*.ts','src/client/**/*.tsx'],
+                src: ['src/client/**/*.ts'],
                 dest: `${build}/client`,
                 options: {
                     target: 'es6',
@@ -27,10 +27,6 @@ module.exports = function (grunt) {
                     removeComments: true,
                     declaration: false,
                     sourceMap: false,
-                    jsx: 'react',
-                    references: [
-                        "src/client/**/*.ts"
-                    ],
                 }
             },
             test: {
@@ -47,20 +43,28 @@ module.exports = function (grunt) {
                     ],
                 }
             },
-            server_release: {
-                src: ['src/server/**/*.ts'],
-                dest: `${release}/server`,
+            // server_release: {
+            //     src: ['src/server/**/*.ts'],
+            //     dest: `${release}/server`,
+            //     options: {
+            //         target: 'es6',
+            //         module: 'commonjs',
+            //         removeComments: true,
+            //         declaration: false,
+            //         sourceMap: false,
+            //         references: [
+            //             "src/server/**/*.ts",
+            //         ],
+            //     }
+            // }
+        },
+        shell: {
+            ts: {
+                command: 'tsc -p ./src/server',
                 options: {
-                    target: 'es6',
-                    module: 'commonjs',
-                    removeComments: true,
-                    declaration: false,
-                    sourceMap: false,
-                    references: [
-                        "src/server/**/*.ts",
-                    ],
+                    failOnError: false
                 }
-            }
+            },
         },
         stylus: {
             app: {
@@ -99,8 +103,9 @@ module.exports = function (grunt) {
 
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-stylus');
+    grunt.loadNpmTasks('grunt-shell');
     grunt.loadNpmTasks('grunt-ts');
 
-    grunt.registerTask('default', ['ts', 'stylus',  'copy']);
+    grunt.registerTask('default', ['ts', 'shell', 'stylus', 'copy']);
 
 };

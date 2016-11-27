@@ -9,6 +9,11 @@ interface Response {
     text(): string | Promise<string>
 }
 
+declare interface URLSearchParams {
+    new (paramsString?: string);
+    append(name: string, value);
+}
+
 declare function fetch(url: string, options: FetchOptions): Promise<Response>
 
 

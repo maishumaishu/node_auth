@@ -267,7 +267,7 @@ export class Token implements Entity {
      * @param appId 应用ID
      * @tokenValue 令牌字符串
      */
-    static async parse(appId: string, tokenValue: string): Promise<Error | Token> {
+    static async parse(appId: string, tokenValue: string): Promise<Token> {
         let db = await ApplicationDatabase.createInstance(appId);
         let token = await db.tokens.findOne({ value: tokenValue });
         if (token == null) {

@@ -11,7 +11,7 @@ requirejs.config({
             deps: ['jquery']
         },
         application: {
-            deps: ['errorHandle', 'fetch']
+            deps: ['errorHandle']
         }
     },
     paths: {
@@ -21,7 +21,6 @@ requirejs.config({
         c: 'js/css',
         chitu: 'js/chitu',
         crossroads: 'js/crossroads',
-        fetch: 'js/fetch',
         hammer: 'js/hammer',
         iscroll: 'js/iscroll-probe',
         jquery: 'js/jquery-2.1.0',

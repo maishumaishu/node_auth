@@ -1,5 +1,5 @@
 
-import * as $ from 'jquery';
+/// <reference path="../js/typings/fetch.d.ts"/>
 
 function isError(data: Error) {
 
@@ -22,66 +22,80 @@ let HTTP = 'http://';
 let host = 'http://localhost:3010/';
 const HTTP_LENGTH = 7;
 
-export function ajax<T>(url: string, data?: any): JQueryPromise<T> {
+// export function ajax<T>(url: string, data?: any): JQueryPromise<T> {
 
-    if (url.length < HTTP_LENGTH || url.substr(0, HTTP_LENGTH).toLowerCase() != HTTP) {
-        url = host + url;
-    }
+//     if (url.length < HTTP_LENGTH || url.substr(0, HTTP_LENGTH).toLowerCase() != HTTP) {
+//         url = host + url;
+//     }
 
-    let result = $.Deferred<T>();
-    data = data || {};
-    $.ajax(url, {
-        data: data
-    }).done(function (data) {
-        if (isError(data)) {
-            error.fire(data);
-            result.reject(data);
-            return;
-        }
-        result.resolve(data);
+//     let result = $.Deferred<T>();
+//     data = data || {};
+//     $.ajax(url, {
+//         data: data
+//     }).done(function (data) {
+//         if (isError(data)) {
+//             error.fire(data);
+//             result.reject(data);
+//             return;
+//         }
+//         result.resolve(data);
 
-    }).fail(function (jqXHR, textStatus) {
-        var err = new Error(jqXHR.statusText);
-        err.name = textStatus;
-        if (jqXHR.status == 0 && jqXHR.statusText == 'error') {
-            err.name = 'ConnectRemoteServerFail';
-            err.message = 'Cannt not connect remote server';
-        }
-        error.fire(err);
-        result.reject(err);
+//     }).fail(function (jqXHR, textStatus) {
+//         var err = new Error(jqXHR.statusText);
+//         err.name = textStatus;
+//         if (jqXHR.status == 0 && jqXHR.statusText == 'error') {
+//             err.name = 'ConnectRemoteServerFail';
+//             err.message = 'Cannt not connect remote server';
+//         }
+//         error.fire(err);
+//         result.reject(err);
 
-    }).always(function () {
-        clearTimeout(timeoutid);
-    });
+//     }).always(function () {
+//         clearTimeout(timeoutid);
+//     });
 
-    //超时处理
-    let timeoutid = setTimeout(() => {
-        if (result.state() == 'pending') {
-            result.reject({ Code: 'Timeout', Message: 'Ajax call timemout.' });
-        }
-        clearTimeout(timeoutid);
-    }, ajaxTimeout);
+//     //超时处理
+//     let timeoutid = setTimeout(() => {
+//         if (result.state() == 'pending') {
+//             result.reject({ Code: 'Timeout', Message: 'Ajax call timemout.' });
+//         }
+//         clearTimeout(timeoutid);
+//     }, ajaxTimeout);
 
-    return result;
-}
+//     return result;
+// }
 
-export function post<T>(url: string, obj?: any): Promise<T> {
+function ajax<T>(url: string, type: 'post' | 'get', obj?: any): Promise<T> {
     if (url.length < HTTP_LENGTH || url.substr(0, HTTP_LENGTH).toLowerCase() != HTTP) {
         url = host + url;
     }
 
     obj = obj || {};
+    let data;
     let keys = Object.keys(obj);
-    let data = {};
-    for (let key of keys)
-        data[key] = obj[key];
+    if (type == 'post') {
+        data = {};
+        for (let key of keys)
+            data[key] = obj[key];
+
+        data = JSON.stringify(data);
+    }
+    else {
+        let urlParams = '';
+        for (let key of keys)
+            urlParams = urlParams + `&${key}=${obj[key]}`;
+
+        if (urlParams.length > 0) {
+            url = url + '?' + urlParams.substr(1);
+        }
+    }
 
     let options = {
         headers: {
-            'Content-Type': 'application/json'
+            // 'Content-Type': 'application/json'
         },
-        body: JSON.stringify(data),
-        method: 'post'
+        body: data,
+        method: type,
     } as FetchOptions;
 
     return fetch(url, options).then((response) => {
@@ -111,6 +125,14 @@ export function post<T>(url: string, obj?: any): Promise<T> {
             });
         })
     });
+}
+
+export function get<T>(url: string, data?: any): Promise<T> {
+    return ajax(url, 'get', data);
+}
+
+export function post<T>(url: string, data?: any): Promise<T> {
+    return ajax(url, 'post', data);
 }
 
 
