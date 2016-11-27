@@ -22,11 +22,12 @@ export class ProxyServer {
 
     private async getRedirectInfo(applicationId: string): Promise<{ host: string, path: string }> {
         let db = await SystemDatabase.createInstance();
-        let application = await db.applications.findOne({ guid: applicationId });
+        let application = await db.applications.findOne({ _id: applicationId });
         if (!application) {
-            let err = Errors.applicationExistsWithGuid(applicationId);
+            let err = Errors.objectNotExistWithId(applicationId, 'Application');
             return Promise.reject<any>(err);
         }
+        
         let u = url.parse(application.targetUrl);
         return { host: u.host, path: u.path };
     }
@@ -76,7 +77,7 @@ export class ProxyServer {
             let { applicationId } = await this.attachHeaderInfo(req);
             let { host, path } = await this.getRedirectInfo(applicationId);
 
-            let headers: any = req.headers;            
+            let headers: any = req.headers;
             headers.host = host;
 
             let baseUrl = path;

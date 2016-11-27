@@ -3,7 +3,6 @@
 //export class Errors {
 export let names = {
     ApplicationExists: 'ApplicationExists',
-    ApplicationExistsWithGuid: 'ApplicationExistsWithGuid',
     ArgumentNull: 'ArgumentNull',
     FieldNull: 'FieldNull',
     NotAllowRegister: 'NotAllowRegister',
@@ -18,7 +17,8 @@ export let names = {
     PostIsRequired: 'PostIsRequired',
     CanntGetHeaderFromRequest: 'CanntGetHeaderFromRequest',
     ControllerNotExist: 'ControllerNotExist',
-    ActionNotExists: 'ActionNotExists'
+    ActionNotExists: 'ActionNotExists',
+    ObjectNotExistWithId: 'ObjectNotExistWithId'
 }
 
 export function fieldNull(fieldName: string, objectName: string): Error {
@@ -96,14 +96,6 @@ export function applicationExists(name: string) {
     return error;
 }
 
-export function applicationExistsWithGuid(guid: string) {
-    let msg = `Application with guid '${guid}' is exists.`;
-    let error = new Error(msg);
-    error.name = names.ApplicationExistsWithGuid;
-    (<any>error).arguments = { guid };
-    return error;
-}
-
 export function deleteResultZero() {
     let msg = 'Deleted count is zero, maybe the object is not exists.'
     let error = new Error(msg);
@@ -143,5 +135,12 @@ export function actionNotExists(action: string, controller: string) {
     let msg = `Action '${action}' is not exists in controller '${controller}'`;
     let error = new Error(msg);
     error.name = names.ActionNotExists;
+    return error;
+}
+
+export function objectNotExistWithId(objectId: string, objectName: string) {
+    let msg = `${objectName} not exists with id '${objectId}'`;
+    let error = new Error(msg);
+    error.name = names.ObjectNotExistWithId;
     return error;
 }

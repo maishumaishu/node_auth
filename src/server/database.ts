@@ -222,14 +222,12 @@ export interface User extends Entity {
     group?: string,
     mobile?: string,
     email?: string,
-    guid?: string,
 }
 
 export interface Appliation extends Entity {
     name: string,
     port: number,
     targetUrl: string,
-    guid: string,
 }
 
 // interface MobileBinding extends Entity {
