@@ -3,6 +3,8 @@
 //export class Errors {
 export let names = {
     ApplicationExists: 'ApplicationExists',
+    ApplicationIdRequired: 'ApplicationIdRequired',
+    ApplicationTokenRequired:'ApplicationTokenRequired',
     ArgumentNull: 'ArgumentNull',
     FieldNull: 'FieldNull',
     NotAllowRegister: 'NotAllowRegister',
@@ -143,4 +145,20 @@ export function objectNotExistWithId(objectId: string, objectName: string) {
     let error = new Error(msg);
     error.name = names.ObjectNotExistWithId;
     return error;
+}
+
+export function applicationIdRequired() {
+    let msg = `Application id is required.`;
+    let err = new Error(msg);
+    err.name = names.ApplicationIdRequired;
+
+    return err;
+}
+
+export function applicationTokenRequired(){
+    let msg = `Application token is required.`;
+    let err = new Error(msg);
+    err.name = names.ApplicationTokenRequired;
+
+    return err;
 }

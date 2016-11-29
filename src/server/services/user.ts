@@ -1,17 +1,21 @@
 import * as http from 'http';
 import * as express from 'express';
 import * as errors from '../errors';
+import { AppRequest } from '../common';
 
 let userService = express();
-userService.all(['/user/:action', '/sms/:action'], function (value, req, res, next) {
+
+userService.post(['/user/:action', '/sms/:action'], executeAction);
+
+function executeAction(req: AppRequest, res, next) {
     let pathParts = req.path.split('/');
     console.assert(pathParts.length >= 2);
 
-    let applicationId = value.applicationId;
+    let applicationId = 'value.applicationId';
     console.assert(applicationId != null);
 
     let actionName = pathParts[pathParts.length - 1];
-    let controllerPath = 'modules/' + pathParts.slice(0, pathParts.length - 1).join('/');
+    let controllerPath = '../modules' + pathParts.slice(0, pathParts.length - 1).join('/');
     let controller = require(controllerPath);
     if (controller == null) {
         let result = errors.controllerNotExist(controllerPath);
@@ -26,13 +30,8 @@ userService.all(['/user/:action', '/sms/:action'], function (value, req, res, ne
         return;
     }
 
-    let result = action(applicationId, req.query);
+    let result = action(req.postData);
     next(result);
-
-} as express.ErrorRequestHandler);
-
-// userService.options('/*', function (req, res, next) {
-//     res.send('');
-// })
+}
 
 export = userService;

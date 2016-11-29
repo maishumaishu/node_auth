@@ -4,6 +4,7 @@ import * as https from 'https';
 import { SystemDatabase, Token } from './database';
 import * as Errors from './errors';
 import * as url from 'url';
+import * as mongodb from 'mongodb';
 
 const APPLICATION_ID = 'application-id';
 const APPLICATION_TOKEN = 'application-token';
@@ -20,16 +21,16 @@ export class ProxyServer {
         this.port = params.port;
     }
 
-    private async getRedirectInfo(applicationId: string): Promise<{ host: string, path: string }> {
+    private async getRedirectInfo(applicationId: string): Promise<{ host: string, path: string, port: number }> {
         let db = await SystemDatabase.createInstance();
-        let application = await db.applications.findOne({ _id: applicationId });
+        let application = await db.applications.findOne({ _id: new mongodb.ObjectID(applicationId) });
         if (!application) {
             let err = Errors.objectNotExistWithId(applicationId, 'Application');
             return Promise.reject<any>(err);
         }
-        
+
         let u = url.parse(application.targetUrl);
-        return { host: u.host, path: u.path };
+        return { host: u.hostname, path: u.path, port: new Number(u.port).valueOf() };
     }
 
     //=========================================================
@@ -47,60 +48,63 @@ export class ProxyServer {
     //=========================================================
 
     private async attachHeaderInfo(req: http.IncomingMessage): Promise<{ userId: string, applicationId: string }> {
-        let applicationId = req.headers[APPLICATION_ID];
+        let u = url.parse(req.url, true);
+        let applicationId = u.query['appId']; //req.headers[APPLICATION_ID];
         if (!applicationId) {
             let err = Errors.canntGetHeaderFromRequest(APPLICATION_ID);
             return Promise.reject<any>(err);
         }
 
-        let applicationToken = req.headers[APPLICATION_TOKEN];
+        let applicationToken = u.query['appToken'];
         if (!applicationToken) {
             let err = Errors.canntGetHeaderFromRequest(APPLICATION_TOKEN);
             return Promise.reject<any>(err);
         }
 
+        req.headers[APPLICATION_ID] = applicationId;
         let userId: string;
-        let userTokenString = req.headers[USER_TOKEN];
+        let userTokenString = u.query['userToken'];
         if (userTokenString != null) {
             let userToken = await Token.parse(applicationId, userTokenString);
             userId = userToken.objectId;
+            req.headers[USER_ID] = userId;
         }
 
-        req.headers[APPLICATION_ID] = applicationId;
-        req.headers[USER_ID] = userId;
 
         return Promise.resolve({ applicationId, userId });
     }
 
-    private async request(req: http.IncomingMessage, res: http.ServerResponse, data?: string | Uint8Array) {
+    private async request(req: http.ServerRequest, res: http.ServerResponse, data?: string | Uint8Array) {
         try {
             let { applicationId } = await this.attachHeaderInfo(req);
-            let { host, path } = await this.getRedirectInfo(applicationId);
+            let { host, path, port } = await this.getRedirectInfo(applicationId);
 
             let headers: any = req.headers;
             headers.host = host;
 
             let baseUrl = path;
-            let requestUrl = baseUrl + req.url;
+            let requestUrl = this.combinePaths(baseUrl, req.url);
             let request = http.request(
                 {
                     host: host,
                     path: requestUrl,
                     method: req.method,
                     headers: headers,
+                    port: port
                 },
                 (response) => {
+                    console.assert(response != null);
                     for (var key in response.headers) {
                         res.setHeader(key, response.headers[key]);
                     }
                     res.setHeader('Access-Control-Allow-Origin', '*');
-                    res.setHeader('Access-Control-Allow-Headers', this.allowHeaders);
+                    // res.setHeader('Access-Control-Allow-Headers', this.allowHeaders);
                     response.pipe(res);
                 }
             );
 
             if (data) {
-                let text = String.fromCharCode.apply(null, data);
+                //let text = String.fromCharCode.apply(null, data);
                 request.write(data);
             }
 
@@ -120,19 +124,19 @@ export class ProxyServer {
     }
 
     private createServer() {
-        this.server = http.createServer((req, res) => {
+        this.server = http.createServer((req: http.ServerRequest, res) => {
             if (req.method == 'POST') {
                 req.on('data', (data) => {
                     this.request(req, res, data);
                 });
             }
             else {
-                let data: string;
-                let queryStringIndex = req.url.indexOf('?');
-                if (queryStringIndex >= 0) {
-                    data = req.url.substr(queryStringIndex + 1);
-                }
-                this.request(req, res, data);
+                // let data: string;
+                // let queryStringIndex = req.url.indexOf('?');
+                // if (queryStringIndex >= 0) {
+                //     data = req.url.substr(queryStringIndex + 1);
+                // }
+                this.request(req, res);
             }
 
         });
@@ -140,6 +144,19 @@ export class ProxyServer {
     }
     start() {
         this.server.listen(this.port);
+    }
+
+    private combinePaths(path1: string, path2: string) {
+        console.assert(path1 != null && path2 != null);
+        if (!path1.endsWith('/')) {
+            path1 = path1 + '/';
+        }
+
+        if (path2[0] == '/') {
+            path2 = path2.substr(1);
+        }
+
+        return path1 + path2;
     }
 
 }

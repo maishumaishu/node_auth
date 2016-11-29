@@ -226,7 +226,7 @@ export interface User extends Entity {
 
 export interface Appliation extends Entity {
     name: string,
-    port: number,
+    //port: number,
     targetUrl: string,
 }
 

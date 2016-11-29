@@ -3,39 +3,65 @@
 // 说明：启动反向代理服务器
 import { SystemDatabase } from './database';
 import { ProxyServer } from './proxyServer';
-SystemDatabase.createInstance().then(async (sys_db) => {
-  let proxyServer = new ProxyServer({ port: 2014 });
-  proxyServer.start();
-});
+// SystemDatabase.createInstance().then(async (sys_db) => {
+let proxyServer = new ProxyServer({ port: 2014 });
+proxyServer.start();
+// });
 //==============================================================
 
 import * as http from 'http';
 import * as express from 'express';
-import * as  controller from './modules/application';
+import * as controller from './modules/application';
 import * as errors from './errors';
+import { AppRequest } from './common'
+import { Token } from './database';
 
-
-const APPLICATION_ID = 'application-id';
-const APPLICATION_TOKEN = 'application-token';
 const USER_ID = 'user-id';
 const USER_TOKEN = 'user-token';
+const POST_DATA = 'postData';
 
 let app = express();
 
-app.use('/*', function (req, res, next) {
+app.use('/*', function (req: AppRequest, res, next) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Content-Type', 'application/json;charset=utf-8');
 
-  let applicationId = req.headers[APPLICATION_ID];
+  let contentLenght = req.headers['content-length'] || 0;
 
-  next();
+  let p: Promise<any>;
+  if (contentLenght <= 0) {
+    p = Promise.resolve({});
+  }
+  else {
+    p = getPostObject(req);
+  }
+
+  p.then(async (data) => {
+    req.postData = Object.assign({}, req.query, data);
+
+    if (!req.postData.appId)
+      throw errors.applicationIdRequired();
+
+    if (!req.postData.appToken)
+      throw errors.applicationTokenRequired();
+
+    if (req.postData.userToken) {
+      req.postData.userId = await parseUserToken(req.postData.appId, req.postData.userToken);
+    }
+
+    next();
+
+  }).catch((data) => {
+    next(data);
+  });
+
 });
 
-import userService = require('./services/user');
-import platformService = require('./services/platform');
+import userServices = require('./services/user');
+import adminServices = require('./services/admin');
 
-app.use('/', platformService);
-app.use('userService', userService);
+app.use('/adminServices', adminServices);
+app.use('/userServices', userServices);
 
 app.use('/*', async function (value, req, res, next) {
   if (value instanceof Promise) {
@@ -55,6 +81,12 @@ app.use('/*', async function (value, req, res, next) {
 } as express.ErrorRequestHandler);
 
 
+async function parseUserToken(appId: string, userToken: string) {
+  let token = await Token.parse(appId, userToken);
+  return token.objectId;
+}
+
+
 function outputToResponse(response: http.ServerResponse, obj: any) {
   console.assert(obj != null);
   response.statusCode = 200;
@@ -69,5 +101,26 @@ function outputError(response: http.ServerResponse, err: Error) {
   response.write(JSON.stringify(outputObject));
   response.end();
 }
+
+function getPostObject(request: http.IncomingMessage): Promise<any> {
+  let method = (request.method || '').toLowerCase();
+  let length = request.headers['content-length'] || 0;
+  if (length <= 0)
+    return Promise.resolve({});
+
+  return new Promise((reslove, reject) => {
+    request.on('data', (data: { toString: () => string }) => {
+      try {
+        let obj;
+        obj = JSON.parse(data.toString())
+        reslove(obj);
+      }
+      catch (exc) {
+        reject(exc);
+      }
+    });
+  });
+}
+
 
 app.listen(3010);

@@ -1,7 +1,7 @@
 import * as service from 'services/service';
 import * as bootbox from 'bootbox';
 
-service.error.add((err: Error) => {
+service.error.add((sender, err: Error) => {
     //alert(err.message);
     //confirm(err.message);
     bootbox.alert({

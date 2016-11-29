@@ -6,8 +6,6 @@ class UserGroups {
     static normal = 'normal'
 }
 
-// export class UserController extends BaseController {
-//export let applicationId: string;
 async function test() {
     let db = await Database.createInstance(this.applicationId);
     await db.users.deleteMany({ username: 'maishu' });
@@ -22,8 +20,6 @@ async function test() {
 async function createUser(user: User, appId: string) {
     if (user == null)
         throw Errors.argumentNull('user');
-
-    //let appId = applicationId;
 
     let db = await Database.createInstance(appId)
     let u = await db.users.findOne({ username: user.username })

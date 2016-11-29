@@ -1,5 +1,6 @@
 
 /// <reference path="../js/typings/fetch.d.ts"/>
+import * as  chitu from 'chitu';
 
 function isError(data: Error) {
 
@@ -15,62 +16,22 @@ function isError(data: Error) {
     return false;
 }
 
-export let error = $.Callbacks();
+export let error = chitu.Callbacks();
 export let ajaxTimeout = 5000;
 
 let HTTP = 'http://';
-let host = 'http://localhost:3010/';
+let host = 'http://localhost:2014/';
 const HTTP_LENGTH = 7;
 
-// export function ajax<T>(url: string, data?: any): JQueryPromise<T> {
-
-//     if (url.length < HTTP_LENGTH || url.substr(0, HTTP_LENGTH).toLowerCase() != HTTP) {
-//         url = host + url;
-//     }
-
-//     let result = $.Deferred<T>();
-//     data = data || {};
-//     $.ajax(url, {
-//         data: data
-//     }).done(function (data) {
-//         if (isError(data)) {
-//             error.fire(data);
-//             result.reject(data);
-//             return;
-//         }
-//         result.resolve(data);
-
-//     }).fail(function (jqXHR, textStatus) {
-//         var err = new Error(jqXHR.statusText);
-//         err.name = textStatus;
-//         if (jqXHR.status == 0 && jqXHR.statusText == 'error') {
-//             err.name = 'ConnectRemoteServerFail';
-//             err.message = 'Cannt not connect remote server';
-//         }
-//         error.fire(err);
-//         result.reject(err);
-
-//     }).always(function () {
-//         clearTimeout(timeoutid);
-//     });
-
-//     //超时处理
-//     let timeoutid = setTimeout(() => {
-//         if (result.state() == 'pending') {
-//             result.reject({ Code: 'Timeout', Message: 'Ajax call timemout.' });
-//         }
-//         clearTimeout(timeoutid);
-//     }, ajaxTimeout);
-
-//     return result;
-// }
-
 function ajax<T>(url: string, type: 'post' | 'get', obj?: any): Promise<T> {
+    obj = obj || {};
+
     if (url.length < HTTP_LENGTH || url.substr(0, HTTP_LENGTH).toLowerCase() != HTTP) {
         url = host + url;
     }
 
-    obj = obj || {};
+    let urlParams = `appId=583c4ee47863ef0548977558&appToken=583c4ee47863ef0548977558`;
+
     let data;
     let keys = Object.keys(obj);
     if (type == 'post') {
@@ -81,14 +42,11 @@ function ajax<T>(url: string, type: 'post' | 'get', obj?: any): Promise<T> {
         data = JSON.stringify(data);
     }
     else {
-        let urlParams = '';
         for (let key of keys)
             urlParams = urlParams + `&${key}=${obj[key]}`;
-
-        if (urlParams.length > 0) {
-            url = url + '?' + urlParams.substr(1);
-        }
     }
+
+    url = url + '?' + urlParams;
 
     let options = {
         headers: {
@@ -115,7 +73,8 @@ function ajax<T>(url: string, type: 'post' | 'get', obj?: any): Promise<T> {
                 let data = JSON.parse(text);
 
                 if (isError(data)) {
-                    error.fire(data);
+                    //error.fire(data);
+                    error.fire(this, data);
                     reject(data);
                     return;
                 }

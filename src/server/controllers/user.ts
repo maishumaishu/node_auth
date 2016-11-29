@@ -70,7 +70,7 @@ export async function register(args: { user: User }) {
         throw Errors.notImplement();
 }
 
-export async function login({ username, password }): Promise<{ token: string }> {
+export async function login({applicationId, username, password }): Promise<{ token: string }> {
     if (username == null) {
         throw Errors.argumentNull('username');
     }
@@ -78,7 +78,7 @@ export async function login({ username, password }): Promise<{ token: string }> 
         throw Errors.argumentNull('password');
     }
 
-    let db = await Database.createInstance(this.applicationId);
+    let db = await Database.createInstance(applicationId);
     let user = await db.users.findOne({ username: username });
     if (user == null) {
         throw Errors.userNotExists(username);
