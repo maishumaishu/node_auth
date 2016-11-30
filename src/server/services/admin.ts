@@ -2,38 +2,19 @@ import * as http from 'http';
 import * as express from 'express';
 import * as errors from '../errors';
 import * as  controller from '../modules/application';
+import { AppRequest } from '../common';
 
 let app = express();
 
 app.all('/application/list', async function (req, res, next) {
-    let result = await controller.list();
+    let result = controller.list();
     next(result);
 });
 
-app.post('/application/save', async function (req, res, next) {
-    let postData = await getPostObject(req);
-    let result = await controller.save(postData);
+app.post('/application/save', async function (req: AppRequest, res, next) {
+    let postData = req.postData; //await getPostObject(req);
+    let result = controller.save(<any>postData);
     next(result);
 });
-
-function getPostObject(request: http.IncomingMessage): Promise<any> {
-    let method = (request.method || '').toLowerCase();
-    let length = request.headers['content-length'] || 0;
-    if (length <= 0)
-        return Promise.resolve({});
-
-    return new Promise((reslove, reject) => {
-        request.on('data', (data: { toString: () => string }) => {
-            try {
-                let obj;
-                obj = JSON.parse(data.toString())
-                reslove(obj);
-            }
-            catch (exc) {
-                reject(exc);
-            }
-        });
-    });
-}
 
 export = app;

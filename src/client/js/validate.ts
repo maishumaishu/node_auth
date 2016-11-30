@@ -91,7 +91,6 @@ var defaults = {
                 }
             }
         }
-        debugger;
     }
 };
 

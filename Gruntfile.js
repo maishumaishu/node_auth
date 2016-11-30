@@ -3,64 +3,21 @@ let build = 'build';
 let release = 'release';
 module.exports = function (grunt) {
     var config = {
-        ts: {
-            // server: {
-            //     src: ['src/server/**/*.ts'],
-            //     dest: `${build}/server`,
-            //     options: {
-            //         target: 'es6',
-            //         module: 'commonjs',
-            //         removeComments: true,
-            //         declaration: false,
-            //         sourceMap: false,
-            //         references: [
-            //             "src/server/**/*.ts",
-            //         ],
-            //     }
-            // },
+        shell: {
             client: {
-                src: ['src/client/**/*.ts'],
-                dest: `${build}/client`,
+                command: 'tsc -p ./src/client',
                 options: {
-                    target: 'es6',
-                    module: 'amd',
-                    removeComments: true,
-                    declaration: false,
-                    sourceMap: false,
+                    failOnError: false
+                }
+            },
+            server: {
+                command: 'tsc -p ./src/server',
+                options: {
+                    failOnError: false
                 }
             },
             test: {
-                src: ['src/test/**/*.ts'],
-                dest: `${build}`,
-                options: {
-                    target: 'es6',
-                    module: 'commonjs',
-                    removeComments: true,
-                    declaration: false,
-                    sourceMap: false,
-                    references: [
-                        "src/test/**/*.ts"
-                    ],
-                }
-            },
-            // server_release: {
-            //     src: ['src/server/**/*.ts'],
-            //     dest: `${release}/server`,
-            //     options: {
-            //         target: 'es6',
-            //         module: 'commonjs',
-            //         removeComments: true,
-            //         declaration: false,
-            //         sourceMap: false,
-            //         references: [
-            //             "src/server/**/*.ts",
-            //         ],
-            //     }
-            // }
-        },
-        shell: {
-            ts: {
-                command: 'tsc -p ./src/server',
+                command: 'tsc -p ./src/test',
                 options: {
                     failOnError: false
                 }
@@ -104,8 +61,7 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-stylus');
     grunt.loadNpmTasks('grunt-shell');
-    grunt.loadNpmTasks('grunt-ts');
 
-    grunt.registerTask('default', ['ts', 'shell', 'stylus', 'copy']);
+    grunt.registerTask('default', ['shell', 'stylus', 'copy']);
 
 };

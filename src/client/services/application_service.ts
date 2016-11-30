@@ -3,14 +3,14 @@ import * as ko from 'knockout';
 import * as mapping from 'knockout.mapping';
 
 export class Application {
-    _id: string;
-    name: string;
-    targetUrl: string;
-    allowRegister: boolean;
+    _id: string = null;
+    name: string = null;
+    targetUrl: string = null;
+    allowRegister: boolean = null;
 }
 
 export function save(app: Application) {
-    return service.post<Application>('adminServices/application/save', app);
+    return service.post<Application>('adminServices/application/save', { app });
 }
 export function list() {
     return service.get<Array<Application>>('adminServices/application/list');

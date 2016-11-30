@@ -13,14 +13,14 @@ export class Table<T extends Entity>{
 
         this.source = db.collection(name);
     }
-    insertOne(entity: T): Promise<any> {
+    insertOne(entity: T): Promise<T> {
         return new Promise((reslove, reject) => {
             if (entity.createDateTime == null)
                 entity.createDateTime = new Date(Date.now());
 
             let obj = {};
             for (let key in entity) {
-                if (key == 'id')
+                if (key == '_id')
                     continue;
 
                 obj[key] = entity[key];
@@ -31,7 +31,7 @@ export class Table<T extends Entity>{
                     reject(err);
                     return;
                 }
-                reslove(entity);
+                reslove(result.ops[0]);
             });
         });
     }
@@ -140,12 +140,14 @@ export class ApplicationDatabase {
     private _users: Users;
     private _tokens: Table<Token>;
     private _applications: Table<Appliation>;
+    private _verifyMessages: Table<VerifyMessage>;
 
     constructor(source: mongodb.Db) {
         this.source = source;
         this._users = new Users(source);
         this._tokens = new Table<Token>(source, 'Token');
         this._applications = new Table<Appliation>(source, 'Appliation');
+        this._verifyMessages = new Table<VerifyMessage>(source, 'VerifyMessage');
     }
 
     static async createInstance(appId: string) {
@@ -169,6 +171,10 @@ export class ApplicationDatabase {
 
     get tokens(): Table<Token> {
         return this._tokens;
+    }
+
+    get verifyMessages(): Table<VerifyMessage> {
+        return this._verifyMessages;
     }
 
     close() {
@@ -228,6 +234,16 @@ export interface Appliation extends Entity {
     name: string,
     //port: number,
     targetUrl: string,
+}
+
+/**
+ * 验证短信
+ */
+export interface VerifyMessage extends Entity {
+    /** 短信内容 */
+    content: string,
+    /** 验证码 */
+    verifyCode: string
 }
 
 // interface MobileBinding extends Entity {

@@ -2,8 +2,7 @@
     "compilerOptions": {
         "target": "es6",
         "module": "amd",
-        "jsx": "react",
         "sourceMap": false,
-        "allowJs": true
+        "outDir": "../../build/client"
     }
 }

@@ -15,7 +15,7 @@ async function test() {
         mobile: '13431426607',
         email: '81232259@qq.com'
     }
-    return register('4C22F420-475F-4085-AA2F-BE5269DE6043', { user });
+    return register({ appId: '4C22F420-475F-4085-AA2F-BE5269DE6043', user });
 }
 async function createUser(user: User, appId: string) {
     if (user == null)
@@ -28,7 +28,7 @@ async function createUser(user: User, appId: string) {
     }
     return db.users.insertOne(user);
 }
-async function registerByUserName(appId: string, { user }) {
+async function registerByUserName({ appId, user }) {
     if (user == null)
         throw Errors.argumentNull('user');
 
@@ -41,7 +41,7 @@ async function registerByUserName(appId: string, { user }) {
 
     return createUser(user, appId);
 }
-async function registerByMobile({user, smsId, verifyCode, appId}) {
+async function registerByMobile({user, smsId, verifyCode, appId}): Promise<any> {
     if (user == null)
         return Promise.reject(Errors.argumentNull('user'));
 
@@ -49,7 +49,7 @@ async function registerByMobile({user, smsId, verifyCode, appId}) {
         return Promise.reject(Errors.argumentNull('smsId'));
 
     if (verifyCode == null)
-        Promise.reject(Errors.argumentNull('verifyCode'));
+        throw Errors.argumentNull('verifyCode');
 
     if (user.mobile == null) {
         throw Errors.fieldNull('username', 'user');
@@ -58,13 +58,21 @@ async function registerByMobile({user, smsId, verifyCode, appId}) {
         throw Errors.fieldNull('password', 'user');
     }
 
+    let db = await Database.createInstance(appId);
+    let msg = await db.verifyMessages.findOne({ _id: smsId });
+    if (msg == null)
+        throw Errors.objectNotExistWithId(smsId, 'VerifyMessages');
+
+    if (msg.verifyCode != verifyCode)
+        throw Errors.verifyCodeIncorrect(verifyCode);
+
     return createUser(user, appId);
 }
-export async function register(appId: string, data: { user: User }) {
+export async function register(args) {
     if (settings.registerMode == 'username')
-        return registerByUserName(appId, data);
+        return registerByUserName(args);
     else if (settings.registerMode == 'mobile')
-        return registerByMobile(data as any);
+        return registerByMobile(args);
     else if (settings.registerMode == 'notAllow')
         throw Errors.notAllowRegister();
     else

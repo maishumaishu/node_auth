@@ -44,7 +44,7 @@
 			<div class="footer">
 				<div class="col-xs-6">
 
-					<button v-on:click="editApp(index)" class="btn btn-primary btn-block">编辑</button>
+					<button v-on:click="editApp(item)" class="btn btn-primary btn-block">编辑</button>
 
 				</div>
 				<div class="col-xs-6">
@@ -68,7 +68,7 @@
 	</li>
 </ul>
 
-<div v-for="app in items" class="modal fade" name="dlg_application" role="dialog" aria-hidden="true">
+<div class="modal fade" name="dlg_application" role="dialog" aria-hidden="true">
 	<div class="modal-dialog">
 		<div class="modal-content">
 			<div class="modal-header">
@@ -82,12 +82,6 @@
 						<label class="col-sm-2 control-label">名称</label>
 						<div class="col-sm-10">
 							<input name="名称" v-model="app.name" type="text" class="form-control" placeholder="请输入应用名称">
-						</div>
-					</div>
-					<div class="form-group">
-						<label class="col-sm-2 control-label">端口</label>
-						<div class="col-sm-10">
-							<input name="端口" v-model="app.port" type="text" class="form-control" placeholder="请输入应用名称">
 						</div>
 					</div>
 					<div class="form-group">
@@ -111,7 +105,7 @@
 			</div>
 			<div class="modal-footer">
 				<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
-				<button v-on:click="saveApp(app,$event)" type="button" class="btn btn-primary">确定</button>
+				<button v-on:click="saveApp()" type="button" class="btn btn-primary">确定</button>
 			</div>
 		</div>
 	</div>

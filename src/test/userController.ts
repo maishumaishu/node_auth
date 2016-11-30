@@ -24,7 +24,7 @@ describe('UserController', function () {
             await db.users.deleteMany({ username: 'maishu' });
 
             let controller = createUserController();
-            return controller.register(appId, { user }).then(async () => {
+            return controller.register({appId,  user }).then(async () => {
                 let user = await db.users.findOne({ username: 'maishu' });
                 if (user == null)
                     return Promise.reject<any>(new Error('用户找不到'));
@@ -38,8 +38,8 @@ describe('UserController', function () {
                 await db.users.deleteMany({ username: 'maishu' });
 
                 let controller = createUserController();
-                await controller.register(appId, { user });
-                await controller.register(appId, { user });
+                await controller.register({appId,  user });
+                await controller.register({appId,  user });
                 Promise.reject(new Error('Error:重复注册用户'));
             }
             catch (exc) {
@@ -57,7 +57,7 @@ describe('UserController', function () {
             await db.users.deleteMany({ username: 'maishu' });
 
             let controller = createUserController();
-            await controller.register(appId, { user });
+            await controller.register({appId, user });
             let result = await controller.login(appId, { username: user.username, password: user.password });
 
             assert.notDeepEqual((<{ token: string }>result).token, null);
@@ -85,7 +85,7 @@ describe('UserController', function () {
                 await db.users.deleteMany({ username: 'maishu' });
 
                 let controller = createUserController();
-                await controller.register(appId, { user });
+                await controller.register({appId, user });
                 //let {username, password} = user;
                 let username = user.username;
                 let password = user.password;

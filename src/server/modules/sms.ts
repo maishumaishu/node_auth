@@ -3,15 +3,21 @@ import * as data from './../database';
 import * as settings from '../settings';
 import * as Errors from '../errors'
 import * as http from 'http';
+import { UserSubmitData } from '../common';
+import { ApplicationDatabase, VerifyMessage } from '../database';
 
 let verifyCodeLength = settings.verifyCodeLength;
-type SendCodeArgumentType = { mobile: string, type: 'register' | 'receivePassword' };
+type SendCodeArgumentType = {
+    mobile: string,
+    type: 'register' | 'receivePassword'
+} & UserSubmitData;
 // export class SMSController extends BaseController {
-async function sendCode({mobile, type}: SendCodeArgumentType) {
+export async function sendVerifyCode(args: SendCodeArgumentType): Promise<{ smsId: string } | Error> {
+    let {appId, mobile, type} = args;
     if (mobile == null)
-        return Promise.reject<Error>(Errors.argumentNull('mobile'));
+        throw Errors.argumentNull('mobile');
     if (type == null)
-        return Promise.reject<Error>(Errors.argumentNull('type'));
+        throw Errors.argumentNull('type');
     //TODO:验证参数的正确性
 
     //=======================================
@@ -27,7 +33,15 @@ async function sendCode({mobile, type}: SendCodeArgumentType) {
     //=======================================
     let verifyCode = str.substr(0, verifyCodeLength);
     let msg = settings.verifyCodeText.replace('{0}', verifyCode);
-    return sendMobileMessage(mobile, msg);
+
+    await sendMobileMessage(mobile, msg);
+    let db = await ApplicationDatabase.createInstance(appId);
+    let verifyMessage: VerifyMessage = {
+        verifyCode,
+        content: msg
+    }
+    let result = await db.verifyMessages.insertOne(verifyMessage);
+    return { smsId: result._id };
 }
 function verifyCode(smsId: string, code: string): Promise<boolean> {
     return new Promise((reslove, reject) => {
@@ -38,13 +52,13 @@ function test() {
     sendMobileMessage('18502146746', '');
 }
 
-function sendMobileMessage(mobile: string, content: string): Promise<Error> {
+function sendMobileMessage(mobile: string, content: string): Promise<string> {
     if (mobile == null)
-        return Promise.reject<Error>(Errors.argumentNull('mobile'));
+        return Promise.reject<any>(Errors.argumentNull('mobile'));
     if (content == null)
-        return Promise.reject<Error>(Errors.argumentNull('content'));
+        return Promise.reject<any>(Errors.argumentNull('content'));
 
-    return new Promise<any>((reslove, rejct) => {
+    return new Promise<string>((reslove, rejct) => {
         //'欢迎关注零食有约，您的验证码是1234【零食有约】';
         let data = querystring.stringify({
             userid: '',

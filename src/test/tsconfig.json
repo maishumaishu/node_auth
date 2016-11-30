@@ -5,7 +5,6 @@
         "sourceMap": false,
         "declaration": false,
         "removeComments": true,
-        "outDir": "../../build",
-        "rootDir": "."
+        "outDir": "../../build/test"
     }
 }

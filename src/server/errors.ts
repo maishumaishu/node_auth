@@ -1,10 +1,14 @@
 
 
+interface MyError extends Error {
+    arguments: any
+}
+
 //export class Errors {
 export let names = {
     ApplicationExists: 'ApplicationExists',
     ApplicationIdRequired: 'ApplicationIdRequired',
-    ApplicationTokenRequired:'ApplicationTokenRequired',
+    ApplicationTokenRequired: 'ApplicationTokenRequired',
     ArgumentNull: 'ArgumentNull',
     FieldNull: 'FieldNull',
     NotAllowRegister: 'NotAllowRegister',
@@ -76,25 +80,25 @@ export function notImplement(): Error {
 
 export function userNotExists(username: string) {
     let msg = `User '${username}' is not exists.`
-    let error = new Error(msg);
+    let error = new Error(msg) as MyError;
     error.name = names.UserNotExists;
-    (<any>error).arguments = { username };
+    error.arguments = { username };
     return error;
 }
 
 export function invalidToken(tokenValue: string): Error {
     let msg = `Token '${tokenValue}' is not a valid token.`;
-    let error = new Error(msg);
+    let error = new Error(msg) as MyError;
     error.name = names.InvalidToken;
-    (<any>error).arguments = { token: tokenValue };
+    error.arguments = { token: tokenValue };
     return error;
 }
 
 export function applicationExists(name: string) {
     let msg = `Application with name '${name}' is exists.`;
-    let error = new Error(msg);
+    let error = new Error(msg) as MyError;
     error.name = names.ApplicationExists;
-    (<any>error).arguments = { name };
+    error.arguments = { name };
     return error;
 }
 
@@ -155,10 +159,18 @@ export function applicationIdRequired() {
     return err;
 }
 
-export function applicationTokenRequired(){
+export function applicationTokenRequired() {
     let msg = `Application token is required.`;
     let err = new Error(msg);
     err.name = names.ApplicationTokenRequired;
 
+    return err;
+}
+
+export function verifyCodeIncorrect(verifyCode: string) {
+    let msg = `Verify code incorrect.`
+    let err = new Error(msg) as MyError;
+    err.name = 'verifyCodeIncorrect';
+    err.arguments = { verifyCode };
     return err;
 }
