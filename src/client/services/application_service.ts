@@ -10,8 +10,8 @@ export class Application {
 }
 
 export function save(app: Application) {
-    return service.post<Application>('adminServices/application/save', { app });
+    return service.post<Application>('application/save', { app });
 }
 export function list() {
-    return service.get<Array<Application>>('adminServices/application/list');
+    return service.get<Array<Application>>('application/list');
 }

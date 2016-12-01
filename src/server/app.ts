@@ -63,8 +63,6 @@ app.use('/*', async function (req: express.Request & AppInfo, res, next) {
   catch (err) {
     next(err);
   }
-
-
 });
 
 let moduleNames = ['user', 'sms', 'application'];
@@ -246,4 +244,4 @@ function combinePaths(path1: string, path2: string) {
   return path1 + path2;
 }
 
-app.listen(3010);
+app.listen(2800);

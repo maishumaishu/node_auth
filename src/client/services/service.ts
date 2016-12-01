@@ -20,7 +20,9 @@ export let error = chitu.Callbacks();
 export let ajaxTimeout = 5000;
 
 let HTTP = 'http://';
-let host = 'http://localhost:2014/';
+let host = 'http://localhost:2800/';
+let appId = '583c4ee47863ef0548977558';
+let appToken = '583c4ee47863ef0548977558';
 const HTTP_LENGTH = 7;
 
 async function ajax<T>(url: string, type: 'post' | 'get', obj?: any): Promise<T> {
@@ -30,7 +32,7 @@ async function ajax<T>(url: string, type: 'post' | 'get', obj?: any): Promise<T>
         url = host + url;
     }
 
-    let urlParams = `appId=583c4ee47863ef0548977558&appToken=583c4ee47863ef0548977558`;
+    let urlParams = `appId=${appId}&appToken=${appToken}`;
 
     let data;
     let keys = Object.keys(obj);
@@ -55,7 +57,14 @@ async function ajax<T>(url: string, type: 'post' | 'get', obj?: any): Promise<T>
         method: type,
     } as FetchOptions;
 
-    let response = await fetch(url, options);
+    let response: Response;
+    try {
+        response = await fetch(url, options);
+    }
+    catch (exc) {
+        error.fire(this, exc);
+        throw exc;
+    }
     let responseText = response.text();
     let p: Promise<string>;
     if (typeof responseText == 'string') {
@@ -76,36 +85,6 @@ async function ajax<T>(url: string, type: 'post' | 'get', obj?: any): Promise<T>
     }
 
     return textObject;
-
-
-    // return fetch(url, options).then((response) => {
-    //     let text = response.text();
-    //     let p: Promise<string>;
-    //     if (typeof text == 'string') {
-    //         p = new Promise<string>((reslove, reject) => {
-    //             reslove(text);
-    //         })
-    //     }
-    //     else {
-    //         p = text as Promise<string>;
-    //     }
-
-    //     return p.then((text) => {
-    //         return new Promise((resolve, reject) => {
-    //             let data = JSON.parse(text);
-
-    //             if (isError(data)) {
-    //                 //error.fire(data);
-    //                 error.fire(this, data);
-    //                 reject(data);
-    //                 return;
-    //             }
-
-    //             resolve(data);
-    //             return;
-    //         });
-    //     })
-    // });
 }
 
 export function get<T>(url: string, data?: any): Promise<T> {
