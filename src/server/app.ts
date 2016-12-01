@@ -1,20 +1,22 @@
 
-//==============================================================
-// 说明：启动反向代理服务器
-import { SystemDatabase } from './database';
-import { ProxyServer } from './proxyServer';
-// SystemDatabase.createInstance().then(async (sys_db) => {
-let proxyServer = new ProxyServer({ port: 2014 });
-proxyServer.start();
-// });
-//==============================================================
+// //==============================================================
+// // 说明：启动反向代理服务器
+// import { SystemDatabase } from './database';
+// import { ProxyServer } from './proxyServer';
+// // SystemDatabase.createInstance().then(async (sys_db) => {
+// let proxyServer = new ProxyServer({ port: 2014 });
+// proxyServer.start();
+// // });
+// //==============================================================
 
 import * as http from 'http';
 import * as express from 'express';
 import * as controller from './modules/application';
 import * as errors from './errors';
+import * as mongodb from 'mongodb';
+import * as url from 'url';
 import { AppRequest } from './common'
-import { Token } from './database';
+import { Token, SystemDatabase } from './database';
 
 const USER_ID = 'user-id';
 const USER_TOKEN = 'user-token';
@@ -22,46 +24,94 @@ const POST_DATA = 'postData';
 
 let app = express();
 
-app.use('/*', function (req: AppRequest, res, next) {
+interface AppInfo {
+  applicationId: string,
+  applicationToken: string,
+  userId: string,
+  userToken: string,
+}
+
+app.use('/*', async function (req: express.Request & AppInfo, res, next) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Content-Type', 'application/json;charset=utf-8');
 
-  let contentLenght = req.headers['content-length'] || 0;
+  try {
+    let applicationId = req.query['appId']; //req.headers[APPLICATION_ID];
+    if (!applicationId) {
+      let err = errors.canntGetQueryStringFromRequest('appId');
+      throw err;
+    }
+    req.applicationId = applicationId;
 
-  let p: Promise<any>;
-  if (contentLenght <= 0) {
-    p = Promise.resolve({});
-  }
-  else {
-    p = getPostObject(req);
-  }
+    let applicationToken = req.query['appToken'];
+    if (!applicationToken) {
+      let err = errors.canntGetQueryStringFromRequest('appToken');
+      throw err;
+    }
+    req.applicationToken = applicationToken;
 
-  p.then(async (data) => {
-    req.postData = Object.assign({}, req.query, data);
+    //TODO CHECK appToken
 
-    if (!req.postData.appId)
-      throw errors.applicationIdRequired();
-
-    if (!req.postData.appToken)
-      throw errors.applicationTokenRequired();
-
-    if (req.postData.userToken) {
-      req.postData.userId = await parseUserToken(req.postData.appId, req.postData.userToken);
+    let userId: string;
+    let userTokenString = req.query['userToken'];
+    if (userTokenString != null) {
+      let userToken = await Token.parse(applicationId, userTokenString);
     }
 
     next();
+  }
+  catch (err) {
+    next(err);
+  }
 
-  }).catch((data) => {
-    next(data);
-  });
 
 });
 
-import userServices = require('./services/user');
-import adminServices = require('./services/admin');
+let moduleNames = ['user', 'sms', 'application'];
+app.use('/:controller/:action', executeAction);
+function executeAction(req: AppRequest, res, next) {
 
-app.use('/adminServices', adminServices);
-app.use('/userServices', userServices);
+  let actionName = req.params.action;
+  let controllerName = req.params.controller;
+
+  if (moduleNames.indexOf(controllerName) < 0) {
+    next();
+    return;
+  }
+
+  let controllerPath = `./modules/${controllerName}`;
+  let controller = require(controllerPath);
+  if (controller == null) {
+    let result = errors.controllerNotExist(controllerPath);
+    next(result);
+    return;
+  }
+
+  let action = controller[actionName];
+  if (action == null) {
+    console.log(`Action '${actionName}' is not exists in '${controllerName}'`);
+    next();
+    return;
+  }
+
+  let result: any;
+  if (req.method == 'get') {
+    result = action(req.query);
+    next(result);
+    return;
+  }
+  getPostObject(req)
+    .then((postData) => {
+      return action(postData);
+    })
+    .then(result => next(result))
+    .catch(err => next(err));
+}
+
+app.use('/*', function (req: express.Request & AppInfo, res, next) {
+  //res.send('hello world');
+  request(req, res);
+});
 
 app.use('/*', async function (value, req, res, next) {
   if (value instanceof Promise) {
@@ -122,5 +172,78 @@ function getPostObject(request: http.IncomingMessage): Promise<any> {
   });
 }
 
+async function request(req: express.Request & AppInfo, res: express.Response) {
+  try {
+    // let { applicationId } = await this.attachHeaderInfo(req);
+    let { host, path, port } = await getRedirectInfo(req.applicationId);
+
+    let headers: any = req.headers;
+    headers.host = host;
+
+    let baseUrl = path;
+    let requestUrl = combinePaths(baseUrl, req.baseUrl);
+    let request = http.request(
+      {
+        host: host,
+        path: requestUrl,
+        method: req.method,
+        headers: headers,
+        port: port
+      },
+      (response) => {
+        console.assert(response != null);
+        for (var key in response.headers) {
+          res.setHeader(key, response.headers[key]);
+        }
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        // res.setHeader('Access-Control-Allow-Headers', this.allowHeaders);
+        response.pipe(res);
+      }
+    );
+
+    let contentLength = 0;
+    if (req.headers['content-length']) {
+      contentLength = new Number(req.headers['content-length']).valueOf();
+    }
+
+    if (contentLength > 0) {
+      req.on('data', (data) => {
+        request.write(data);
+        request.end();
+      })
+    }
+    else {
+      request.end();
+    }
+  }
+  catch (err) {
+    outputError(res, err);
+  }
+}
+
+async function getRedirectInfo(applicationId: string): Promise<{ host: string, path: string, port: number }> {
+  let db = await SystemDatabase.createInstance();
+  let application = await db.applications.findOne({ _id: new mongodb.ObjectID(applicationId) });
+  if (!application) {
+    let err = errors.objectNotExistWithId(applicationId, 'Application');
+    return Promise.reject<any>(err);
+  }
+
+  let u = url.parse(application.targetUrl);
+  return { host: u.hostname, path: u.path, port: new Number(u.port).valueOf() };
+}
+
+function combinePaths(path1: string, path2: string) {
+  console.assert(path1 != null && path2 != null);
+  if (!path1.endsWith('/')) {
+    path1 = path1 + '/';
+  }
+
+  if (path2[0] == '/') {
+    path2 = path2.substr(1);
+  }
+
+  return path1 + path2;
+}
 
 app.listen(3010);

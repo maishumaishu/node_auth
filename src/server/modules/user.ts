@@ -1,6 +1,7 @@
 import { ApplicationDatabase as Database, User, Token } from './../database';
 import * as Errors from '../errors';
 import * as settings from '../settings';
+import * as mongodb from 'mongodb';
 
 class UserGroups {
     static normal = 'normal'
@@ -59,7 +60,7 @@ async function registerByMobile({user, smsId, verifyCode, appId}): Promise<any> 
     }
 
     let db = await Database.createInstance(appId);
-    let msg = await db.verifyMessages.findOne({ _id: smsId });
+    let msg = await db.verifyMessages.findOne({ _id: new mongodb.ObjectID(smsId) });
     if (msg == null)
         throw Errors.objectNotExistWithId(smsId, 'VerifyMessages');
 

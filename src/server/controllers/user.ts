@@ -2,6 +2,7 @@ import { ApplicationDatabase as Database, User, Token } from './../database';
 import * as Errors from '../errors';
 import { BaseController } from './baseController'
 import * as settings from '../settings';
+import * as mongodb from 'mongodb';
 
 class UserGroups {
     static normal = 'normal'
@@ -24,8 +25,13 @@ async function createUser(user: User) {
     let appId = this.applicationId;
 
     let db = await Database.createInstance(appId)
-    let u = await db.users.findOne({ username: user.username })
+    let u = await db.users.findOne({
+        $or: [{ username: user.username }, { mobile: user.mobile }]
+    })
     if (u != null) {
+        if (u.mobile == user.mobile)
+            throw Errors.mobileIsBind(user.mobile);
+
         throw Errors.userExists(user.username);
     }
     return db.users.insertOne(user);
@@ -42,28 +48,37 @@ async function registerByUserName({ user }: { user: User }) {
     return this.createUser(user);
 }
 
-async function registerByMobile({ user, smsId, verifyCode }) {
+type RegisterByMobileArguments = { appId, user: User, smsId, verifyCode };
+async function registerByMobile({ appId, user, smsId, verifyCode }: RegisterByMobileArguments) {
     if (user.mobile == null) {
         throw Errors.fieldNull('username', 'User');
     }
     if (user.password == null) {
         throw Errors.fieldNull('password', 'User');
     }
-    if (user.smsId == null) {
+    if (smsId == null) {
         throw Errors.argumentNull('smsId');
     }
-    if (user.verifyCode == null) {
+    if (verifyCode == null) {
         throw Errors.argumentNull('verifyCode');
     }
 
-    return this.createUser(user);
+    let db = await Database.createInstance(appId);
+    let msg = await db.verifyMessages.findOne({ _id: new mongodb.ObjectID(smsId) });
+    if (msg == null)
+        throw Errors.objectNotExistWithId(smsId, 'VerifyMessage');
+
+    if (msg.verifyCode != verifyCode)
+        throw Errors.verifyCodeIncorrect(verifyCode);
+
+    return createUser(user);
 }
 
 export async function register(args: { user: User }) {
     if (settings.registerMode == 'username')
-        return this.registerByUserName(args);
+        return registerByUserName(args);
     else if (settings.registerMode == 'mobile')
-        return this.registerByMobile(<any>args);
+        return registerByMobile(<any>args);
     else if (settings.registerMode == 'notAllow')
         throw Errors.notAllowRegister();
     else

@@ -51,13 +51,13 @@ export class ProxyServer {
         let u = url.parse(req.url, true);
         let applicationId = u.query['appId']; //req.headers[APPLICATION_ID];
         if (!applicationId) {
-            let err = Errors.canntGetHeaderFromRequest(APPLICATION_ID);
+            let err = Errors.canntGetQueryStringFromRequest(APPLICATION_ID);
             return Promise.reject<any>(err);
         }
 
         let applicationToken = u.query['appToken'];
         if (!applicationToken) {
-            let err = Errors.canntGetHeaderFromRequest(APPLICATION_TOKEN);
+            let err = Errors.canntGetQueryStringFromRequest(APPLICATION_TOKEN);
             return Promise.reject<any>(err);
         }
 

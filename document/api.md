@@ -36,11 +36,11 @@ post
 应用设置为手机注册：
 ```
 {
+    smsId: string,
+    verifyCode: string,
     user: {
         mobile: string,
-        password: string,
-        smsId: string,
-        verifyCode: string
+        password: string
     }
 }
 ```

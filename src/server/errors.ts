@@ -6,25 +6,27 @@ interface MyError extends Error {
 
 //export class Errors {
 export let names = {
+    ActionNotExists: 'ActionNotExists',
     ApplicationExists: 'ApplicationExists',
     ApplicationIdRequired: 'ApplicationIdRequired',
     ApplicationTokenRequired: 'ApplicationTokenRequired',
     ArgumentNull: 'ArgumentNull',
+    CanntGetHeaderFromRequest: 'CanntGetHeaderFromRequest',
+    ControllerNotExist: 'ControllerNotExist',
+    DeleteResultZero: 'DeleteResultZero',
     FieldNull: 'FieldNull',
+    InvalidToken: 'InvalidToken',
     NotAllowRegister: 'NotAllowRegister',
     NotImplement: 'NotImplement',
+    MobileIsBind: 'MobileIsBind',
+    ObjectNotExistWithId: 'ObjectNotExistWithId',
     PasswordIncorect: 'PasswordIncorect',
+    PostIsRequired: 'PostIsRequired',
     Success: 'Success',
     UserExists: 'UserExists',
     UserNotExists: 'UserNotExists',
-    InvalidToken: 'InvalidToken',
-    DeleteResultZero: 'DeleteResultZero',
     UpdateResultZero: 'UpdateResultZero',
-    PostIsRequired: 'PostIsRequired',
-    CanntGetHeaderFromRequest: 'CanntGetHeaderFromRequest',
-    ControllerNotExist: 'ControllerNotExist',
-    ActionNotExists: 'ActionNotExists',
-    ObjectNotExistWithId: 'ObjectNotExistWithId'
+    VerifyCodeIncorrect: 'VerifyCodeIncorrect'
 }
 
 export function fieldNull(fieldName: string, objectName: string): Error {
@@ -123,8 +125,8 @@ export function postIsRequired() {
     return error;
 }
 
-export function canntGetHeaderFromRequest(headerName) {
-    let msg = `Can not get header '${headerName}' from the request.`;
+export function canntGetQueryStringFromRequest(itemName) {
+    let msg = `Can not get query string '${itemName}' from the request url.`;
     let error = new Error(msg);
     error.name = names.CanntGetHeaderFromRequest;
     return error;
@@ -170,7 +172,13 @@ export function applicationTokenRequired() {
 export function verifyCodeIncorrect(verifyCode: string) {
     let msg = `Verify code incorrect.`
     let err = new Error(msg) as MyError;
-    err.name = 'verifyCodeIncorrect';
+    err.name = names.VerifyCodeIncorrect;
     err.arguments = { verifyCode };
     return err;
+}
+
+export function mobileIsBind(mobile: string) {
+    let msg = `手机号码'${mobile}'已被绑定。`;
+    let err = new Error(msg) as MyError;
+    err.name = names.MobileIsBind;
 }
