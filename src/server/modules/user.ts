@@ -99,7 +99,7 @@ export async function login({appId, username, password}): Promise<{ token: strin
         return Promise.reject<Error>(Errors.passwordIncorect(username));
     }
     let token = await Token.create(appId, user._id, 'user');
-    return { token: token.value };
+    return { token: token._id };
 }
 function update(args: any) {
     let p = new Promise(() => { });

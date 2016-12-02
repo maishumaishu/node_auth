@@ -186,6 +186,10 @@ async function request(req: express.Request & AppInfo, res: express.Response) {
     headers.host = host;
 
     let requestUrl = combinePaths(path, req.originalUrl);
+    if (req.userId) {
+      requestUrl = requestUrl + `&userId=${req.userId}`;
+    }
+    
     let request = http.request(
       {
         host: host,

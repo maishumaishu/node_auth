@@ -102,7 +102,7 @@ export async function login({applicationId, username, password }): Promise<{ tok
         throw Errors.passwordIncorect(username);
     }
     let token = await Token.create(this.applicationId, user._id, 'user');
-    return { token: token.value };
+    return { token: token._id, userId: user._id };
 }
 function update(args: any) {
     let p = new Promise(() => { });
