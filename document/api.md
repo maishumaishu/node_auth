@@ -1,6 +1,28 @@
-### 应用
-#### 添加应用
+## 服务
+### 服务的布署
+地址：localhost:2800 (本机) service.alinq.cn （服务器）
+
+### 测试数据
+赤兔商城
+
+* appId: 583ea7d7426fb47071984deb
+
+* appToken:583ea7d7426fb47071984deb
+
+* username: 18502146746
+
+* password: 1
+
+### 数据格式
+除了 get 请求，其它请求的格式一律使用 JSON 格式
+
+<h4/>
+
+## 应用管理模块
+### 添加应用
 application/add
+#### 请求类型
+post
 #### 参数
 * name: string
 * openRegister: boolean
@@ -8,7 +30,6 @@ application/add
 `
 { code:'success' }
 `
-<hr/>
 
 ### 删除应用
 application/delete
@@ -22,15 +43,13 @@ application/delete
 * appId
 * appToken
 
-例如：
+<hr/>
 
-##  用户端服务
-
-服务地址：http://localhost:2014/userServices
+## 用户管理模块
 
 ### 用户注册
 user/register
-#### 类型
+#### 请求类型
 post
 #### 参数
 应用设置为手机注册：
@@ -89,6 +108,6 @@ post
     smsId: string
 }
 `
-
+<h4/>
 
 

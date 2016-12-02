@@ -56,6 +56,7 @@ app.use('/*', async function (req: express.Request & AppInfo, res, next) {
     let userTokenString = req.query['userToken'];
     if (userTokenString != null) {
       let userToken = await Token.parse(applicationId, userTokenString);
+      req.userId = userToken.objectId;
     }
 
     next();
@@ -67,7 +68,7 @@ app.use('/*', async function (req: express.Request & AppInfo, res, next) {
 
 let moduleNames = ['user', 'sms', 'application'];
 app.use('/:controller/:action', executeAction);
-function executeAction(req: AppRequest, res, next) {
+function executeAction(req: AppRequest & AppInfo, res, next) {
 
   let actionName = req.params.action;
   let controllerName = req.params.controller;
@@ -100,7 +101,11 @@ function executeAction(req: AppRequest, res, next) {
   }
   getPostObject(req)
     .then((postData) => {
-      return action(postData);
+      let data = Object.assign({
+        appId: req.applicationId, appToken: req.applicationToken,
+        userId: req.userId
+      }, postData);
+      return action(data);
     })
     .then(result => next(result))
     .catch(err => next(err));
@@ -158,13 +163,15 @@ function getPostObject(request: http.IncomingMessage): Promise<any> {
 
   return new Promise((reslove, reject) => {
     request.on('data', (data: { toString: () => string }) => {
+      let text = data.toString();
       try {
         let obj;
-        obj = JSON.parse(data.toString())
+        obj = JSON.parse(text)
         reslove(obj);
       }
       catch (exc) {
-        reject(exc);
+        let err = errors.postDataNotJSON(text);
+        reject(err);
       }
     });
   });
@@ -178,8 +185,7 @@ async function request(req: express.Request & AppInfo, res: express.Response) {
     let headers: any = req.headers;
     headers.host = host;
 
-    let baseUrl = path;
-    let requestUrl = combinePaths(baseUrl, req.baseUrl);
+    let requestUrl = combinePaths(path, req.originalUrl);
     let request = http.request(
       {
         host: host,
@@ -196,8 +202,12 @@ async function request(req: express.Request & AppInfo, res: express.Response) {
         res.setHeader('Access-Control-Allow-Origin', '*');
         // res.setHeader('Access-Control-Allow-Headers', this.allowHeaders);
         response.pipe(res);
-      }
+      },
     );
+
+    request.on('error', function (err) {
+      outputError(res, err);
+    })
 
     let contentLength = 0;
     if (req.headers['content-length']) {
@@ -245,3 +255,4 @@ function combinePaths(path1: string, path2: string) {
 }
 
 app.listen(2800);
+

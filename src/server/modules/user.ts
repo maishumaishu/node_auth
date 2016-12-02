@@ -79,7 +79,9 @@ export async function register(args) {
     else
         throw Errors.notImplement();
 }
-export async function login(applicationId: string, {username, password}): Promise<{ token: string } | Error> {
+export async function login({appId, username, password}): Promise<{ token: string } | Error> {
+    console.assert(appId != null, 'appId 不能为空');
+
     if (username == null) {
         return Promise.reject<Error>(Errors.argumentNull('username'));
     }
@@ -87,15 +89,16 @@ export async function login(applicationId: string, {username, password}): Promis
         return Promise.reject<Error>(Errors.argumentNull('password'));
     }
 
-    let db = await Database.createInstance(applicationId);
-    let user = await db.users.findOne({ username });
+    let db = await Database.createInstance(appId);
+    //TODO:根据 username 格式进行选择
+    let user = await db.users.findOne({ $or: [{ username }, { mobile: username }] });
     if (user == null) {
         return Promise.reject<Error>(Errors.userNotExists(username));
     }
     if (user.password != password) {
         return Promise.reject<Error>(Errors.passwordIncorect(username));
     }
-    let token = await Token.create(applicationId, user._id, 'user');
+    let token = await Token.create(appId, user._id, 'user');
     return { token: token.value };
 }
 function update(args: any) {
