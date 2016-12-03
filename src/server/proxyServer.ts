@@ -65,7 +65,7 @@ export class ProxyServer {
         let userId: string;
         let userTokenString = u.query['userToken'];
         if (userTokenString != null) {
-            let userToken = await Token.parse(applicationId, userTokenString);
+            let userToken = await Token.parse(userTokenString);
             userId = userToken.objectId;
             req.headers[USER_ID] = userId;
         }

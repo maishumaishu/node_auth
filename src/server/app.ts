@@ -36,30 +36,47 @@ app.use('/*', async function (req: express.Request & AppInfo, res, next) {
   res.setHeader('Content-Type', 'application/json;charset=utf-8');
 
   try {
-    let applicationId = req.query['appId']; //req.headers[APPLICATION_ID];
-    if (!applicationId) {
-      let err = errors.canntGetQueryStringFromRequest('appId');
-      throw err;
-    }
-    req.applicationId = applicationId;
+    // let applicationId = req.query['appId']; //req.headers[APPLICATION_ID];
+    // if (!applicationId) {
+    //   let err = errors.canntGetQueryStringFromRequest('appId');
+    //   throw err;
+    // }
+    // req.applicationId = applicationId;
 
     let applicationToken = req.query['appToken'];
     if (!applicationToken) {
       let err = errors.canntGetQueryStringFromRequest('appToken');
       throw err;
     }
+
+    //let tokenObject = Token.parse(applicationId, applicationToken);
+
     req.applicationToken = applicationToken;
 
     //TODO CHECK appToken
-
-    let userId: string;
+    let tasks = [Token.parse(applicationToken)];
     let userTokenString = req.query['userToken'];
     if (userTokenString != null) {
-      let userToken = await Token.parse(applicationId, userTokenString);
-      req.userId = userToken.objectId;
+      tasks.push(Token.parse(userTokenString));
     }
 
-    next();
+    Promise.all(tasks)
+      .then(results => {
+        let appToken = results[0] as Token;
+        let userToken = results[1] as Token;
+        console.assert(appToken != null);
+
+        req.applicationId = appToken.objectId;
+        if (userToken != null) {
+          req.userId = userToken.objectId;
+        }
+
+        next();
+      })
+      .catch(err => {
+        next(err);
+      });
+
   }
   catch (err) {
     next(err);
@@ -135,7 +152,7 @@ app.use('/*', async function (value, req, res, next) {
 
 
 async function parseUserToken(appId: string, userToken: string) {
-  let token = await Token.parse(appId, userToken);
+  let token = await Token.parse(userToken);
   return token.objectId;
 }
 
@@ -189,7 +206,7 @@ async function request(req: express.Request & AppInfo, res: express.Response) {
     if (req.userId) {
       requestUrl = requestUrl + `&userId=${req.userId}`;
     }
-    
+
     let request = http.request(
       {
         host: host,

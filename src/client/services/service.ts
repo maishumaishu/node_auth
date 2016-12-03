@@ -22,10 +22,11 @@ export let ajaxTimeout = 5000;
 let HTTP = 'http://';
 let host = 'http://localhost:2800/';
 let appId = '583c4ee47863ef0548977558';
-let appToken = '583c4ee47863ef0548977558';
+let appToken = '58424781034ff82470d06d3e';
 const HTTP_LENGTH = 7;
 
-async function ajax<T>(url: string, type: 'post' | 'get', obj?: any): Promise<T> {
+type AjaxType = 'post' | 'get' | 'put';
+async function ajax<T>(url: string, type: AjaxType, obj?: any): Promise<T> {
     obj = obj || {};
 
     if (url.length < HTTP_LENGTH || url.substr(0, HTTP_LENGTH).toLowerCase() != HTTP) {
@@ -36,7 +37,7 @@ async function ajax<T>(url: string, type: 'post' | 'get', obj?: any): Promise<T>
 
     let data;
     let keys = Object.keys(obj);
-    if (type == 'post') {
+    if (type != 'get') {
         data = {};
         for (let key of keys)
             data[key] = obj[key];
@@ -94,6 +95,10 @@ export function get<T>(url: string, data?: any): Promise<T> {
 export function post<T>(url: string, data?: any): Promise<T> {
     return ajax(url, 'post', data);
 }
+
+// export function put<T>(url: string, data?: any): Promise<T> {
+//     return ajax(url, 'put', data);
+// }
 
 
 

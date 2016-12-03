@@ -18,6 +18,14 @@
 				</div>
 				<div>
 					<div class="pull-left">
+						令牌
+					</div>
+					<div v-on:click='newToken(item)' class="text interception">
+						{{item.token == null ? '点击生成令牌' : item.token}}
+					</div>
+				</div>
+				<div>
+					<div class="pull-left">
 						名称
 					</div>
 					<div class="text interception">

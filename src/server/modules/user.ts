@@ -98,7 +98,7 @@ export async function login({appId, username, password}): Promise<{ token: strin
     if (user.password != password) {
         return Promise.reject<Error>(Errors.passwordIncorect(username));
     }
-    let token = await Token.create(appId, user._id, 'user');
+    let token = await Token.create(user._id, 'user');
     return { token: token._id };
 }
 function update(args: any) {

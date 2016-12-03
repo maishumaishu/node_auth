@@ -48,6 +48,11 @@ export default function action(page: chitu.Page) {
                     Object.assign(data.app, new Application());
                     validator.clearErrors();
                     (<any>$(dialogElement)).modal();
+                },
+                newToken: function (item: Application) {
+                    app_service.newToken(item).then(result => {
+                        item.token = result.token;
+                    });
                 }
             }
         });

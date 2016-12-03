@@ -20,10 +20,15 @@ export class Table<T extends Entity>{
 
             let obj = {};
             for (let key in entity) {
-                if (key == '_id')
+                if (key == '_id') {
                     continue;
+                }
 
                 obj[key] = entity[key];
+            }
+
+            if (entity._id != null) {
+                obj['_id'] = new mongodb.ObjectID(entity._id);
             }
 
             this.source.insertOne(obj, (err, result) => {
@@ -138,14 +143,12 @@ function guid() {
 export class ApplicationDatabase {
     private source: mongodb.Db;
     private _users: Users;
-    private _tokens: Table<Token>;
     private _applications: Table<Appliation>;
     private _verifyMessages: Table<VerifyMessage>;
 
     constructor(source: mongodb.Db) {
         this.source = source;
         this._users = new Users(source);
-        this._tokens = new Table<Token>(source, 'Token');
         this._applications = new Table<Appliation>(source, 'Appliation');
         this._verifyMessages = new Table<VerifyMessage>(source, 'VerifyMessage');
     }
@@ -169,10 +172,6 @@ export class ApplicationDatabase {
         return this._users;
     }
 
-    get tokens(): Table<Token> {
-        return this._tokens;
-    }
-
     get verifyMessages(): Table<VerifyMessage> {
         return this._verifyMessages;
     }
@@ -185,10 +184,12 @@ export class ApplicationDatabase {
 export class SystemDatabase {
     private source: mongodb.Db;
     private _applications: Table<Appliation>;
+    private _tokens: Table<Token>;
 
     constructor(source: mongodb.Db) {
         this.source = source;
         this._applications = new Table<Appliation>(source, 'Appliation');
+        this._tokens = new Table<Token>(source, 'Token');
     }
 
     static async createInstance() {
@@ -208,6 +209,10 @@ export class SystemDatabase {
 
     get applications(): Table<Appliation> {
         return this._applications;
+    }
+
+    get tokens(): Table<Token> {
+        return this._tokens;
     }
 }
 
@@ -234,6 +239,7 @@ export interface Appliation extends Entity {
     name: string,
     //port: number,
     targetUrl: string,
+    token: string,
 }
 
 /**
@@ -265,13 +271,13 @@ export class Token implements Entity {
     objectId: string;
     type: string
 
-    static async create(appId: string, objectId: string, type: 'user' | 'app'): Promise<Token> {
+    static async create(objectId: string, type: 'user' | 'app'): Promise<Token> {
         let token = new Token();
         //token.value = guid();
         token.objectId = objectId;
         token.type = type;
 
-        let db = await ApplicationDatabase.createInstance(appId);
+        let db = await SystemDatabase.createInstance();
         token = await db.tokens.insertOne(token);
         return token;
     }
@@ -281,8 +287,8 @@ export class Token implements Entity {
      * @param appId 应用ID
      * @tokenValue 令牌字符串
      */
-    static async parse(appId: string, tokenValue: string): Promise<Token> {
-        let db = await ApplicationDatabase.createInstance(appId);
+    static async parse(tokenValue: string): Promise<Token> {
+        let db = await SystemDatabase.createInstance();
         let token = await db.tokens.findOne({ _id: new mongodb.ObjectID(tokenValue) });
         if (token == null) {
             throw errors.invalidToken(tokenValue);
