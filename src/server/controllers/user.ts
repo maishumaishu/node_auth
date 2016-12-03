@@ -8,7 +8,6 @@ class UserGroups {
     static normal = 'normal'
 }
 
-// export class UserController extends BaseController {
 async function test() {
     let db = await Database.createInstance(this.applicationId);
     await db.users.deleteMany({ username: 'maishu' });
