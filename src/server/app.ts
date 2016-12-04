@@ -179,14 +179,14 @@ async function request(req: express.Request & AppInfo, res: express.Response) {
     headers.host = host;
 
     let baseUrl = path;
-    let requestUrl = combinePaths(baseUrl, req.baseUrl);
+    let requestUrl = combinePaths(baseUrl, req.originalUrl);
     let request = http.request(
       {
         host: host,
         path: requestUrl,
         method: req.method,
         headers: headers,
-        port: port
+        port: port,
       },
       (response) => {
         console.assert(response != null);

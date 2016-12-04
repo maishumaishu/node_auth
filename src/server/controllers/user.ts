@@ -48,7 +48,7 @@ async function registerByUserName({ user }: { user: User }) {
     return this.createUser(user);
 }
 
-type RegisterByMobileArguments = { appId, user: User, smsId, verifyCode };
+type RegisterByMobileArguments = { appId:string, user: User, smsId:string, verifyCode:string };
 async function registerByMobile({ appId, user, smsId, verifyCode }: RegisterByMobileArguments) {
     if (user.mobile == null) {
         throw Errors.fieldNull('username', 'User');
