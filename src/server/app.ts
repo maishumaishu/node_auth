@@ -213,7 +213,7 @@ async function request(req: express.Request & AppInfo, res: express.Response) {
         path: requestUrl,
         method: req.method,
         headers: headers,
-        port: port
+        port: port,
       },
       (response) => {
         console.assert(response != null);
