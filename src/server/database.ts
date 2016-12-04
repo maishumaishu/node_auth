@@ -261,18 +261,18 @@ export interface VerifyMessage extends Entity {
  * 用于解释和生成 token 。
  */
 export class Token implements Entity {
-    value: string;
+    _id?: string;
     objectId: string;
     type: string
 
     static async create(appId: string, objectId: string, type: 'user' | 'app'): Promise<Token> {
         let token = new Token();
-        token.value = guid();
+        //token.value = guid();
         token.objectId = objectId;
         token.type = type;
 
         let db = await ApplicationDatabase.createInstance(appId);
-        await db.tokens.insertOne(token);
+        token = await db.tokens.insertOne(token);
         return token;
     }
 
@@ -283,7 +283,7 @@ export class Token implements Entity {
      */
     static async parse(appId: string, tokenValue: string): Promise<Token> {
         let db = await ApplicationDatabase.createInstance(appId);
-        let token = await db.tokens.findOne({ value: tokenValue });
+        let token = await db.tokens.findOne({ _id: new mongodb.ObjectID(tokenValue) });
         if (token == null) {
             throw errors.invalidToken(tokenValue);
         }

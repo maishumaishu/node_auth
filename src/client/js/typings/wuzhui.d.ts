@@ -6,7 +6,7 @@ declare namespace wuzhui {
         constructor(element: T);
         html: string;
         visible: boolean;
-        element: T;
+        readonly element: T;
         appendChild(child: Control<any> | HTMLElement): void;
         style(value: CSSStyleDeclaration | string): void;
         static getControlByElement(element: HTMLElement): Control<any>;
@@ -46,7 +46,7 @@ declare namespace wuzhui {
             items: any[];
         }>;
         constructor(primaryKeys: string[]);
-        selectArguments: DataSourceSelectArguments;
+        readonly selectArguments: DataSourceSelectArguments;
         protected executeInsert(item: T): JQueryPromise<any>;
         protected executeDelete(item: T): JQueryPromise<any>;
         protected executeUpdate(item: T): JQueryPromise<any>;
@@ -57,9 +57,9 @@ declare namespace wuzhui {
         isSameItem(theItem: T, otherItem: T): boolean;
         private checkPrimaryKeys(item);
         select(): JQueryPromise<T[] | DataSourceSelectResult<T>>;
-        canDelete: boolean;
-        canInsert: boolean;
-        canUpdate: boolean;
+        readonly canDelete: boolean;
+        readonly canInsert: boolean;
+        readonly canUpdate: boolean;
     }
     class DataSourceSelectArguments {
         startRowIndex: number;
@@ -79,9 +79,9 @@ declare namespace wuzhui {
     class WebDataSource<T> extends DataSource<T> {
         private args;
         constructor(args: WebDataSourceArguments);
-        canDelete: boolean;
-        canInsert: boolean;
-        canUpdate: boolean;
+        readonly canDelete: boolean;
+        readonly canInsert: boolean;
+        readonly canUpdate: boolean;
         protected executeInsert(item: T): JQueryPromise<any>;
         protected executeDelete(item: T): JQueryPromise<any>;
         protected executeUpdate(item: T): JQueryPromise<any>;
@@ -95,9 +95,9 @@ declare namespace wuzhui {
         protected executeDelete(item: T): JQueryPromise<any>;
         protected executeUpdate(item: T): JQueryPromise<any>;
         protected executeSelect(args: any): JQueryPromise<Array<T> | DataSourceSelectResult<T>>;
-        canDelete: boolean;
-        canInsert: boolean;
-        canUpdate: boolean;
+        readonly canDelete: boolean;
+        readonly canInsert: boolean;
+        readonly canUpdate: boolean;
         private getPrimaryKeyValues(item);
         private findItem(pkValues);
     }
@@ -119,7 +119,7 @@ declare namespace wuzhui {
     class GridViewCell extends Control<HTMLTableCellElement> {
         private _field;
         constructor(field: DataControlField);
-        field: DataControlField;
+        readonly field: DataControlField;
     }
     interface DataControlFieldParams {
         footerText?: string;
@@ -145,7 +145,7 @@ declare namespace wuzhui {
         constructor(field: DataControlField);
         handleSort(): JQueryPromise<any[] | DataSourceSelectResult<any>>;
         private defaultHeaderText();
-        sortType: "asc" | "desc";
+        sortType: "desc" | "asc";
         clearSortIcon(): void;
         private updateSortIcon();
     }
@@ -158,7 +158,7 @@ declare namespace wuzhui {
         itemStyle: string | CSSStyleDeclaration;
         footerStyle: string | CSSStyleDeclaration;
         headerStyle: string | CSSStyleDeclaration;
-        visible: boolean;
+        readonly visible: boolean;
         gridView: GridView;
         sortExpression: string;
         createHeaderCell(): GridViewCell;
@@ -197,11 +197,11 @@ declare namespace wuzhui {
         private _valueElement;
         constructor(params: BoundFieldParams);
         private params();
-        nullText: string;
+        readonly nullText: string;
         createItemCell(dataItem: any): GridViewCell;
-        dataField: string;
-        dataFormatString: string;
-        controlStyle: CSSStyleDeclaration | string;
+        readonly dataField: string;
+        readonly dataFormatString: string;
+        readonly controlStyle: string | CSSStyleDeclaration;
     }
 }
 declare namespace wuzhui {
@@ -279,14 +279,14 @@ declare namespace wuzhui {
         private _rowType;
         private _gridView;
         constructor(rowType: GridViewRowType);
-        rowType: GridViewRowType;
-        gridView: GridView;
-        cells: GridViewCell[];
+        readonly rowType: GridViewRowType;
+        readonly gridView: GridView;
+        readonly cells: GridViewCell[];
     }
     class GridViewDataRow extends GridViewRow {
         private _dataItem;
         constructor(gridView: GridView, dataItem: any);
-        dataItem: any;
+        readonly dataItem: any;
     }
     interface GridViewArguments {
         dataSource: DataSource<any>;
@@ -294,6 +294,7 @@ declare namespace wuzhui {
         showHeader?: boolean;
         showFooter?: boolean;
         element?: HTMLTableElement;
+        emptyDataRowStyle?: string;
     }
     class GridView extends Control<HTMLTableElement> {
         private _pageSize;
@@ -307,20 +308,16 @@ declare namespace wuzhui {
         private _body;
         private _emtpyRow;
         private _currentSortCell;
+        private _params;
         static emptyRowClassName: string;
         static dataRowClassName: string;
         emptyDataText: string;
-        headerStyle: string;
-        footerStyle: string;
-        rowStyle: string;
-        alternatingRowStyle: string;
-        emptyDataRowStyle: string;
         rowCreated: Callback<GridView, {
             row: GridViewRow;
         }>;
         constructor(params: GridViewArguments);
-        columns: DataControlField[];
-        dataSource: DataSource<any>;
+        readonly columns: DataControlField[];
+        readonly dataSource: DataSource<any>;
         private appendEmptyRow();
         private appendDataRow(dataItem);
         private on_sort(sender, args);
@@ -351,7 +348,7 @@ declare namespace wuzhui {
         private _totalRowCount;
         private _pageSize;
         init(dataSource: DataSource<any>): void;
-        pageCount: number;
+        readonly pageCount: number;
         pageSize: number;
         pageIndex: number;
         totalRowCount: number;
@@ -414,8 +411,9 @@ declare namespace wuzhui {
         remove(callbacks: Function[]): Callback<S, A>;
     }
     var ajaxTimeout: number;
-    function ajax(url: string, data: any): JQueryPromise<any>;
+    let ajax: (url: string, data: any) => JQueryPromise<any>;
     function applyStyle(element: HTMLElement, value: CSSStyleDeclaration | string): void;
     function callbacks<S, A>(): Callback<S, A>;
     function fireCallback<S, A>(callback: Callback<S, A>, sender: S, args: A): Callback<S, A>;
+    function changeAjax(func: ((url: string, data) => JQueryPromise<any>)): void;
 }

@@ -182,3 +182,7 @@ export function mobileIsBind(mobile: string) {
     let err = new Error(msg) as MyError;
     err.name = names.MobileIsBind;
 }
+
+export function postDataNotJSON(data:string){
+    let msg = `提交的数据不是 JSON 格式。提交数据为：${data}`
+}

@@ -8,7 +8,6 @@ class UserGroups {
     static normal = 'normal'
 }
 
-// export class UserController extends BaseController {
 async function test() {
     let db = await Database.createInstance(this.applicationId);
     await db.users.deleteMany({ username: 'maishu' });
@@ -102,7 +101,7 @@ export async function login({applicationId, username, password }): Promise<{ tok
         throw Errors.passwordIncorect(username);
     }
     let token = await Token.create(this.applicationId, user._id, 'user');
-    return { token: token.value };
+    return { token: token._id, userId: user._id };
 }
 function update(args: any) {
     let p = new Promise(() => { });
