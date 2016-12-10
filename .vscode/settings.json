@@ -1,15 +1,15 @@
 {
     "files.exclude": {
-        "build": true,
+        //"build": true,
         "node_modules": true,
         "LICENSE.txt": true,
         "README.txt": true,
         "*.doc": true,
         "**/*.intellisense.js": true,
         ".tscache": true,
-        "**/.baseDir.*": true
+        "**/.baseDir.*": true,
+        "release": true
         //"src/**/typings":true
-    }
-,
-"typescript.check.workspaceVersion": false
+    },
+    "typescript.check.workspaceVersion": false
 }

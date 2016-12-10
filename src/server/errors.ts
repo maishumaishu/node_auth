@@ -1,19 +1,32 @@
 
 
+interface MyError extends Error {
+    arguments: any
+}
+
 //export class Errors {
 export let names = {
+    ActionNotExists: 'ActionNotExists',
     ApplicationExists: 'ApplicationExists',
+    ApplicationIdRequired: 'ApplicationIdRequired',
+    ApplicationTokenRequired: 'ApplicationTokenRequired',
     ArgumentNull: 'ArgumentNull',
+    CanntGetHeaderFromRequest: 'CanntGetHeaderFromRequest',
+    ControllerNotExist: 'ControllerNotExist',
+    DeleteResultZero: 'DeleteResultZero',
     FieldNull: 'FieldNull',
+    InvalidToken: 'InvalidToken',
     NotAllowRegister: 'NotAllowRegister',
     NotImplement: 'NotImplement',
+    MobileIsBind: 'MobileIsBind',
+    ObjectNotExistWithId: 'ObjectNotExistWithId',
     PasswordIncorect: 'PasswordIncorect',
+    PostIsRequired: 'PostIsRequired',
     Success: 'Success',
     UserExists: 'UserExists',
     UserNotExists: 'UserNotExists',
-    InvalidToken: 'InvalidToken',
-    DeleteResultZero: 'DeleteResultZero',
     UpdateResultZero: 'UpdateResultZero',
+    VerifyCodeIncorrect: 'VerifyCodeIncorrect'
 }
 
 export function fieldNull(fieldName: string, objectName: string): Error {
@@ -69,25 +82,25 @@ export function notImplement(): Error {
 
 export function userNotExists(username: string) {
     let msg = `User '${username}' is not exists.`
-    let error = new Error(msg);
+    let error = new Error(msg) as MyError;
     error.name = names.UserNotExists;
-    (<any>error).arguments = { username };
+    error.arguments = { username };
     return error;
 }
 
 export function invalidToken(tokenValue: string): Error {
     let msg = `Token '${tokenValue}' is not a valid token.`;
-    let error = new Error(msg);
+    let error = new Error(msg) as MyError;
     error.name = names.InvalidToken;
-    (<any>error).arguments = { token: tokenValue };
+    error.arguments = { token: tokenValue };
     return error;
 }
 
 export function applicationExists(name: string) {
     let msg = `Application with name '${name}' is exists.`;
-    let error = new Error(msg);
+    let error = new Error(msg) as MyError;
     error.name = names.ApplicationExists;
-    (<any>error).arguments = { name };
+    error.arguments = { name };
     return error;
 }
 
@@ -103,4 +116,73 @@ export function updateResultZero() {
     let error = new Error(msg);
     error.name = names.UpdateResultZero;
     return error;
+}
+
+export function postIsRequired() {
+    let msg = 'Post request is required.';
+    let error = new Error(msg);
+    error.name = names.PostIsRequired;
+    return error;
+}
+
+export function canntGetQueryStringFromRequest(itemName) {
+    let msg = `Can not get query string '${itemName}' from the request url.`;
+    let error = new Error(msg);
+    error.name = names.CanntGetHeaderFromRequest;
+    return error;
+}
+
+export function controllerNotExist(path) {
+    let msg = `Controller is not exists in path '${path}'.`;
+    let error = new Error(msg);
+    error.name = names.ControllerNotExist;
+    return error;
+}
+
+export function actionNotExists(action: string, controller: string) {
+    let msg = `Action '${action}' is not exists in controller '${controller}'`;
+    let error = new Error(msg);
+    error.name = names.ActionNotExists;
+    return error;
+}
+
+export function objectNotExistWithId(objectId: string, objectName: string) {
+    let msg = `${objectName} not exists with id '${objectId}'`;
+    let error = new Error(msg);
+    error.name = names.ObjectNotExistWithId;
+    return error;
+}
+
+export function applicationIdRequired() {
+    let msg = `Application id is required.`;
+    let err = new Error(msg);
+    err.name = names.ApplicationIdRequired;
+
+    return err;
+}
+
+export function applicationTokenRequired() {
+    let msg = `Application token is required.`;
+    let err = new Error(msg);
+    err.name = names.ApplicationTokenRequired;
+
+    return err;
+}
+
+export function verifyCodeIncorrect(verifyCode: string) {
+    let msg = `Verify code incorrect.`
+    let err = new Error(msg) as MyError;
+    err.name = names.VerifyCodeIncorrect;
+    err.arguments = { verifyCode };
+    return err;
+}
+
+export function mobileIsBind(mobile: string) {
+    let msg = `手机号码'${mobile}'已被绑定。`;
+    let err = new Error(msg) as MyError;
+    err.name = names.MobileIsBind;
+}
+
+export function postDataNotJSON(data:string){
+    let msg = `提交的数据不是 JSON 格式。提交数据为：${data}`
 }

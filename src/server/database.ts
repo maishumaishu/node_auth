@@ -13,17 +13,22 @@ export class Table<T extends Entity>{
 
         this.source = db.collection(name);
     }
-    insertOne(entity: T): Promise<any> {
+    insertOne(entity: T): Promise<T> {
         return new Promise((reslove, reject) => {
             if (entity.createDateTime == null)
                 entity.createDateTime = new Date(Date.now());
 
             let obj = {};
             for (let key in entity) {
-                if (key == 'id')
+                if (key == '_id') {
                     continue;
+                }
 
                 obj[key] = entity[key];
+            }
+
+            if (entity._id != null) {
+                obj['_id'] = new mongodb.ObjectID(entity._id);
             }
 
             this.source.insertOne(obj, (err, result) => {
@@ -31,31 +36,31 @@ export class Table<T extends Entity>{
                     reject(err);
                     return;
                 }
-                reslove(entity);
+                reslove(result.ops[0]);
             });
         });
     }
-    updateOne(entity: T): Promise<Error> {
+    updateOne(entity: T): Promise<Error | T> {
         return new Promise((reslove, reject) => {
             if (entity == null) {
                 reject(errors.argumentNull('entity'));
                 return;
             }
 
-            if (entity.id == null) {
+            if (entity._id == null) {
                 reject(errors.fieldNull('id', 'entity'));
                 return;
             }
 
             let obj = {};
             for (let key in entity) {
-                if (key == 'id')
+                if (key == '_id')
                     continue;
 
                 obj[key] = entity[key];
             }
 
-            this.source.updateOne({ _id: new mongodb.ObjectID(entity.id) }, { $set: obj }, (err, result) => {
+            this.source.updateOne({ _id: new mongodb.ObjectID(entity._id) }, { $set: obj }, (err, result) => {
                 if (err) {
                     reject(err);
                     return;
@@ -64,7 +69,7 @@ export class Table<T extends Entity>{
                     reject(errors.updateResultZero());
                     return;
                 }
-                reject(errors.success());
+                reslove(obj);
                 return;
             });
         })
@@ -138,14 +143,14 @@ function guid() {
 export class ApplicationDatabase {
     private source: mongodb.Db;
     private _users: Users;
-    private _tokens: Table<Token>;
     private _applications: Table<Appliation>;
+    private _verifyMessages: Table<VerifyMessage>;
 
     constructor(source: mongodb.Db) {
         this.source = source;
         this._users = new Users(source);
-        this._tokens = new Table<Token>(source, 'Token');
         this._applications = new Table<Appliation>(source, 'Appliation');
+        this._verifyMessages = new Table<VerifyMessage>(source, 'VerifyMessage');
     }
 
     static async createInstance(appId: string) {
@@ -167,10 +172,8 @@ export class ApplicationDatabase {
         return this._users;
     }
 
-
-
-    get tokens(): Table<Token> {
-        return this._tokens;
+    get verifyMessages(): Table<VerifyMessage> {
+        return this._verifyMessages;
     }
 
     close() {
@@ -181,10 +184,12 @@ export class ApplicationDatabase {
 export class SystemDatabase {
     private source: mongodb.Db;
     private _applications: Table<Appliation>;
-    
+    private _tokens: Table<Token>;
+
     constructor(source: mongodb.Db) {
         this.source = source;
         this._applications = new Table<Appliation>(source, 'Appliation');
+        this._tokens = new Table<Token>(source, 'Token');
     }
 
     static async createInstance() {
@@ -205,6 +210,10 @@ export class SystemDatabase {
     get applications(): Table<Appliation> {
         return this._applications;
     }
+
+    get tokens(): Table<Token> {
+        return this._tokens;
+    }
 }
 
 export class Users extends Table<User> {
@@ -214,7 +223,7 @@ export class Users extends Table<User> {
 }
 
 export interface Entity {
-    id?: string,
+    _id?: string,
     createDateTime?: Date,
 }
 
@@ -227,7 +236,20 @@ export interface User extends Entity {
 }
 
 export interface Appliation extends Entity {
-    name: string
+    name: string,
+    //port: number,
+    targetUrl: string,
+    token: string,
+}
+
+/**
+ * 验证短信
+ */
+export interface VerifyMessage extends Entity {
+    /** 短信内容 */
+    content: string,
+    /** 验证码 */
+    verifyCode: string
 }
 
 // interface MobileBinding extends Entity {
@@ -245,18 +267,18 @@ export interface Appliation extends Entity {
  * 用于解释和生成 token 。
  */
 export class Token implements Entity {
-    value: string;
+    _id?: string;
     objectId: string;
     type: string
 
-    static async create(appId: string, objectId: string, type: 'user' | 'app'): Promise<Token> {
+    static async create(objectId: string, type: 'user' | 'app'): Promise<Token> {
         let token = new Token();
-        token.value = guid();
+        //token.value = guid();
         token.objectId = objectId;
         token.type = type;
 
-        let db = await ApplicationDatabase.createInstance(appId);
-        await db.tokens.insertOne(token);
+        let db = await SystemDatabase.createInstance();
+        token = await db.tokens.insertOne(token);
         return token;
     }
 
@@ -265,9 +287,9 @@ export class Token implements Entity {
      * @param appId 应用ID
      * @tokenValue 令牌字符串
      */
-    static async parse(appId: string, tokenValue: string): Promise<Error | Token> {
-        let db = await ApplicationDatabase.createInstance(appId);
-        let token = await db.tokens.findOne({ value: tokenValue });
+    static async parse(tokenValue: string): Promise<Token> {
+        let db = await SystemDatabase.createInstance();
+        let token = await db.tokens.findOne({ _id: new mongodb.ObjectID(tokenValue) });
         if (token == null) {
             throw errors.invalidToken(tokenValue);
         }

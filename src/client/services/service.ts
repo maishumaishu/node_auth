@@ -1,112 +1,104 @@
 
-import * as $ from 'jquery';
+/// <reference path="../js/typings/fetch.d.ts"/>
+import * as  chitu from 'chitu';
 
-function isError(data) {
-    if ((data.name as string || '').toLowerCase() == 'success')
+function isError(data: Error) {
+
+    if (data.name == 'Success') {
         return false;
+    }
 
-    if (data.name != undefined && data.message != undefined && data.stack != undefined)
+    let keys = Object.keys(data);
+    if (keys.indexOf('name') >= 0 && keys.indexOf('message') >= 0) {
         return true;
+    }
 
     return false;
 }
 
-export let error = $.Callbacks();
+export let error = chitu.Callbacks();
 export let ajaxTimeout = 5000;
 
 let HTTP = 'http://';
-let host = 'http://localhost:3000/';
+let host = 'http://localhost:2800/';
+let appId = '583c4ee47863ef0548977558';
+let appToken = '58424781034ff82470d06d3e';
 const HTTP_LENGTH = 7;
 
-export function ajax<T>(url: string, data?: any): JQueryPromise<T> {
+type AjaxType = 'post' | 'get' | 'put';
+async function ajax<T>(url: string, type: AjaxType, obj?: any): Promise<T> {
+    obj = obj || {};
 
     if (url.length < HTTP_LENGTH || url.substr(0, HTTP_LENGTH).toLowerCase() != HTTP) {
         url = host + url;
     }
 
-    let result = $.Deferred<T>();
-    data = data || {};
-    $.ajax(url, {
-        data: data
-    }).done(function (data) {
-        if (isError(data)) {
-            error.fire(data);
-            result.reject(data);
-            return;
-        }
-        result.resolve(data);
+    let urlParams = `appId=${appId}&appToken=${appToken}`;
 
-    }).fail(function (jqXHR, textStatus) {
-        var err = new Error(jqXHR.statusText);
-        err.name = textStatus;
-        if (jqXHR.status == 0 && jqXHR.statusText == 'error') {
-            err.name = 'ConnectRemoteServerFail';
-            err.message = 'Cannt not connect remote server';
-        }
-        error.fire(err);
-        result.reject(err);
+    let data;
+    let keys = Object.keys(obj);
+    if (type != 'get') {
+        data = {};
+        for (let key of keys)
+            data[key] = obj[key];
 
-    }).always(function () {
-        clearTimeout(timeoutid);
-    });
-
-    //超时处理
-    let timeoutid = setTimeout(() => {
-        if (result.state() == 'pending') {
-            result.reject({ Code: 'Timeout', Message: 'Ajax call timemout.' });
-        }
-        clearTimeout(timeoutid);
-    }, ajaxTimeout);
-
-    return result;
-}
-
-export function post<T>(url: string, data?: any): JQueryPromise<T> {
-
-    if (url.length < HTTP_LENGTH || url.substr(0, HTTP_LENGTH).toLowerCase() != HTTP) {
-        url = host + url;
+        data = JSON.stringify(data);
+    }
+    else {
+        for (let key of keys)
+            urlParams = urlParams + `&${key}=${obj[key]}`;
     }
 
-    let result = $.Deferred<T>();
-    data = data || {};
-    $.ajax(url, {
-        type: "post",
-        //processData: false,
-        //contentType: 'application/json',
-        contentType: 'application/json; charset=UTF-8',
-        dataType: 'json',
-        data: JSON.stringify(data),
-    }).done(function (data) {
-        if (isError(data)) {
-            error.fire(data);
-            result.reject(data);
-            return;
-        }
-        result.resolve(data);
+    url = url + '?' + urlParams;
 
-    }).fail(function (jqXHR, textStatus) {
-        var err = new Error(jqXHR.statusText);
-        err.name = textStatus;
-        if (jqXHR.status == 0 && jqXHR.statusText == 'error') {
-            err.name = 'ConnectRemoteServerFail';
-            err.message = 'Cannt not connect remote server';
-        }
-        error.fire(err);
-        result.reject(err);
+    let options = {
+        headers: {
+        },
+        body: data,
+        method: type,
+    } as FetchOptions;
 
-    }).always(function () {
-        clearTimeout(timeoutid);
-    });
+    let response: Response;
+    try {
+        response = await fetch(url, options);
+    }
+    catch (exc) {
+        error.fire(this, exc);
+        throw exc;
+    }
+    let responseText = response.text();
+    let p: Promise<string>;
+    if (typeof responseText == 'string') {
+        p = new Promise<string>((reslove, reject) => {
+            reslove(responseText);
+        })
+    }
+    else {
+        p = responseText as Promise<string>;
+    }
 
-    //超时处理
-    let timeoutid = setTimeout(() => {
-        if (result.state() == 'pending') {
-            result.reject({ Code: 'Timeout', Message: 'Ajax call timemout.' });
-        }
-        clearTimeout(timeoutid);
-    }, ajaxTimeout);
+    let text = await responseText;
+    let textObject = JSON.parse(text);
 
-    return result;
+    if (isError(textObject)) {
+        error.fire(this, textObject);
+        throw textObject
+    }
+
+    return textObject;
 }
+
+export function get<T>(url: string, data?: any): Promise<T> {
+    return ajax(url, 'get', data);
+}
+
+export function post<T>(url: string, data?: any): Promise<T> {
+    return ajax(url, 'post', data);
+}
+
+// export function put<T>(url: string, data?: any): Promise<T> {
+//     return ajax(url, 'put', data);
+// }
+
 
 

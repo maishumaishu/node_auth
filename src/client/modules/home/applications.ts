@@ -1,61 +1,72 @@
-import * as application_service from 'services/application_service';
-import * as validation from 'knockout.validation';
-import * as mapping from 'knockout.mapping';
+import * as app_service from 'services/application_service';
+import { Application } from 'services/application_service';
+import Vue = require('vue');
 
-//let app_fields = ['id', 'name', 'targetUrl'];
-class ApplicationsPage extends chitu.Page {
 
-    private app: application_service.Application;
 
-    private val: KnockoutValidationErrors;
-    private $dialog: JQuery;
+export default function action(page: chitu.Page) {
 
-    constructor(params) {
-        super(params);
+    let loadPromise = new Promise((reslove, reject) => {
+        page.load.add(() => reslove());
+    });
 
-        this.app = new application_service.Application();
-        this.app.name.extend({ required: { message: '请输入应用名称' } });
-        this.app.targetUrl.extend({ required: { message: '请输入转发的目标URL' } });
+    let self = this;
+    Promise.all([app_service.list(), loadPromise]).then((results) => {
+        let items = results[0];
 
-        this.items = ko.observableArray<application_service.Application>();
-        ko.applyBindings(this, this.element);
+        //let currentItem: Application;
+        let data = { items, app: new Application() };
+        let vm = new Vue({
+            el: page.element,
+            data,
+            methods: {
+                editApp: function (item: Application) {
 
-        this.load.add(this.page_load);
-        this.val = validation.group(this.app);
-        this.$dialog = $(this.element).find('[name="dlg_application"]');
-    }
+                    //currentItem = item;
+                    Object.assign(data.app, item);
 
-    private page_load(sender: chitu.Page, args) {
-        return application_service.list().done((data: Array<any>) => {
-            this.items(data);
-        })
-    }
+                    let element = this.$el as HTMLElement;
+                    validator.clearErrors();
+                    (<any>$(dialogElement)).modal();
+                },
+                saveApp: function () {
+                    if (!validator.validateForm()) {
+                        return;
+                    }
 
-    //==========================================================
-    // 绑定
-    private items: KnockoutObservableArray<application_service.Application>;
+                    app_service.save(data.app).then((result) => {
+                        if (data.app._id == null) {
+                            data.items.push();
+                        }
+                        else {
+                            let editItem = data.items.filter(o => o._id == data.app._id)[0];
+                            Object.assign(editItem, data.app);
+                        }
+                    });
+                },
+                newApp: function () {
+                    Object.assign(data.app, new Application());
+                    validator.clearErrors();
+                    (<any>$(dialogElement)).modal();
+                },
+                newToken: function (item: Application) {
+                    app_service.newToken(item).then(result => {
+                        item.token = result.token;
+                    });
+                }
+            }
+        });
 
-    private newApp = () => {
-        mapping.fromJS(mapping.toJS(new application_service.Application()), {}, this.app);
-        this.val.showAllMessages(false);
-        (<any>this.$dialog).modal();
-    }
-
-    private editApp = (item: application_service.Application) => {
-        mapping.fromJS(mapping.toJS(item), {}, this.app);
-        this.val.showAllMessages(false);
-        (<any>this.$dialog).modal();
-    }
-
-    private saveApp = () => {
-        if (!this.app['isValid']()) {
-            this.val.showAllMessages();
-            return;
-        }
-
-        application_service.save(this.app);
-    }
-    //==========================================================
+        let dialogElement = vm.$el.querySelector('[name="dlg_application"]') as HTMLElement;
+        console.assert(dialogElement != null);
+        let validator = new FormValidator(dialogElement, [
+            { name: '编号', rules: 'required' },
+            { name: '名称', rules: 'required' },
+            { name: '端口', rules: 'required' },
+            { name: '目标URL', rules: 'required' }
+        ]);
+    });
 }
 
-export default ApplicationsPage;
+
+

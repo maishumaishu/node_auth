@@ -3,21 +3,19 @@ import * as ko from 'knockout';
 import * as mapping from 'knockout.mapping';
 
 export class Application {
-    static keys = ['id', 'name', 'targetUrl', 'port', 'allowRegister'];
-    id = ko.observable<number>();
-    name = ko.observable<string>();
-    targetUrl = ko.observable<string>();
-    port = ko.observable<number>();
-    allowRegister = ko.observable<boolean>();
+    _id: string = null;
+    name: string = null;
+    targetUrl: string = null;
+    allowRegister: boolean = null;
+    token: string = '';
 }
 
 export function save(app: Application) {
-    let obj = mapping.toJS(app, Application.keys);
-    return service.post('application/save', obj);
+    return service.post<Application>('application/save', { app });
 }
-export function list(): JQueryPromise<Array<Application>> {
-    return service.ajax<Array<any>>('application/list').then(function (items) {
-        let result: Array<Application> = items.map(o => mapping.fromJS(o, {}, new Application()));
-        return result;
-    });
+export function list() {
+    return service.get<Array<Application>>('application/list');
+}
+export function newToken(app: Application) {
+    return service.post<{ token: string }>('application/newToken', { appId: app._id });
 }

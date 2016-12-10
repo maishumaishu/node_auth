@@ -1,6 +1,6 @@
 import * as assert from 'assert';
-import {User, ApplicationDatabase as Database} from '../server/database';
-import {UserController} from '../server/controllers/user';
+import { User, ApplicationDatabase as Database } from '../server/database';
+import * as controller from '../server/modules/user';
 import * as Errors from '../server/errors';
 
 let appId = "4C22F420-475F-4085-AA2F-BE5269DE6043";
@@ -11,20 +11,26 @@ let user = <User>{
     email: '81232259@qq.com'
 }
 
-function createUserController(): UserController {
-    let controller = new UserController();
-    controller.applicationId = appId;
+function createUserController() {
+    // let controller = new UserController();
+    // controller.applicationId = appId;
     return controller;
 }
 
 describe('UserController', function () {
     describe('注册', function () {
-        it('注册成功', async function () {
+        it('注册用户', async function () {
             let db = await Database.createInstance(appId);
             await db.users.deleteMany({ username: 'maishu' });
 
             let controller = createUserController();
-            return controller.register({ user });
+            return controller.register({ appId, user }).then(async () => {
+                let user = await db.users.findOne({ username: 'maishu' });
+                if (user == null)
+                    return Promise.reject<any>(new Error('用户找不到'));
+
+                return Promise.resolve<any>({});
+            });
         });
         it('用户名已存在', async () => {
             try {
@@ -32,9 +38,9 @@ describe('UserController', function () {
                 await db.users.deleteMany({ username: 'maishu' });
 
                 let controller = createUserController();
-                await controller.register({ user });
-                await controller.register({ user });
-                throw new Error('Error:重复注册用户');
+                await controller.register({ appId, user });
+                await controller.register({ appId, user });
+                Promise.reject(new Error('Error:重复注册用户'));
             }
             catch (exc) {
                 if ((<Error>exc).name != Errors.names.UserExists) {
@@ -51,8 +57,8 @@ describe('UserController', function () {
             await db.users.deleteMany({ username: 'maishu' });
 
             let controller = createUserController();
-            await controller.register({ user });
-            let result = await controller.login({ username: user.username, password: user.password });
+            await controller.register({ appId, user });
+            let result = await controller.login({ appId, username: user.username, password: user.password });
 
             assert.notDeepEqual((<{ token: string }>result).token, null);
             return result;
@@ -63,7 +69,7 @@ describe('UserController', function () {
                 await db.users.deleteMany({ username: 'maishu' });
 
                 let controller = createUserController();
-                await controller.login(user);
+                await controller.login(Object.assign({ appId }, user));
                 throw new Error('Error:不存在用户可登录');
             }
             catch (exc) {
@@ -79,11 +85,11 @@ describe('UserController', function () {
                 await db.users.deleteMany({ username: 'maishu' });
 
                 let controller = createUserController();
-                await controller.register({ user });
+                await controller.register({ appId, user });
                 //let {username, password} = user;
                 let username = user.username;
                 let password = user.password;
-                let result = await controller.login({ username, password: password + 'bbb' });
+                let result = await controller.login({appId, username, password: password + 'bbb' });
                 throw new Error('Error:不正确的密码也可以登录');
             }
             catch (exc) {

@@ -1,51 +1,27 @@
 
-var release = 'release';
+let build = 'build';
+let release = 'release';
 module.exports = function (grunt) {
     var config = {
-        ts: {
-            server: {
-                src: ['src/server/**/*.ts'],
-                dest: `${release}/server`,
+        shell: {
+            client: {
+                command: 'tsc -p ./src/client',
                 options: {
-                    target: 'es6',
-                    module: 'commonjs',
-                    removeComments: true,
-                    declaration: false,
-                    sourceMap: true,
-                    references: [
-                        "src/server/**/*.ts",
-                    ],
+                    failOnError: false
                 }
             },
-            client: {
-                src: ['src/client/**/*.ts','src/client/**/*.tsx'],
-                dest: `${release}/client`,
+            server: {
+                command: 'tsc -p ./src/server',
                 options: {
-                    target: 'es6',
-                    module: 'amd',
-                    removeComments: true,
-                    declaration: false,
-                    sourceMap: false,
-                    jsx: 'react',
-                    references: [
-                        "src/client/**/*.ts"
-                    ],
+                    failOnError: false
                 }
             },
             test: {
-                src: ['src/test/**/*.ts'],
-                dest: `${release}`,
+                command: 'tsc -p ./src/test',
                 options: {
-                    target: 'es6',
-                    module: 'commonjs',
-                    removeComments: true,
-                    declaration: false,
-                    sourceMap: false,
-                    references: [
-                        "src/test/**/*.ts"
-                    ],
+                    failOnError: false
                 }
-            }
+            },
         },
         stylus: {
             app: {
@@ -56,7 +32,7 @@ module.exports = function (grunt) {
                     expand: true,
                     cwd: 'src/client/css/',
                     src: ['**/*.styl'],
-                    dest: 'release/client/css',
+                    dest: `${build}/client/css`,
                     ext: '.css'
                 }]
             },
@@ -67,8 +43,13 @@ module.exports = function (grunt) {
                     {
                         expand: true, cwd: 'src/client',
                         src: ['**/*.html', '**/*.js', '**/*.css', 'font/*.*'],
-                        dest: `${release}/client`
+                        dest: `${build}/client`
                     },
+                    {
+                        expand: true, cwd: `${build}/client`,
+                        src: ['**/*.html', '**/*.js', '**/*.css', 'font/*.*'],
+                        dest: `${release}/client`
+                    }
                 ]
             }
         }
@@ -79,8 +60,8 @@ module.exports = function (grunt) {
 
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-stylus');
-    grunt.loadNpmTasks('grunt-ts');
+    grunt.loadNpmTasks('grunt-shell');
 
-    grunt.registerTask('default', ['ts', 'stylus',  'copy']);
+    grunt.registerTask('default', ['shell', 'stylus', 'copy']);
 
 };

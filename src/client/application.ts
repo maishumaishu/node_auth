@@ -5,43 +5,42 @@ import ko = require('knockout');
 class Application extends chitu.Application {
 
     constructor() {
-        super({
-            container: (routeData: chitu.RouteData, previous: chitu.PageContainer) => {
+        super();
+    }
 
-                var css_path = chitu.Utility.format(`c!css/${routeData.actionPath}.css`);
-                routeData.resource = [css_path];
+    protected createPageElement(routeData: chitu.RouteData) {
+        //let element = super.createPageElement(routeData);
+        let element: HTMLElement = document.createElement('div');
+        element.className = 'page';
+        if (routeData.pageName == 'home.applications') {
+            document.getElementById('applications-container').appendChild(element);
+        }
+        else {
+            document.getElementById('mainContent').appendChild(element);
+        }
 
-                let element = document.createElement('div');
-                var c: chitu.PageContainer = chitu.PageContainerFactory.createInstance({ app, routeData, previous, element });
-                //
-                if (routeData.pageName == 'home.login') {
-                    let container_host_element = document.getElementById('login-container');
-                    console.assert(container_host_element != null);
-                    container_host_element.appendChild(c.element);
-                }
-                else if (routeData.pageName == 'home.applications') {
-                    let container_host_element = document.getElementById('applications-container');
-                    console.assert(container_host_element != null);
-                    container_host_element.appendChild(c.element);
-                }
-                else {
-                    let _contentElement = document.getElementById('mainContent');
-                    console.assert(_contentElement != null);
-                    _contentElement.appendChild(c.element);
-                }
+        return element;
+    }
 
-                c.shown.add((sender, args) => {
-                    $('.main-container').hide();
-                    $(sender.element).parents('.main-container').show();
-                });
-                // c.closing.add((sender, args) => {
-                //     $(sender.element).parents('.main-container').hide();
-                // })
+    protected parseRouteString(routeString: string) {
+        let routeData = super.parseRouteString(routeString);
+        routeData.resources.push({ name: 'html', path: `text!${routeData.actionPath}.html` });
+        routeData.resources.push({ name: 'css', path: `c!css/${routeData.actionPath}.css` });
+        return routeData;
+    }
 
-
-                return c;
-            }
+    protected createPage(routeData) {
+        let page = super.createPage(routeData);
+        page.load.add((sender: chitu.Page, { html, css }) => {
+            sender.element.innerHTML = html;
         });
+        page.shown.add((sender: chitu.Page) => {
+            $(sender.element).parents('.main-container').first().show();
+        });
+        page.hidden.add((sender: chitu.Page) => {
+            $(sender.element).parents('.main-container').first().hide();
+        });
+        return page;
     }
 }
 

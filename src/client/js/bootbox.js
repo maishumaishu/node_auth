@@ -22,49 +22,49 @@
     root.bootbox = factory(root.jQuery);
   }
 
-}(this, function init($, undefined) {
+} (this, function init($, undefined) {
 
   "use strict";
 
   // the base DOM structure needed to create a modal
   var templates = {
     dialog:
-      "<div class='bootbox modal' tabindex='-1' role='dialog'>" +
-        "<div class='modal-dialog'>" +
-          "<div class='modal-content'>" +
-            "<div class='modal-body'><div class='bootbox-body'></div></div>" +
-          "</div>" +
-        "</div>" +
-      "</div>",
+    "<div class='bootbox modal' tabindex='-1' role='dialog'>" +
+    "<div class='modal-dialog'>" +
+    "<div class='modal-content'>" +
+    "<div class='modal-body'><div class='bootbox-body'></div></div>" +
+    "</div>" +
+    "</div>" +
+    "</div>",
     header:
-      "<div class='modal-header'>" +
-        "<h4 class='modal-title'></h4>" +
-      "</div>",
+    "<div class='modal-header'>" +
+    "<h4 class='modal-title'></h4>" +
+    "</div>",
     footer:
-      "<div class='modal-footer'></div>",
+    "<div class='modal-footer'></div>",
     closeButton:
-      "<button type='button' class='bootbox-close-button close' data-dismiss='modal' aria-hidden='true'>&times;</button>",
+    "<button type='button' class='bootbox-close-button close' data-dismiss='modal' aria-hidden='true'>&times;</button>",
     form:
-      "<form class='bootbox-form'></form>",
+    "<form class='bootbox-form'></form>",
     inputs: {
       text:
-        "<input class='bootbox-input bootbox-input-text form-control' autocomplete=off type=text />",
+      "<input class='bootbox-input bootbox-input-text form-control' autocomplete=off type=text />",
       textarea:
-        "<textarea class='bootbox-input bootbox-input-textarea form-control'></textarea>",
+      "<textarea class='bootbox-input bootbox-input-textarea form-control'></textarea>",
       email:
-        "<input class='bootbox-input bootbox-input-email form-control' autocomplete='off' type='email' />",
+      "<input class='bootbox-input bootbox-input-email form-control' autocomplete='off' type='email' />",
       select:
-        "<select class='bootbox-input bootbox-input-select form-control'></select>",
+      "<select class='bootbox-input bootbox-input-select form-control'></select>",
       checkbox:
-        "<div class='checkbox'><label><input class='bootbox-input bootbox-input-checkbox' type='checkbox' /></label></div>",
+      "<div class='checkbox'><label><input class='bootbox-input bootbox-input-checkbox' type='checkbox' /></label></div>",
       date:
-        "<input class='bootbox-input bootbox-input-date form-control' autocomplete=off type='date' />",
+      "<input class='bootbox-input bootbox-input-date form-control' autocomplete=off type='date' />",
       time:
-        "<input class='bootbox-input bootbox-input-time form-control' autocomplete=off type='time' />",
+      "<input class='bootbox-input bootbox-input-time form-control' autocomplete=off type='time' />",
       number:
-        "<input class='bootbox-input bootbox-input-number form-control' autocomplete=off type='number' />",
+      "<input class='bootbox-input bootbox-input-number form-control' autocomplete=off type='number' />",
       password:
-        "<input class='bootbox-input bootbox-input-password form-control' autocomplete='off' type='password' />"
+      "<input class='bootbox-input bootbox-input-password form-control' autocomplete='off' type='password' />"
     }
   };
 
@@ -117,14 +117,14 @@
     // @TODO defer to Object.keys(x).length if available?
     var k, t = 0;
     for (k in obj) {
-      t ++;
+      t++;
     }
     return t;
   }
 
   function each(collection, iterator) {
     var index = 0;
-    $.each(collection, function(key, value) {
+    $.each(collection, function (key, value) {
       iterator(key, value, index++);
     });
   }
@@ -157,7 +157,7 @@
 
     total = getKeyLength(buttons);
 
-    each(buttons, function(key, button, index) {
+    each(buttons, function (key, button, index) {
 
       if ($.isFunction(button)) {
         // short form, assume value is our callback. Since button
@@ -178,7 +178,7 @@
       }
 
       if (!button.className) {
-        if (total <= 2 && index === total-1) {
+        if (total <= 2 && index === total - 1) {
           // always add a primary to the main option in a two-button dialog
           button.className = "btn-primary";
         } else {
@@ -285,11 +285,11 @@
 
   function validateButtons(options, buttons) {
     var allowedButtons = {};
-    each(buttons, function(key, value) {
+    each(buttons, function (key, value) {
       allowedButtons[value] = true;
     });
 
-    each(options.buttons, function(key) {
+    each(options.buttons, function (key) {
       if (allowedButtons[key] === undefined) {
         throw new Error("button key " + key + " is not allowed (options are " + buttons.join("\n") + ")");
       }
@@ -298,7 +298,7 @@
     return options;
   }
 
-  exports.alert = function() {
+  exports.alert = function () {
     var options;
 
     options = mergeDialogOptions("alert", ["ok"], ["message", "callback"], arguments);
@@ -310,7 +310,7 @@
     /**
      * overrides
      */
-    options.buttons.ok.callback = options.onEscape = function() {
+    options.buttons.ok.callback = options.onEscape = function () {
       if ($.isFunction(options.callback)) {
         return options.callback();
       }
@@ -320,7 +320,7 @@
     return exports.dialog(options);
   };
 
-  exports.confirm = function() {
+  exports.confirm = function () {
     var options;
 
     options = mergeDialogOptions("confirm", ["cancel", "confirm"], ["message", "callback"], arguments);
@@ -328,11 +328,11 @@
     /**
      * overrides; undo anything the user tried to set they shouldn't have
      */
-    options.buttons.cancel.callback = options.onEscape = function() {
+    options.buttons.cancel.callback = options.onEscape = function () {
       return options.callback(false);
     };
 
-    options.buttons.confirm.callback = function() {
+    options.buttons.confirm.callback = function () {
       return options.callback(true);
     };
 
@@ -344,7 +344,7 @@
     return exports.dialog(options);
   };
 
-  exports.prompt = function() {
+  exports.prompt = function () {
     var options;
     var defaults;
     var dialog;
@@ -382,10 +382,10 @@
     shouldShow = (options.show === undefined) ? true : options.show;
 
     // check if the browser supports the option.inputType
-    var html5inputs = ["date","time","number"];
+    var html5inputs = ["date", "time", "number"];
     var i = document.createElement("input");
     i.setAttribute("type", options.inputType);
-    if(html5inputs[options.inputType]){
+    if (html5inputs[options.inputType]) {
       options.inputType = i.type;
     }
 
@@ -394,11 +394,11 @@
      */
     options.message = form;
 
-    options.buttons.cancel.callback = options.onEscape = function() {
+    options.buttons.cancel.callback = options.onEscape = function () {
       return options.callback(null);
     };
 
-    options.buttons.confirm.callback = function() {
+    options.buttons.confirm.callback = function () {
       var value;
 
       switch (options.inputType) {
@@ -420,7 +420,7 @@
           // hence we default to an empty array
           value = [];
 
-          each(checkedItems, function(_, item) {
+          each(checkedItems, function (_, item) {
             value.push($(item).val());
           });
           break;
@@ -466,7 +466,7 @@
           throw new Error("prompt with select requires options");
         }
 
-        each(inputOptions, function(_, option) {
+        each(inputOptions, function (_, option) {
 
           // assume the element to attach to is the input...
           var elem = input;
@@ -490,7 +490,7 @@
           elem.append("<option value='" + option.value + "'>" + option.text + "</option>");
         });
 
-        each(groups, function(_, group) {
+        each(groups, function (_, group) {
           input.append(group);
         });
 
@@ -499,7 +499,7 @@
         break;
 
       case "checkbox":
-        var values   = $.isArray(options.value) ? options.value : [options.value];
+        var values = $.isArray(options.value) ? options.value : [options.value];
         inputOptions = options.inputOptions || [];
 
         if (!inputOptions.length) {
@@ -515,14 +515,14 @@
         // our 'input' element to this container instead
         input = $("<div/>");
 
-        each(inputOptions, function(_, option) {
+        each(inputOptions, function (_, option) {
           var checkbox = $(templates.inputs[options.inputType]);
 
           checkbox.find("input").attr("value", option.value);
           checkbox.find("label").append(option.text);
 
           // we've ensured values is an array so we can always iterate over it
-          each(values, function(_, value) {
+          each(values, function (_, value) {
             if (value === option.value) {
               checkbox.find("input").prop("checked", true);
             }
@@ -537,14 +537,14 @@
       input.attr("placeholder", options.placeholder);
     }
 
-    if(options.pattern){
+    if (options.pattern) {
       input.attr("pattern", options.pattern);
     }
 
     // now place it in our form
     form.append(input);
 
-    form.on("submit", function(e) {
+    form.on("submit", function (e) {
       e.preventDefault();
       // @TODO can we actually click *the* button object instead?
       // e.g. buttons.confirm.click() or similar
@@ -557,7 +557,7 @@
     dialog.off("shown.bs.modal");
 
     // ...and replace it with one focusing our input, if possible
-    dialog.on("shown.bs.modal", function() {
+    dialog.on("shown.bs.modal", function () {
       input.focus();
     });
 
@@ -568,7 +568,7 @@
     return dialog;
   };
 
-  exports.dialog = function(options) {
+  exports.dialog = function (options) {
     options = sanitize(options);
 
     var dialog = $(templates.dialog);
@@ -579,7 +579,7 @@
       onEscape: options.onEscape
     };
 
-    each(buttons, function(key, button) {
+    each(buttons, function (key, button) {
 
       // @TODO I don't like this string appending to itself; bit dirty. Needs reworking
       // can we just build up button elements instead? slower but neater. Then button
@@ -628,7 +628,7 @@
      * modal has performed certain actions
      */
 
-    dialog.on("hidden.bs.modal", function(e) {
+    dialog.on("hidden.bs.modal", function (e) {
       // ensure we don't accidentally intercept hidden events triggered
       // by children of the current dialog. We shouldn't anymore now BS
       // namespaces its events; but still worth doing
@@ -648,7 +648,7 @@
     });
     */
 
-    dialog.on("shown.bs.modal", function() {
+    dialog.on("shown.bs.modal", function () {
       dialog.find(".btn-primary:first").focus();
     });
 
@@ -658,7 +658,7 @@
      * respective triggers
      */
 
-    dialog.on("escape.close.bb", function(e) {
+    dialog.on("escape.close.bb", function (e) {
       if (callbacks.onEscape) {
         processCallback(e, dialog, callbacks.onEscape);
       }
@@ -669,21 +669,21 @@
      * interaction with our dialog
      */
 
-    dialog.on("click", ".modal-footer button", function(e) {
+    dialog.on("click", ".modal-footer button", function (e) {
       var callbackKey = $(this).data("bb-handler");
 
       processCallback(e, dialog, callbacks[callbackKey]);
 
     });
 
-    dialog.on("click", ".bootbox-close-button", function(e) {
+    dialog.on("click", ".bootbox-close-button", function (e) {
       // onEscape might be falsy but that's fine; the fact is
       // if the user has managed to click the close button we
       // have to close the dialog, callback or not
       processCallback(e, dialog, callbacks.onEscape);
     });
 
-    dialog.on("keyup", function(e) {
+    dialog.on("keyup", function (e) {
       if (e.which === 27) {
         dialog.trigger("escape.close.bb");
       }
@@ -711,26 +711,26 @@
     // methods, e.g. var d = bootbox.alert(); d.hide(); instead
     // of d.modal("hide");
 
-   /*
-    function BBDialog(elem) {
-      this.elem = elem;
-    }
-
-    BBDialog.prototype = {
-      hide: function() {
-        return this.elem.modal("hide");
-      },
-      show: function() {
-        return this.elem.modal("show");
-      }
-    };
-    */
+    /*
+     function BBDialog(elem) {
+       this.elem = elem;
+     }
+ 
+     BBDialog.prototype = {
+       hide: function() {
+         return this.elem.modal("hide");
+       },
+       show: function() {
+         return this.elem.modal("show");
+       }
+     };
+     */
 
     return dialog;
 
   };
 
-  exports.setDefaults = function() {
+  exports.setDefaults = function () {
     var values = {};
 
     if (arguments.length === 2) {
@@ -744,7 +744,7 @@
     $.extend(defaults, values);
   };
 
-  exports.hideAll = function() {
+  exports.hideAll = function () {
     $(".bootbox").modal("hide");
   };
 
@@ -754,106 +754,106 @@
    * unlikely to be required. If this gets too large it can be split out into separate JS files.
    */
   var locales = {
-    br : {
-      OK      : "OK",
-      CANCEL  : "Cancelar",
-      CONFIRM : "Sim"
+    br: {
+      OK: "OK",
+      CANCEL: "Cancelar",
+      CONFIRM: "Sim"
     },
-    da : {
-      OK      : "OK",
-      CANCEL  : "Annuller",
-      CONFIRM : "Accepter"
+    da: {
+      OK: "OK",
+      CANCEL: "Annuller",
+      CONFIRM: "Accepter"
     },
-    de : {
-      OK      : "OK",
-      CANCEL  : "Abbrechen",
-      CONFIRM : "Akzeptieren"
+    de: {
+      OK: "OK",
+      CANCEL: "Abbrechen",
+      CONFIRM: "Akzeptieren"
     },
-    en : {
-      OK      : "OK",
-      CANCEL  : "Cancel",
-      CONFIRM : "OK"
+    en: {
+      OK: "OK",
+      CANCEL: "Cancel",
+      CONFIRM: "OK"
     },
-    es : {
-      OK      : "OK",
-      CANCEL  : "Cancelar",
-      CONFIRM : "Aceptar"
+    es: {
+      OK: "OK",
+      CANCEL: "Cancelar",
+      CONFIRM: "Aceptar"
     },
-    fi : {
-      OK      : "OK",
-      CANCEL  : "Peruuta",
-      CONFIRM : "OK"
+    fi: {
+      OK: "OK",
+      CANCEL: "Peruuta",
+      CONFIRM: "OK"
     },
-    fr : {
-      OK      : "OK",
-      CANCEL  : "Annuler",
-      CONFIRM : "D'accord"
+    fr: {
+      OK: "OK",
+      CANCEL: "Annuler",
+      CONFIRM: "D'accord"
     },
-    he : {
-      OK      : "אישור",
-      CANCEL  : "ביטול",
-      CONFIRM : "אישור"
+    he: {
+      OK: "אישור",
+      CANCEL: "ביטול",
+      CONFIRM: "אישור"
     },
-    it : {
-      OK      : "OK",
-      CANCEL  : "Annulla",
-      CONFIRM : "Conferma"
+    it: {
+      OK: "OK",
+      CANCEL: "Annulla",
+      CONFIRM: "Conferma"
     },
-    lt : {
-      OK      : "Gerai",
-      CANCEL  : "Atšaukti",
-      CONFIRM : "Patvirtinti"
+    lt: {
+      OK: "Gerai",
+      CANCEL: "Atšaukti",
+      CONFIRM: "Patvirtinti"
     },
-    lv : {
-      OK      : "Labi",
-      CANCEL  : "Atcelt",
-      CONFIRM : "Apstiprināt"
+    lv: {
+      OK: "Labi",
+      CANCEL: "Atcelt",
+      CONFIRM: "Apstiprināt"
     },
-    nl : {
-      OK      : "OK",
-      CANCEL  : "Annuleren",
-      CONFIRM : "Accepteren"
+    nl: {
+      OK: "OK",
+      CANCEL: "Annuleren",
+      CONFIRM: "Accepteren"
     },
-    no : {
-      OK      : "OK",
-      CANCEL  : "Avbryt",
-      CONFIRM : "OK"
+    no: {
+      OK: "OK",
+      CANCEL: "Avbryt",
+      CONFIRM: "OK"
     },
-    pl : {
-      OK      : "OK",
-      CANCEL  : "Anuluj",
-      CONFIRM : "Potwierdź"
+    pl: {
+      OK: "OK",
+      CANCEL: "Anuluj",
+      CONFIRM: "Potwierdź"
     },
-    ru : {
-      OK      : "OK",
-      CANCEL  : "Отмена",
-      CONFIRM : "Применить"
+    ru: {
+      OK: "OK",
+      CANCEL: "Отмена",
+      CONFIRM: "Применить"
     },
-    sv : {
-      OK      : "OK",
-      CANCEL  : "Avbryt",
-      CONFIRM : "OK"
+    sv: {
+      OK: "OK",
+      CANCEL: "Avbryt",
+      CONFIRM: "OK"
     },
-    tr : {
-      OK      : "Tamam",
-      CANCEL  : "İptal",
-      CONFIRM : "Onayla"
+    tr: {
+      OK: "Tamam",
+      CANCEL: "İptal",
+      CONFIRM: "Onayla"
     },
-    zh_CN : {
-      OK      : "OK",
-      CANCEL  : "取消",
-      CONFIRM : "确认"
+    zh_CN: {
+      OK: "OK",
+      CANCEL: "取消",
+      CONFIRM: "确认"
     },
-    zh_TW : {
-      OK      : "OK",
-      CANCEL  : "取消",
-      CONFIRM : "確認"
+    zh_TW: {
+      OK: "OK",
+      CANCEL: "取消",
+      CONFIRM: "確認"
     }
   };
 
-  exports.init = function(_$) {
+  exports.init = function (_$) {
     return init(_$ || $);
   };
-    
+
   return exports;
 }));
