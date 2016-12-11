@@ -50,9 +50,9 @@ export default function action(page: chitu.Page) {
                     (<any>$(dialogElement)).modal();
                 },
                 newToken: function (item: Application) {
-                    app_service.newToken(item).then(result => {
-                        item.token = result.token;
-                    });
+                    // app_service.newToken(item).then(result => {
+                    //     item.token = result.token;
+                    // });
                 }
             }
         });

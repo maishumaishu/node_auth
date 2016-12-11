@@ -21,7 +21,6 @@ export let ajaxTimeout = 5000;
 
 let HTTP = 'http://';
 let host = 'http://localhost:2800/';
-let appId = '583c4ee47863ef0548977558';
 let appToken = '58424781034ff82470d06d3e';
 const HTTP_LENGTH = 7;
 
@@ -33,7 +32,6 @@ async function ajax<T>(url: string, type: AjaxType, obj?: any): Promise<T> {
         url = host + url;
     }
 
-    let urlParams = `appId=${appId}&appToken=${appToken}`;
 
     let data;
     let keys = Object.keys(obj);
@@ -45,14 +43,20 @@ async function ajax<T>(url: string, type: AjaxType, obj?: any): Promise<T> {
         data = JSON.stringify(data);
     }
     else {
-        for (let key of keys)
-            urlParams = urlParams + `&${key}=${obj[key]}`;
-    }
+        let urlParams = '';
+        for (let key of keys) {
+            if (urlParams != '')
+                urlParams = urlParams + '&';
 
-    url = url + '?' + urlParams;
+            urlParams = urlParams + `${key}=${obj[key]}`;
+        }
+        if (urlParams != '')
+            url = url + '?' + urlParams;
+    }
 
     let options = {
         headers: {
+            ['application-token']: appToken
         },
         body: data,
         method: type,

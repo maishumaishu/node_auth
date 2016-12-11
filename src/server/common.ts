@@ -10,3 +10,8 @@ export interface UserSubmitData {
 export interface AppRequest extends Request {
     postData: UserSubmitData
 }
+
+export class Controller {
+    appId: string;
+    userId: string
+}

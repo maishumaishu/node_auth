@@ -17,5 +17,5 @@ export function list() {
     return service.get<Array<Application>>('application/list');
 }
 export function newToken(app: Application) {
-    return service.post<{ token: string }>('application/newToken', { appId: app._id });
+    return service.post<{ token: string }>('application/newToken');
 }

@@ -14,11 +14,14 @@ export class Table<T extends Entity>{
         this.source = db.collection(name);
     }
     insertOne(entity: T): Promise<T> {
+        if (typeof entity._id == 'string') {
+            entity._id = new mongodb.ObjectID(entity._id);
+        }
         return new Promise((reslove, reject) => {
             if (entity.createDateTime == null)
                 entity.createDateTime = new Date(Date.now());
 
-            let obj = {};
+            let obj: { [name: string]: any } = {};
             for (let key in entity) {
                 if (key == '_id') {
                     continue;
@@ -28,7 +31,7 @@ export class Table<T extends Entity>{
             }
 
             if (entity._id != null) {
-                obj['_id'] = new mongodb.ObjectID(entity._id);
+                obj['_id'] = entity._id; //new mongodb.ObjectID(entity._id);
             }
 
             this.source.insertOne(obj, (err, result) => {
@@ -41,6 +44,9 @@ export class Table<T extends Entity>{
         });
     }
     updateOne(entity: T): Promise<Error | T> {
+        if (typeof entity._id == 'string') {
+            entity._id = new mongodb.ObjectID(entity._id);
+        }
         return new Promise((reslove, reject) => {
             if (entity == null) {
                 reject(errors.argumentNull('entity'));
@@ -52,7 +58,7 @@ export class Table<T extends Entity>{
                 return;
             }
 
-            let obj = {};
+            let obj: any = {};
             for (let key in entity) {
                 if (key == '_id')
                     continue;
@@ -60,7 +66,7 @@ export class Table<T extends Entity>{
                 obj[key] = entity[key];
             }
 
-            this.source.updateOne({ _id: new mongodb.ObjectID(entity._id) }, { $set: obj }, (err, result) => {
+            this.source.updateOne({ _id: entity._id }, { $set: obj }, (err, result) => {
                 if (err) {
                     reject(err);
                     return;
@@ -223,7 +229,7 @@ export class Users extends Table<User> {
 }
 
 export interface Entity {
-    _id?: string,
+    _id?: mongodb.ObjectID,
     createDateTime?: Date,
 }
 
@@ -267,7 +273,7 @@ export interface VerifyMessage extends Entity {
  * 用于解释和生成 token 。
  */
 export class Token implements Entity {
-    _id?: string;
+    _id?: mongodb.ObjectID;
     objectId: string;
     type: string
 

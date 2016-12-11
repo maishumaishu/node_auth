@@ -36,25 +36,33 @@ export function fieldNull(fieldName: string, objectName: string): Error {
     return error;
 }
 
-export function argumentNull(argumentName: string) {
+export function argumentNull(argumentName: string): Error {
     let msg = `Argument '${argumentName}' cannt be null`;
     let error = new Error(msg);
     error.name = names.ArgumentNull;
     return error;
 }
 
-export function passwordIncorect(username: string) {
+export function passwordIncorect(username: string): Error {
     let msg = `Password incorect.`;
     let error = new Error(msg);
     error.name = names.PasswordIncorect;
     return error;
 }
 
-export function userExists(username: string): Error {
-    let msg = `User '${username}' is exists.`;
+export function usernameExists(username: string): Error {
+    let msg = `用户名 '${username}' 已被注册`;
     let error = new Error(msg);
     error.name = names.UserExists;
     (<any>error).arguments = { username };
+    return error;
+}
+
+export function mobileExists(mobile: string): Error {
+    let msg = `手机号 '${mobile}' 已被注册`;
+    let error = new Error(msg);
+    error.name = 'MobileExists';
+    (<any>error).arguments = { mobile };
     return error;
 }
 
@@ -80,7 +88,7 @@ export function notImplement(): Error {
     return error;
 }
 
-export function userNotExists(username: string) {
+export function userNotExists(username: string): Error {
     let msg = `User '${username}' is not exists.`
     let error = new Error(msg) as MyError;
     error.name = names.UserNotExists;
@@ -96,7 +104,7 @@ export function invalidToken(tokenValue: string): Error {
     return error;
 }
 
-export function applicationExists(name: string) {
+export function applicationExists(name: string): Error {
     let msg = `Application with name '${name}' is exists.`;
     let error = new Error(msg) as MyError;
     error.name = names.ApplicationExists;
@@ -104,56 +112,63 @@ export function applicationExists(name: string) {
     return error;
 }
 
-export function deleteResultZero() {
+export function deleteResultZero(): Error {
     let msg = 'Deleted count is zero, maybe the object is not exists.'
     let error = new Error(msg);
     error.name = names.DeleteResultZero;
     return error;
 }
 
-export function updateResultZero() {
+export function updateResultZero(): Error {
     let msg = 'Updated count is zero, maybe the object is not exists.'
     let error = new Error(msg);
     error.name = names.UpdateResultZero;
     return error;
 }
 
-export function postIsRequired() {
+export function postIsRequired(): Error {
     let msg = 'Post request is required.';
     let error = new Error(msg);
     error.name = names.PostIsRequired;
     return error;
 }
 
-export function canntGetQueryStringFromRequest(itemName) {
+export function canntGetQueryStringFromRequest(itemName): Error {
     let msg = `Can not get query string '${itemName}' from the request url.`;
     let error = new Error(msg);
     error.name = names.CanntGetHeaderFromRequest;
     return error;
 }
 
-export function controllerNotExist(path) {
+export function canntGetHeader(headerName): Error {
+    let msg = `Cannt get header '${headerName}' from headers.`;
+    let error = new Error(msg);
+    error.name = 'CanntGetHeader';
+    return error;
+}
+
+export function controllerNotExist(path): Error {
     let msg = `Controller is not exists in path '${path}'.`;
     let error = new Error(msg);
     error.name = names.ControllerNotExist;
     return error;
 }
 
-export function actionNotExists(action: string, controller: string) {
+export function actionNotExists(action: string, controller: string): Error {
     let msg = `Action '${action}' is not exists in controller '${controller}'`;
     let error = new Error(msg);
     error.name = names.ActionNotExists;
     return error;
 }
 
-export function objectNotExistWithId(objectId: string, objectName: string) {
+export function objectNotExistWithId(objectId: string, objectName: string): Error {
     let msg = `${objectName} not exists with id '${objectId}'`;
     let error = new Error(msg);
     error.name = names.ObjectNotExistWithId;
     return error;
 }
 
-export function applicationIdRequired() {
+export function applicationIdRequired(): Error {
     let msg = `Application id is required.`;
     let err = new Error(msg);
     err.name = names.ApplicationIdRequired;
@@ -161,7 +176,7 @@ export function applicationIdRequired() {
     return err;
 }
 
-export function applicationTokenRequired() {
+export function applicationTokenRequired(): Error {
     let msg = `Application token is required.`;
     let err = new Error(msg);
     err.name = names.ApplicationTokenRequired;
@@ -169,7 +184,7 @@ export function applicationTokenRequired() {
     return err;
 }
 
-export function verifyCodeIncorrect(verifyCode: string) {
+export function verifyCodeIncorrect(verifyCode: string): Error {
     let msg = `Verify code incorrect.`
     let err = new Error(msg) as MyError;
     err.name = names.VerifyCodeIncorrect;
@@ -177,12 +192,16 @@ export function verifyCodeIncorrect(verifyCode: string) {
     return err;
 }
 
-export function mobileIsBind(mobile: string) {
+export function mobileIsBind(mobile: string): Error {
     let msg = `手机号码'${mobile}'已被绑定。`;
     let err = new Error(msg) as MyError;
     err.name = names.MobileIsBind;
+    return err;
 }
 
-export function postDataNotJSON(data:string){
-    let msg = `提交的数据不是 JSON 格式。提交数据为：${data}`
+export function postDataNotJSON(data: string): Error {
+    let msg = `提交的数据不是 JSON 格式。提交数据为：${data}`;
+    let err = new Error(msg) as MyError;
+    err.name = 'postDataNotJSON';
+    return err;
 }
