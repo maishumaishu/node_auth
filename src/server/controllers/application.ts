@@ -48,5 +48,4 @@ export class ApplicationController extends BaseController {
 
         return this.add(app);
     }
-
 }
