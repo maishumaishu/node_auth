@@ -32,15 +32,15 @@ async function ajax<T>(url: string, type: AjaxType, obj?: any): Promise<T> {
         url = host + url;
     }
 
+    let headers = {
+        ['application-token']: appToken
+    }
 
-    let data;
+    let body: string;
     let keys = Object.keys(obj);
     if (type != 'get') {
-        data = {};
-        for (let key of keys)
-            data[key] = obj[key];
-
-        data = JSON.stringify(data);
+        headers['content-type'] = 'application/json';
+        body = JSON.stringify(obj);
     }
     else {
         let urlParams = '';
@@ -55,10 +55,8 @@ async function ajax<T>(url: string, type: AjaxType, obj?: any): Promise<T> {
     }
 
     let options = {
-        headers: {
-            ['application-token']: appToken
-        },
-        body: data,
+        headers,
+        body,
         method: type,
     } as FetchOptions;
 

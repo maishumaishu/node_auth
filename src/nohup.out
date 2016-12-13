@@ -1,0 +1,15 @@
+npm ERR! Linux 4.4.0-53-generic
+npm ERR! argv "/usr/local/bin/node" "/usr/local/bin/npm" "install" "typescript@2.2.0-dev.20161209"
+npm ERR! node v6.5.0
+npm ERR! npm  v3.10.3
+
+npm ERR! shasum check failed for /tmp/npm-22552-32975896/registry.npmjs.org/typescript/-/typescript-2.2.0-dev.20161209.tgz
+npm ERR! Expected: fbaa0dd50ca145f2eb659c9d0fab3ac833761315
+npm ERR! Actual:   ed605133baeff61ed7c53ad910f6a38531aecaae
+npm ERR! From:     https://registry.npmjs.org/typescript/-/typescript-2.2.0-dev.20161209.tgz
+npm ERR! 
+npm ERR! If you need help, you may report this error at:
+npm ERR!     <https://github.com/npm/npm/issues>
+
+npm ERR! Please include the following file with any support request:
+npm ERR!     /home/maishu/projects/node_auth/src/npm-debug.log
