@@ -112,7 +112,6 @@ function executeAction(req: AppRequest & AppInfo, res, next) {
         return;
     }
 
-    //let data;
     let dataPromise: Promise<any>;
     if (req.method == 'GET') {
         dataPromise = Promise.resolve(req.query);
@@ -210,7 +209,6 @@ function getPostObject(request: http.IncomingMessage & Express.Request): Promise
 
 async function request(req: express.Request & AppInfo, res: express.Response) {
     try {
-        // let { applicationId } = await this.attachHeaderInfo(req);
         let { host, path, port } = await getRedirectInfo(req.applicationId);
 
         let headers: any = req.headers;
@@ -257,15 +255,12 @@ async function request(req: express.Request & AppInfo, res: express.Response) {
             contentLength = new Number(req.headers['content-length']).valueOf();
         }
 
-        if (contentLength > 0) {
-            req.on('data', (data) => {
-                request.write(data);
-                request.end();
-            })
-        }
-        else {
+        req.on('data', (data) => {
+            request.write(data);
+        })
+        req.on('end', (data) => {
             request.end();
-        }
+        })
     }
     catch (err) {
         outputError(res, err);
@@ -283,6 +278,10 @@ async function getRedirectInfo(applicationId: string): Promise<{ host: string, p
     }
 
     let u = url.parse(application.targetUrl);
+    u.hostname = '115.29.169.7'
+    //u.hostname = '115.29.169.7'; //01f2023c-4f87-4964-83fe-8d3f4585deb0 01f2023c-4f87-4964-83fe-8d3f4585deb0
+    //+		dc.ApplicationId	{7bbfa36c-8115-47ad-8d47-9e52b58e7efd}	System.Guid
+    //+		dc.ApplicationId	{747227bc-f935-4fce-9462-9df4f89c40fc}	System.Guid
     return { host: u.hostname, path: u.path, port: new Number(u.port).valueOf() };
 }
 

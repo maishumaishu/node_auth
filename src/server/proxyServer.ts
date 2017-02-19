@@ -75,44 +75,7 @@ export class ProxyServer {
     }
 
     private async request(req: http.ServerRequest, res: http.ServerResponse, data?: string | Uint8Array) {
-        try {
-            let { applicationId } = await this.attachHeaderInfo(req);
-            let { host, path, port } = await this.getRedirectInfo(applicationId);
 
-            let headers: any = req.headers;
-            headers.host = host;
-
-            let baseUrl = path;
-            let requestUrl = this.combinePaths(baseUrl, req.url);
-            let request = http.request(
-                {
-                    host: host,
-                    path: requestUrl,
-                    method: req.method,
-                    headers: headers,
-                    port: port
-                },
-                (response) => {
-                    console.assert(response != null);
-                    for (var key in response.headers) {
-                        res.setHeader(key, response.headers[key]);
-                    }
-                    res.setHeader('Access-Control-Allow-Origin', '*');
-                    // res.setHeader('Access-Control-Allow-Headers', this.allowHeaders);
-                    response.pipe(res);
-                }
-            );
-
-            if (data) {
-                //let text = String.fromCharCode.apply(null, data);
-                request.write(data);
-            }
-
-            request.end();
-        }
-        catch (err) {
-            this.outputError(res, err);
-        }
     }
 
     private outputError(res: http.ServerResponse, err: Error) {
@@ -124,19 +87,43 @@ export class ProxyServer {
     }
 
     private createServer() {
-        this.server = http.createServer((req: http.ServerRequest, res) => {
-            if (req.method == 'POST') {
+        this.server = http.createServer(async (req, res) => {
+            try {
+                let { applicationId } = await this.attachHeaderInfo(req);
+                let { host, path, port } = await this.getRedirectInfo(applicationId);
+
+                let headers: any = req.headers;
+                headers.host = host;
+
+                let baseUrl = path;
+                let requestUrl = this.combinePaths(baseUrl, req.url);
+                let request = http.request(
+                    {
+                        host: host,
+                        path: requestUrl,
+                        method: req.method,
+                        headers: headers,
+                        port: port
+                    },
+                    (response) => {
+                        console.assert(response != null);
+                        for (var key in response.headers) {
+                            res.setHeader(key, response.headers[key]);
+                        }
+                        res.setHeader('Access-Control-Allow-Origin', '*');
+                        response.pipe(res);
+                    }
+                );
+
                 req.on('data', (data) => {
-                    this.request(req, res, data);
-                });
+                    request.write(data);
+                })
+                req.on('end', () => {
+                    request.end();
+                })
             }
-            else {
-                // let data: string;
-                // let queryStringIndex = req.url.indexOf('?');
-                // if (queryStringIndex >= 0) {
-                //     data = req.url.substr(queryStringIndex + 1);
-                // }
-                this.request(req, res);
+            catch (err) {
+                this.outputError(res, err);
             }
 
         });
