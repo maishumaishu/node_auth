@@ -38,6 +38,7 @@ export default class SMSController extends Controller {
             content: msg
         }
         let result = await db.verifyMessages.insertOne(verifyMessage);
+        db.close();
         return { smsId: result._id.toHexString() };
     }
 }

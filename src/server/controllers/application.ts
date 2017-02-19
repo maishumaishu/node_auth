@@ -10,9 +10,11 @@ export class ApplicationController extends BaseController {
 
         let db = await data.SystemDatabase.createInstance();
         let item = await db.applications.findOne({ name: app.name });
+
         if (item != null) {
             return errors.applicationExists(app.name);
         }
+        
         await db.applications.insertOne(app);
         return errors.success();
     }

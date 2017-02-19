@@ -10,6 +10,7 @@ export default class AppliationController extends Controller {
     async  list() {
         let db = await data.SystemDatabase.createInstance();
         let apps = await db.applications.find({});
+        db.close();
         return apps;
     }
 
@@ -31,6 +32,7 @@ export default class AppliationController extends Controller {
         let db = await data.SystemDatabase.createInstance();
         let item = await db.applications.findOne({ name: app.name });
         let error = await db.applications.updateOne(app);
+        db.close();
         return error;
     }
 
@@ -47,14 +49,20 @@ export default class AppliationController extends Controller {
         let tokenObject = await Token.create(item._id.toHexString(), 'app');
         item.token = tokenObject._id.toHexString();
 
-        return db.applications.insertOne(app);
+
+        let result = await db.applications.insertOne(app);
+        db.close();
+        return result;
     }
 
     async newToken({appId}) {
         if (!appId) throw errors.argumentNull('appId');
         let db = await data.SystemDatabase.createInstance();
         let tokenObject = await Token.create(appId, 'app');
-        db.applications.updateOne(<any>{ _id: new ObjectID(appId), token: tokenObject._id.toString() });
+        db.applications.updateOne(<any>{ _id: new ObjectID(appId), token: tokenObject._id.toString() })
+            .then(() => db.close())
+            .catch(() => db.close());
+
         return { token: tokenObject._id };
     }
 }

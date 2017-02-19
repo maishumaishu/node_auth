@@ -9,7 +9,6 @@ class Application extends chitu.Application {
     }
 
     protected createPageElement(routeData: chitu.RouteData) {
-        //let element = super.createPageElement(routeData);
         let element: HTMLElement = document.createElement('div');
         element.className = 'page';
         if (routeData.pageName == 'home.applications') {
@@ -18,7 +17,6 @@ class Application extends chitu.Application {
         else {
             document.getElementById('mainContent').appendChild(element);
         }
-
         return element;
     }
 

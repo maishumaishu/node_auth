@@ -24,20 +24,27 @@ export default class UserController extends Controller {
 
         console.assert(this.appId != null);
         let db = await Database.createInstance(this.appId)
-        let u: User
+        let u: User;
+        let result: Promise<any>;
         if (user.mobile != null) {
             u = await db.users.findOne({ mobile: user.mobile });
             if (u != null)
-                throw Errors.mobileExists(user.mobile);
+                result = Promise.reject(Errors.mobileExists(user.mobile));
         }
         else {
             console.assert(user.username != null);
             u = await db.users.findOne({ username: user.username });
             if (u != null)
-                throw Errors.usernameExists(user.username);
+                result = Promise.reject(Errors.usernameExists(user.username)); //throw Errors.usernameExists(user.username);
         }
 
-        return db.users.insertOne(user);
+        if (result == null) {
+            u = await db.users.insertOne(user);
+            result = Promise.resolve(u);
+        }
+
+        db.close();
+        return result;
     }
     async  registerByUserName(user) {
         if (user == null)
@@ -72,6 +79,8 @@ export default class UserController extends Controller {
         console.assert(this.appId != null);
         let db = await Database.createInstance(this.appId);
         let msg = await db.verifyMessages.findOne({ _id: new mongodb.ObjectID(smsId) });
+        db.close();
+
         if (msg == null)
             throw Errors.objectNotExistWithId(smsId, 'VerifyMessages');
 
@@ -113,6 +122,8 @@ export default class UserController extends Controller {
             return Promise.reject<Error>(Errors.passwordIncorect(username));
         }
         let token = await Token.create(user._id.toHexString(), 'user');
+        db.close();
+        
         return { token: token._id.toHexString(), userId: token.objectId };
     }
 }
