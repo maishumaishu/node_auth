@@ -270,6 +270,8 @@ async function request(req: express.Request & AppInfo, res: express.Response) {
 async function getRedirectInfo(applicationId: string): Promise<{ host: string, path: string, port: number }> {
     let db = await SystemDatabase.createInstance();
     let application = await db.applications.findOne({ _id: new mongodb.ObjectID(applicationId) });
+    db.close();
+
     if (!application) {
         let err = errors.objectNotExistWithId(applicationId, 'Application');
         return Promise.reject<any>(err);

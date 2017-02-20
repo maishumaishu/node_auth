@@ -136,6 +136,47 @@ export class Table<T extends Entity>{
     }
 }
 
+export class DataContext {
+    private db: mongodb.Db;
+    private connectionString: string;
+    constructor(connectionString: string) {
+        if (!connectionString)
+            throw errors.argumentNull('connectionString');
+
+        this.connectionString = connectionString;
+    }
+
+    open() {
+        return new Promise((reslove, reject) => {
+            MongoClient.connect(this.connectionString, (err, db) => {
+                this.db = db;
+                if (err)
+                    reject(err);
+                else {
+                    this.db = db;
+                    reslove(db);
+                }
+            })
+        });
+    }
+
+    close() {
+        return new Promise((reslove, reject) => {
+            if (!this.db)
+                return Promise.resolve();
+
+            this.db.close(true, (err, result) => {
+                if (err) {
+                    reject(err);
+                }
+                else {
+                    reslove();
+                }
+            })
+        });
+    }
+}
+
 function guid() {
     function s4() {
         return Math.floor((1 + Math.random()) * 0x10000)
@@ -162,7 +203,7 @@ export class ApplicationDatabase {
     static async createInstance(appId: string) {
         return new Promise<ApplicationDatabase>((reslove, reject) => {
             let connectionString = `mongodb://${settings.monogoHost}/${appId}`;
-            MongoClient.connect(connectionString, (err, db) => {
+            MongoClient.connect(connectionString, { maxPoolSize: 50 }, (err, db) => {
                 if (err != null) {
                     reject(err);
                     return;
@@ -183,6 +224,7 @@ export class ApplicationDatabase {
     }
 
     close() {
+        console.assert(this.source != null);
         this.source.close();
     }
 }
@@ -201,7 +243,7 @@ export class SystemDatabase {
     static async createInstance() {
         return new Promise<SystemDatabase>((reslove, reject) => {
             let connectionString = `mongodb://${settings.monogoHost}/node_auth`;
-            MongoClient.connect(connectionString, (err, db) => {
+            MongoClient.connect(connectionString, { maxPoolSize: 50 }, (err, db) => {
                 if (err != null) {
                     reject(err);
                     return;
@@ -222,9 +264,11 @@ export class SystemDatabase {
     }
 
     close() {
-        this.source.close();
+        console.assert(this.source != null);
+        this.source.close(true);
     }
 }
+
 
 export class Users extends Table<User> {
     constructor(db: mongodb.Db) {
@@ -262,17 +306,6 @@ export interface VerifyMessage extends Entity {
     verifyCode: string
 }
 
-// interface MobileBinding extends Entity {
-//     mobile: string,
-//     userId: string
-// }
-
-// interface EmailBinding extends Entity {
-//     email: string,
-//     userId: string
-// }
-
-
 /**
  * 用于解释和生成 token 。
  */
@@ -305,6 +338,7 @@ export class Token implements Entity {
         if (token == null) {
             throw errors.invalidToken(tokenValue);
         }
+        db.close();
         return token;
     }
 }

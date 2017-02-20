@@ -32,6 +32,7 @@ export default class AppliationController extends Controller {
         let db = await data.SystemDatabase.createInstance();
         let item = await db.applications.findOne({ name: app.name });
         let error = await db.applications.updateOne(app);
+        db.close();
         return error;
     }
 
@@ -59,7 +60,9 @@ export default class AppliationController extends Controller {
         let db = await data.SystemDatabase.createInstance();
         let tokenObject = await Token.create(appId, 'app');
         db.applications.updateOne(<any>{ _id: new ObjectID(appId), token: tokenObject._id.toString() })
-            .then(() => db.close());
+            .then(() => db.close())
+            .catch(() => db.close());
+
         return { token: tokenObject._id };
     }
 }
