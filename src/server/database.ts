@@ -220,6 +220,10 @@ export class SystemDatabase {
     get tokens(): Table<Token> {
         return this._tokens;
     }
+
+    close() {
+        this.source.close();
+    }
 }
 
 export class Users extends Table<User> {
@@ -285,6 +289,7 @@ export class Token implements Entity {
 
         let db = await SystemDatabase.createInstance();
         token = await db.tokens.insertOne(token);
+        db.close();
         return token;
     }
 
@@ -296,6 +301,7 @@ export class Token implements Entity {
     static async parse(tokenValue: string): Promise<Token> {
         let db = await SystemDatabase.createInstance();
         let token = await db.tokens.findOne({ _id: new mongodb.ObjectID(tokenValue) });
+        db.close();
         if (token == null) {
             throw errors.invalidToken(tokenValue);
         }

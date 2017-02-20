@@ -24,6 +24,8 @@ export class ProxyServer {
     private async getRedirectInfo(applicationId: string): Promise<{ host: string, path: string, port: number }> {
         let db = await SystemDatabase.createInstance();
         let application = await db.applications.findOne({ _id: new mongodb.ObjectID(applicationId) });
+        db.close();
+        
         if (!application) {
             let err = Errors.objectNotExistWithId(applicationId, 'Application');
             return Promise.reject<any>(err);
