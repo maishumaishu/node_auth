@@ -291,9 +291,19 @@ export interface User extends Entity {
 
 export interface Appliation extends Entity {
     name: string,
-    //port: number,
+    /** 默认的转发路径 */
     targetUrl: string,
+    /** 即 appkey */
     token: string,
+    /** 请求的路径信息 */
+    pathInfos: [{
+        /** 匹配请求路径的正则表达式 */
+        pattern: string, 
+        /** 请求转发的URL地址 */
+        forwardTo: string,
+        /** 允许访问的用户组，为空则允许全部 */ 
+        allowGroups: string[]
+    }]
 }
 
 /**
