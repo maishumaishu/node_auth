@@ -8,7 +8,7 @@ import { ApplicationDatabase, VerifyMessage } from '../database';
 
 export default class SMSController extends Controller {
     async  sendVerifyCode(args: SendCodeArgumentType): Promise<{ smsId: string } | Error> {
-        console.assert(appId != null);
+        console.assert(this.appId != null);
 
         let {mobile, type} = args;
         if (mobile == null)
@@ -32,7 +32,7 @@ export default class SMSController extends Controller {
         let msg = settings.verifyCodeText.replace('{0}', verifyCode);
 
         await sendMobileMessage(mobile, msg);
-        let db = await ApplicationDatabase.createInstance(appId);
+        let db = await ApplicationDatabase.createInstance(this.appId);
         let verifyMessage: VerifyMessage = {
             verifyCode,
             content: msg
@@ -44,7 +44,7 @@ export default class SMSController extends Controller {
 }
 
 
-export var appId: string = null;
+// export var appId: string = null;
 
 let verifyCodeLength = settings.verifyCodeLength;
 type SendCodeArgumentType = {
