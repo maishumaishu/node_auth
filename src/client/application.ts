@@ -1,11 +1,13 @@
 import chitu = require('chitu');
 
 import ko = require('knockout');
+import mapping = require('knockout.mapping');
 
 class Application extends chitu.Application {
 
     constructor() {
         super();
+        this.pageDisplayType = PageDisplayerImplement;
     }
 
     protected createPageElement(routeData: chitu.RouteData) {
@@ -22,23 +24,39 @@ class Application extends chitu.Application {
 
     protected parseRouteString(routeString: string) {
         let routeData = super.parseRouteString(routeString);
-        routeData.resources.push({ name: 'html', path: `text!${routeData.actionPath}.html` });
-        routeData.resources.push({ name: 'css', path: `c!css/${routeData.actionPath}.css` });
         return routeData;
     }
 
     protected createPage(routeData) {
         let page = super.createPage(routeData);
-        page.load.add((sender: chitu.Page, { html, css }) => {
-            sender.element.innerHTML = html;
-        });
-        page.shown.add((sender: chitu.Page) => {
-            $(sender.element).parents('.main-container').first().show();
-        });
-        page.hidden.add((sender: chitu.Page) => {
-            $(sender.element).parents('.main-container').first().hide();
-        });
         return page;
+    }
+}
+
+class PageDisplayerImplement implements chitu.PageDisplayer {
+    show(page: chitu.Page) {
+        page.element.style.display = 'block';
+        let parentContainer = $(page.element).parents('.main-container')[0];
+        $(parentContainer).show();
+
+        if (page.previous != null) {
+            //$(page.previous.element).parents('.main-container').first().hide();
+            let previousContainer = $(page.previous.element).parents('.main-container')[0];
+            if (previousContainer != parentContainer) {
+                previousContainer.style.display = 'none';
+            }
+            page.previous.element.style.display = 'none';
+        }
+        return Promise.resolve();
+    }
+    hide(page: chitu.Page) {
+        $(page.element).parents('.main-container').first().hide();
+        page.element.style.display = 'none';
+        if (page.previous != null) {
+            page.previous.element.style.display = 'block';
+            $(page.previous.element).parents('.main-container').first().show();
+        }
+        return Promise.resolve();
     }
 }
 
@@ -49,3 +67,35 @@ app.pageCreated.add((s, p) => {
 app.run();
 
 export = app;
+
+//=========================================================================
+// 菜单
+import menus = require('menus');
+
+let data = menus;//JSON.parse(text);
+var stack = [];
+for (var i = 0; i < data.length; i++)
+    stack.push(data[i]);
+
+while (stack.length > 0) {
+    var item = stack.pop();
+    item.url = item.url || '';
+    item.children = item.children || [];
+    item.icon = item.icon || '';
+    item.visible = (item.visible === undefined) ? true : item.visible;
+    item.visibleChildren = [];
+
+    for (var i = 0; i < item.children.length; i++) {
+        if (item.children[i].visible === undefined || item.children[i].visible !== false)
+            item.visibleChildren.push(item.children[i]);
+
+        stack.push(item.children[i]);
+    }
+}
+var model = {
+    menus: data
+};
+
+ko.applyBindings(model, document.getElementById('sidebar'));
+ko.applyBindings(model, document.getElementById('navbar'))
+//=========================================================================

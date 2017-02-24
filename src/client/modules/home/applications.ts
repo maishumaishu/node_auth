@@ -7,7 +7,16 @@ import Vue = require('vue');
 export default function action(page: chitu.Page) {
 
     let loadPromise = new Promise((reslove, reject) => {
-        page.load.add(() => reslove());
+        //page.load.add(() => reslove());
+        requirejs([`text!${page.routeData.actionPath}.html`, `c!css/${page.routeData.actionPath}.css`],
+            (html: string) => {
+                //page.element.innerHTML = html;
+                let section = document.createElement('section');
+                section.innerHTML = html;
+                page.element.appendChild(section);
+                reslove();
+            }
+        );
     });
 
     let self = this;
@@ -17,7 +26,7 @@ export default function action(page: chitu.Page) {
         //let currentItem: Application;
         let data = { items, app: new Application() };
         let vm = new Vue({
-            el: page.element,
+            el: page.element.children[0] as HTMLElement,
             data,
             methods: {
                 editApp: function (item: Application) {

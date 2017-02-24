@@ -22,7 +22,10 @@ requirejs.config({
         chitu: 'js/chitu',
         crossroads: 'js/crossroads',
         hammer: 'js/hammer',
-        iscroll: 'js/iscroll-probe',
+        knockout: 'js/knockout-3.2.0.debug',
+        'knockout.mapping': 'js/knockout.mapping',
+        react: 'js/react',
+        'react-dom': 'js/react-dom',
         jquery: 'js/jquery-2.1.0',
         text: 'js/text',
         validate: 'js/validate',
@@ -32,34 +35,11 @@ requirejs.config({
 });
 
 
-requirejs(['application', 'menus', 'ace', 'wuzhui', 'validate'], (app: chitu.Application, menus) => {
+requirejs(['react', 'react-dom', 'application', 'ace', 'wuzhui', 'validate'], (React, ReactDOM) => {
+    window['React'] = React;
+    window['ReactDOM'] = ReactDOM;
+
     if (!location.hash) {
-        location.hash = '#home/index';
+        location.hash = '#home/applications';
     }
-    var model = {
-        menus: []
-    };
-    var stack = [];
-    for (var i = 0; i < menus.length; i++)
-        stack.push(menus[i]);
-
-    while (stack.length > 0) {
-        var item = stack.pop();
-        item.url = item.url || '';
-        item.children = item.children || [];
-        item.icon = item.icon || '';
-        item.visible = (item.visible === undefined) ? true : item.visible;
-        item.visibleChildren = [];
-
-        for (var i = 0; i < item.children.length; i++) {
-            if (item.children[i].visible === undefined || item.children[i].visible !== false)
-                item.visibleChildren.push(item.children[i]);
-
-            stack.push(item.children[i]);
-        }
-    }
-
-    // model.menus(menus);
-    // ko.applyBindings(model, document.getElementById('sidebar'));
-    // ko.applyBindings(model, document.getElementById('navbar'));
 });
