@@ -1,3 +1,11 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments)).next());
+    });
+};
 var wuzhui;
 (function (wuzhui) {
     const CONTROL_DATA_NAME = 'Control';
@@ -49,15 +57,15 @@ var wuzhui;
 (function (wuzhui) {
     class DataSource {
         constructor(primaryKeys) {
-            this.inserting = $.Callbacks();
-            this.inserted = $.Callbacks();
-            this.deleting = $.Callbacks();
-            this.deleted = $.Callbacks();
-            this.updating = $.Callbacks();
-            this.updated = $.Callbacks();
-            this.selecting = $.Callbacks();
-            this.selected = $.Callbacks();
-            this.primaryKeys = primaryKeys;
+            this.inserting = wuzhui.callbacks();
+            this.inserted = wuzhui.callbacks();
+            this.deleting = wuzhui.callbacks();
+            this.deleted = wuzhui.callbacks();
+            this.updating = wuzhui.callbacks();
+            this.updated = wuzhui.callbacks();
+            this.selecting = wuzhui.callbacks();
+            this.selected = wuzhui.callbacks();
+            this.primaryKeys = primaryKeys || [];
             this._currentSelectArguments = new DataSourceSelectArguments();
         }
         get selectArguments() {
@@ -79,29 +87,33 @@ var wuzhui;
             if (!this.canInsert)
                 throw wuzhui.Errors.dataSourceCanntInsert();
             this.checkPrimaryKeys(item);
-            this.inserting.fireWith(this, [this, { item }]);
-            return this.executeInsert(item).done((data) => {
+            wuzhui.fireCallback(this.inserting, this, { item });
+            return this.executeInsert(item).then((data) => {
                 $.extend(item, data);
-                this.inserted.fireWith(this, [this, { item }]);
+                wuzhui.fireCallback(this.inserted, this, { item });
             });
         }
         delete(item) {
             if (!this.canDelete)
                 throw wuzhui.Errors.dataSourceCanntDelete();
             this.checkPrimaryKeys(item);
-            this.deleting.fireWith(this, [this, { item }]);
-            return this.executeDelete(item).done(() => {
-                this.deleted.fireWith(this, [this, { item }]);
+            //this.deleting.fireWith(this, [this, { item }]);
+            wuzhui.fireCallback(this.deleting, this, { item });
+            return this.executeDelete(item).then(() => {
+                // this.deleted.fireWith(this, [this, { item }]);
+                wuzhui.fireCallback(this.deleted, this, { item });
             });
         }
         update(item) {
             if (!this.canUpdate)
                 throw wuzhui.Errors.dataSourceCanntUpdate();
             this.checkPrimaryKeys(item);
-            this.updating.fireWith(this, [this, { item }]);
-            return this.executeUpdate(item).done((data) => {
+            //this.updating.fireWith(this, [this, { item }]);
+            wuzhui.fireCallback(this.updating, this, { item });
+            return this.executeUpdate(item).then((data) => {
                 $.extend(item, data);
-                this.updated.fireWith(this, [this, { item }]);
+                // this.updated.fireWith(this, [this, { item }]);
+                wuzhui.fireCallback(this.updated, this, { item });
             });
         }
         isSameItem(theItem, otherItem) {
@@ -127,8 +139,9 @@ var wuzhui;
         }
         select() {
             let args = this.selectArguments;
-            this.selecting.fireWith(this, [this, { selectArguments: args }]);
-            return this.executeSelect(args).done((data) => {
+            // this.selecting.fireWith(this, [this, { selectArguments: args }]);
+            wuzhui.fireCallback(this.selecting, this, { selectArguments: args });
+            return this.executeSelect(args).then((data) => {
                 let data_items;
                 let result = data;
                 if ($.isArray(data)) {
@@ -142,7 +155,8 @@ var wuzhui;
                 else {
                     throw new Error('Type of the query result is expected as Array or DataSourceSelectResult.');
                 }
-                this.selected.fireWith(this, [this, { selectArguments: args, items: data_items }]);
+                //this.selected.fireWith(this, [this, { selectArguments: args, items: data_items }]);
+                wuzhui.fireCallback(this.selected, this, { selectArguments: args, items: data_items });
             });
         }
         //===============================================
@@ -182,22 +196,22 @@ var wuzhui;
         executeInsert(item) {
             if (!item)
                 throw wuzhui.Errors.argumentNull("item");
-            return wuzhui.ajax(this.args.selectUrl, this.formatData(item));
+            return wuzhui.ajax(this.args.selectUrl, { body: this.formatData(item) });
         }
         executeDelete(item) {
             if (!item)
                 throw wuzhui.Errors.argumentNull("item");
-            return wuzhui.ajax(this.args.deleteUrl, this.formatData(item));
+            return wuzhui.ajax(this.args.deleteUrl, { body: this.formatData(item) });
         }
         executeUpdate(item) {
             if (!item)
                 throw wuzhui.Errors.argumentNull("item");
-            return wuzhui.ajax(this.args.updateUrl, this.formatData(item));
+            return wuzhui.ajax(this.args.updateUrl, { body: this.formatData(item) });
         }
         executeSelect(args) {
             if (!args)
                 throw wuzhui.Errors.argumentNull("args");
-            return wuzhui.ajax(this.args.selectUrl, args);
+            return wuzhui.ajax(this.args.selectUrl, { body: args });
         }
         formatData(data) {
             let obj = $.extend({}, data);
@@ -229,7 +243,7 @@ var wuzhui;
             if (item == null)
                 throw wuzhui.Errors.argumentNull('item');
             this.source.push(item);
-            return $.Deferred().resolve();
+            return Promise.resolve();
         }
         executeDelete(item) {
             if (item == null)
@@ -239,7 +253,7 @@ var wuzhui;
             this.source.filter((value, index, array) => {
                 return index != itemIndex;
             });
-            return $.Deferred().resolve();
+            return Promise.resolve();
         }
         executeUpdate(item) {
             if (item == null)
@@ -252,10 +266,10 @@ var wuzhui;
                     sourceItem[key] = item[key];
                 }
             }
-            return $.Deferred().resolve();
+            return Promise.resolve();
         }
         executeSelect(args) {
-            return $.Deferred().resolve(this.source);
+            return Promise.resolve(this.source);
         }
         get canDelete() {
             return this.primaryKeys.length > 0;
@@ -782,36 +796,95 @@ var wuzhui;
 })(wuzhui || (wuzhui = {}));
 var wuzhui;
 (function (wuzhui) {
+    /**
+     * 判断服务端返回的数据是否为错误信息
+     * @param responseData 服务端返回的数据
+     */
+    function isError(responseData) {
+        if (responseData.Type == 'ErrorObject') {
+            if (responseData.Code == 'Success') {
+                return null;
+            }
+            let err = new Error(responseData.Message);
+            err.name = responseData.Code;
+            return err;
+        }
+        let err = responseData;
+        if (err.name !== undefined && err.message !== undefined && err['stack'] !== undefined) {
+            return err;
+        }
+        return null;
+    }
+    class AjaxError {
+        constructor(method) {
+            this.name = 'ajaxError';
+            this.message = 'Ajax Error';
+            this.method = method;
+        }
+    }
+    wuzhui.AjaxError = AjaxError;
     wuzhui.ajaxTimeout = 5000;
-    function ajax(url, data) {
-        var result = $.Deferred();
-        $.ajax({
-            url: url,
-            data: data,
-            method: 'post',
-            traditional: true
-        }).done((data, textStatus, jqXHR) => {
-            if (data.Type == 'ErrorObject' && data.Code != 'Success') {
-                result.reject(data, textStatus, jqXHR);
+    function ajax(url, options) {
+        return new Promise((reslove, reject) => {
+            let timeId;
+            if (options.method == 'get') {
+                timeId = setTimeout(() => {
+                    let err = new AjaxError(options.method);
+                    err.name = 'timeout';
+                    reject(err);
+                    this.error.fire(this, err);
+                    clearTimeout(timeId);
+                }, wuzhui.ajaxTimeout);
             }
-            else {
-                result.resolve(data, textStatus, jqXHR);
-            }
-        }).fail((jqXHR, textStatus) => {
-            var err = { Code: textStatus, status: jqXHR.status, Message: jqXHR.statusText };
-            result.reject(err);
-        }).always(() => {
-            clearTimeout(timeoutid);
+            _ajax(url, options)
+                .then(data => {
+                reslove(data);
+                if (timeId)
+                    clearTimeout(timeId);
+            })
+                .catch(err => {
+                reject(err);
+                this.error.fire(this, err);
+                if (timeId)
+                    clearTimeout(timeId);
+            });
         });
-        //超时处理
-        let timeoutid = setTimeout(() => {
-            if (result.state() == 'pending') {
-                result.reject({ Code: 'Timeout', Message: 'Ajax call timemout.' });
-            }
-        }, wuzhui.ajaxTimeout);
-        return result;
     }
     wuzhui.ajax = ajax;
+    function _ajax(url, options) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                let response = yield fetch(url, options);
+                if (response.status >= 300) {
+                    let err = new AjaxError(options.method);
+                    err.name = `${response.status}`;
+                    err.message = response.statusText;
+                    throw err;
+                }
+                let responseText = response.text();
+                let p;
+                if (typeof responseText == 'string') {
+                    p = new Promise((reslove, reject) => {
+                        reslove(responseText);
+                    });
+                }
+                else {
+                    p = responseText;
+                }
+                let text = yield responseText;
+                let textObject = JSON.parse(text);
+                let err = isError(textObject);
+                if (err)
+                    throw err;
+                textObject = this.travelJSON(textObject);
+                return textObject;
+            }
+            catch (err) {
+                this.error.fire(this, err);
+                throw err;
+            }
+        });
+    }
     function applyStyle(element, value) {
         let style = value || '';
         if (typeof style == 'string')
@@ -823,62 +896,29 @@ var wuzhui;
         }
     }
     wuzhui.applyStyle = applyStyle;
+    class Callback {
+        constructor() {
+            this.funcs = new Array();
+        }
+        add(func) {
+            this.funcs.push(func);
+        }
+        remove(func) {
+            this.funcs = this.funcs.filter(o => o != func);
+        }
+        fire(sender, args) {
+            this.funcs.forEach(o => o(sender, args));
+        }
+    }
+    wuzhui.Callback = Callback;
     function callbacks() {
-        return $.Callbacks();
+        return new Callback();
     }
     wuzhui.callbacks = callbacks;
     function fireCallback(callback, sender, args) {
-        return callback.fireWith(this, [sender, args]);
+        callback.fire(sender, args);
     }
     wuzhui.fireCallback = fireCallback;
-    //============================================================
-    //这一部份可能需要移入 JData
-    //var parseStringToDate
-    (function () {
-        var prefix = '/Date(';
-        function parseStringToDate(value) {
-            var star = prefix.length;
-            var len = value.length - prefix.length - ')/'.length;
-            var str = value.substr(star, len);
-            var num = parseInt(str);
-            var date = new Date(num);
-            return date;
-        }
-        $.ajaxSettings.converters['text json'] = function (json) {
-            var result = $.parseJSON(json);
-            if (typeof result === 'string') {
-                if (result.substr(0, prefix.length) == prefix)
-                    result = parseStringToDate(result);
-                return result;
-            }
-            var stack = new Array();
-            stack.push(result);
-            while (stack.length > 0) {
-                var item = stack.pop();
-                //Sys.Debug.assert(item != null);
-                for (var key in item) {
-                    var value = item[key];
-                    if (value == null)
-                        continue;
-                    if ($.isArray(value)) {
-                        for (var i = 0; i < value.length; i++) {
-                            stack.push(value[i]);
-                        }
-                        continue;
-                    }
-                    if ($.isPlainObject(value)) {
-                        stack.push(value);
-                        continue;
-                    }
-                    if (typeof value == 'string' && value.substr(0, prefix.length) == prefix) {
-                        item[key] = parseStringToDate(value);
-                    }
-                }
-            }
-            return result;
-        };
-    })();
-    //================================================================
 })(wuzhui || (wuzhui = {}));
 /// <reference path="../Control.ts"/>
 var wuzhui;
@@ -923,7 +963,7 @@ var wuzhui;
             wuzhui.fireCallback(this.sorting, this, { sortType });
             selectArguments.sortExpression = this.field.sortExpression + ' ' + sortType;
             return this.field.gridView.dataSource.select()
-                .done(() => {
+                .then(() => {
                 this.sortType = sortType;
                 wuzhui.fireCallback(this.sorted, this, { sortType });
             });
@@ -1461,13 +1501,14 @@ var wuzhui;
                 }
             }
             dataSource.update(dataItem)
-                .done(() => {
+                .then(() => {
                 editableCells.forEach((item) => item.endEdit());
                 let cell = wuzhui.Control.getControlByElement(cellElement);
                 $([cell.cacelButton, cell.updateButton]).hide();
                 $(cell.editButton).show();
+                this._updating = false;
             })
-                .always(() => this._updating = false);
+                .catch(() => this._updating = false);
         }
         on_deleteButtonClick(e) {
             if (this._deleting)
@@ -1477,10 +1518,11 @@ var wuzhui;
             let row = wuzhui.Control.getControlByElement(rowElement);
             let dataSource = row.gridView.dataSource;
             dataSource.delete(row.dataItem)
-                .done(() => {
+                .then(() => {
                 $(rowElement).remove();
+                this._deleting = false;
             })
-                .always(() => this._deleting = false);
+                .catch(() => this._deleting = false);
         }
     }
     wuzhui.CommandField = CommandField;
@@ -1513,7 +1555,7 @@ var wuzhui;
         }
         createItemCell(dataItem) {
             if (this.params().createItemCell) {
-                let cell = this.params().createItemCell(this, dataItem);
+                let cell = this.params().createItemCell(dataItem);
                 cell.style(this.params().itemStyle);
                 return cell;
             }

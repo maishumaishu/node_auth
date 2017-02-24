@@ -3,49 +3,50 @@ declare namespace chitu {
         private _parameters;
         private path_string;
         private path_spliter_char;
+        private path_contact_char;
         private param_spliter;
         private name_spliter_char;
         private _pathBase;
         private _pageName;
         private _actionPath;
-        private _resources;
         private _routeString;
-        constructor(basePath: any, routeString: string);
+        private _loadCompleted;
+        constructor(basePath: string, routeString: string, pathSpliterChar?: string);
         parseRouteString(): void;
         private pareeUrlQuery(query);
-        basePath: string;
-        values: any;
-        pageName: string;
-        resources: Array<{
-            name: string;
-            path: string;
-        }>;
-        routeString: string;
-        actionPath: string;
+         basePath: string;
+         values: any;
+         pageName: string;
+         routeString: string;
+         actionPath: string;
+         loadCompleted: boolean;
     }
     class Application {
         pageCreated: Callback<Application, Page>;
         protected pageType: PageConstructor;
+        protected pageDisplayType: PageDisplayConstructor;
         private _runned;
         private zindex;
         private page_stack;
+        private cachePages;
         fileBasePath: string;
         backFail: Callback<Application, {}>;
         constructor();
         protected parseRouteString(routeString: string): RouteData;
         private on_pageCreated(page);
-        currentPage: Page;
-        pages: Array<Page>;
+         currentPage: Page;
+         pages: Array<Page>;
         protected createPage(routeData: RouteData): Page;
         protected createPageElement(routeData: chitu.RouteData): HTMLElement;
         protected hashchange(): void;
         run(): void;
         getPage(name: string): Page;
-        showPage<T extends Page>(routeString: string, args?: any): Promise<T>;
-        private setLocationHash(routeString);
+        showPage(routeString: string, args?: any): Page;
+        setLocationHash(routeString);
         private closeCurrentPage();
-        redirect<T extends Page>(routeString: string, args?: any): Promise<T>;
-        back(args?: any): Promise<void>;
+        private clearPageStack();
+        redirect(routeString: string, args?: any): Page;
+        back(args?: any): void;
     }
 }
 
@@ -77,12 +78,10 @@ declare namespace chitu {
 
 declare namespace chitu {
     class Callback<S, A> {
-        private event;
-        private element;
-        private event_name;
+        private funcs;
         constructor();
         add(func: (sender: S, args: A) => any): void;
-        remove(func: EventListener): void;
+        remove(func: (sender: S, args: A) => any): void;
         fire(sender: S, args: A): void;
     }
     function Callbacks<S, A>(): Callback<S, A>;
@@ -94,11 +93,14 @@ declare namespace chitu {
         new (args: Page): any;
     }
     interface PageConstructor {
-        new (args: PageParams): any;
+        new (args: PageParams): Page;
+    }
+    interface PageDisplayConstructor {
+        new (app: Application): PageDisplayer;
     }
     interface PageDisplayer {
-        show(page: Page): any;
-        hide(page: Page): any;
+        show(page: Page): Promise<any>;
+        hide(page: Page): Promise<any>;
     }
     interface PageParams {
         app: Application;
@@ -115,13 +117,15 @@ declare namespace chitu {
         private _app;
         private _routeData;
         private _displayer;
-        load: Callback<Page, any>;
-        showing: Callback<Page, {}>;
-        shown: Callback<Page, {}>;
-        hiding: Callback<Page, {}>;
-        hidden: Callback<Page, {}>;
-        closing: Callback<Page, {}>;
-        closed: Callback<Page, {}>;
+        static tagName: string;
+        allowCache: boolean;
+        load: Callback<this, any>;
+        showing: Callback<this, {}>;
+        shown: Callback<this, {}>;
+        hiding: Callback<this, {}>;
+        hidden: Callback<this, {}>;
+        closing: Callback<this, {}>;
+        closed: Callback<this, {}>;
         constructor(params: PageParams);
         on_load(args: any): void;
         on_showing(): void;
@@ -130,25 +134,25 @@ declare namespace chitu {
         on_hidden(): void;
         on_closing(): void;
         on_closed(): void;
-        show(): void;
-        hide(): void;
-        close(): void;
-        element: HTMLElement;
+        show(): Promise<any>;
+        hide(): Promise<any>;
+        close(): Promise<any>;
+         element: HTMLElement;
         previous: Page;
-        routeData: RouteData;
-        name: string;
-        private createActionDeferred(routeData);
-        private loadPageAction(routeData);
+         routeData: RouteData;
+         name: string;
+        private loadPageAction();
+        reload(): Promise<void>;
     }
     class PageDisplayerImplement implements PageDisplayer {
-        show(page: Page): void;
-        hide(page: Page): void;
+        show(page: Page): Promise<void>;
+        hide(page: Page): Promise<void>;
     }
 }
 
 declare namespace chitu {
     function combinePath(path1: string, path2: string): string;
-    function loadjs(...modules: string[]): Promise<Array<any>>;
+    function loadjs(path: any): Promise<any>;
 }
 declare module "chitu" { 
             export = chitu; 

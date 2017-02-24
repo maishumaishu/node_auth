@@ -47,16 +47,16 @@ declare namespace wuzhui {
         }>;
         constructor(primaryKeys: string[]);
         readonly selectArguments: DataSourceSelectArguments;
-        protected executeInsert(item: T): JQueryPromise<any>;
-        protected executeDelete(item: T): JQueryPromise<any>;
-        protected executeUpdate(item: T): JQueryPromise<any>;
-        protected executeSelect(args: any): JQueryPromise<Array<T> | DataSourceSelectResult<T>>;
-        insert(item: any): JQueryPromise<any>;
-        delete(item: any): JQueryPromise<any>;
-        update(item: any): JQueryPromise<any>;
+        protected executeInsert(item: T): Promise<any>;
+        protected executeDelete(item: T): Promise<any>;
+        protected executeUpdate(item: T): Promise<any>;
+        protected executeSelect(args: DataSourceSelectArguments): Promise<Array<T> | DataSourceSelectResult<T>>;
+        insert(item: T): Promise<any>;
+        delete(item: T): Promise<any>;
+        update(item: T): Promise<any>;
         isSameItem(theItem: T, otherItem: T): boolean;
         private checkPrimaryKeys(item);
-        select(): JQueryPromise<T[] | DataSourceSelectResult<T>>;
+        select(): Promise<void>;
         readonly canDelete: boolean;
         readonly canInsert: boolean;
         readonly canUpdate: boolean;
@@ -82,19 +82,19 @@ declare namespace wuzhui {
         readonly canDelete: boolean;
         readonly canInsert: boolean;
         readonly canUpdate: boolean;
-        protected executeInsert(item: T): JQueryPromise<any>;
-        protected executeDelete(item: T): JQueryPromise<any>;
-        protected executeUpdate(item: T): JQueryPromise<any>;
-        protected executeSelect(args: any): JQueryPromise<Array<T> | DataSourceSelectResult<T>>;
+        protected executeInsert(item: T): Promise<any>;
+        protected executeDelete(item: T): Promise<any>;
+        protected executeUpdate(item: T): Promise<any>;
+        protected executeSelect(args: DataSourceSelectArguments): Promise<Array<T> | DataSourceSelectResult<T>>;
         private formatData(data);
     }
     class ArrayDataSource<T> extends DataSource<T> {
         private source;
         constructor(items: Array<T>, primaryKeys?: string[]);
-        protected executeInsert(item: T): JQueryPromise<any>;
-        protected executeDelete(item: T): JQueryPromise<any>;
-        protected executeUpdate(item: T): JQueryPromise<any>;
-        protected executeSelect(args: any): JQueryPromise<Array<T> | DataSourceSelectResult<T>>;
+        protected executeInsert(item: T): Promise<any>;
+        protected executeDelete(item: T): Promise<any>;
+        protected executeUpdate(item: T): Promise<any>;
+        protected executeSelect(args: any): Promise<Array<T> | DataSourceSelectResult<T>>;
         readonly canDelete: boolean;
         readonly canInsert: boolean;
         readonly canUpdate: boolean;
@@ -123,28 +123,28 @@ declare namespace wuzhui {
         Paging = 3,
         Empty = 4,
     }
-    class GridViewRow extends Control<HTMLTableRowElement> {
+    class GridViewRow<T> extends Control<HTMLTableRowElement> {
         private _rowType;
         private _gridView;
         constructor(rowType: GridViewRowType);
         readonly rowType: GridViewRowType;
-        readonly gridView: GridView;
+        readonly gridView: GridView<T>;
         readonly cells: GridViewCell[];
     }
-    class GridViewDataRow extends GridViewRow {
+    class GridViewDataRow<T> extends GridViewRow<T> {
         private _dataItem;
-        constructor(gridView: GridView, dataItem: any);
+        constructor(gridView: GridView<T>, dataItem: any);
         readonly dataItem: any;
     }
-    interface GridViewArguments {
-        dataSource: DataSource<any>;
+    interface GridViewArguments<T> {
+        dataSource: DataSource<T>;
         columns: Array<DataControlField>;
         showHeader?: boolean;
         showFooter?: boolean;
         element?: HTMLTableElement;
         emptyDataRowStyle?: string;
     }
-    class GridView extends Control<HTMLTableElement> {
+    class GridView<T> extends Control<HTMLTableElement> {
         private _pageSize;
         private _selectedRowStyle;
         private _showFooter;
@@ -160,12 +160,12 @@ declare namespace wuzhui {
         static emptyRowClassName: string;
         static dataRowClassName: string;
         emptyDataText: string;
-        rowCreated: Callback<GridView, {
-            row: GridViewRow;
+        rowCreated: Callback<GridView<T>, {
+            row: GridViewRow<T>;
         }>;
-        constructor(params: GridViewArguments);
+        constructor(params: GridViewArguments<T>);
         readonly columns: DataControlField[];
-        readonly dataSource: DataSource<any>;
+        readonly dataSource: DataSource<T>;
         private appendEmptyRow();
         private appendDataRow(dataItem);
         private on_sort(sender, args);
@@ -249,74 +249,29 @@ declare namespace wuzhui {
     }
 }
 declare namespace wuzhui {
-    interface Callback<S, A> {
-        /**
-         * Add a callback or a collection of callbacks to a callback list.
-         *
-         * @param callbacks A function, or array of functions, that are to be added to the callback list.
-         */
-        add(callbacks: (sender: S, args: A) => any): Callback<S, A>;
-        /**
-         * Disable a callback list from doing anything more.
-         */
-        disable(): Callback<S, A>;
-        /**
-         * Determine if the callbacks list has been disabled.
-         */
-        disabled(): boolean;
-        /**
-         * Remove all of the callbacks from a list.
-         */
-        empty(): Callback<S, A>;
-        /**
-         * Call all of the callbacks with the given arguments
-         *
-         * @param arguments The argument or list of arguments to pass back to the callback list.
-         */
-        fire(sender: S, args: A): Callback<S, A>;
-        /**
-         * Determine if the callbacks have already been called at least once.
-         */
-        fired(): boolean;
-        /**
-         * Call all callbacks in a list with the given context and arguments.
-         *
-         * @param context A reference to the context in which the callbacks in the list should be fired.
-         * @param arguments An argument, or array of arguments, to pass to the callbacks in the list.
-         */
-        fireWith(context: any, [S, A]: [any, any]): Callback<S, A>;
-        /**
-         * Determine whether a supplied callback is in a list
-         *
-         * @param callback The callback to search for.
-         */
-        has(callback: Function): boolean;
-        /**
-         * Lock a callback list in its current state.
-         */
-        lock(): Callback<S, A>;
-        /**
-         * Determine if the callbacks list has been locked.
-         */
-        locked(): boolean;
-        /**
-         * Remove a callback or a collection of callbacks from a callback list.
-         *
-         * @param callbacks A function, or array of functions, that are to be removed from the callback list.
-         */
-        remove(callbacks: Function): Callback<S, A>;
-        /**
-         * Remove a callback or a collection of callbacks from a callback list.
-         *
-         * @param callbacks A function, or array of functions, that are to be removed from the callback list.
-         */
-        remove(callbacks: Function[]): Callback<S, A>;
+    interface FetchOptions {
+        method?: string;
+        headers?: any;
+        body?: any;
+    }
+    class AjaxError implements Error {
+        name: string;
+        message: string;
+        method: 'get' | 'post';
+        constructor(method: any);
     }
     var ajaxTimeout: number;
-    function ajax(url: string, data: any): JQueryPromise<any>;
+    function ajax<T>(url: string, options: FetchOptions): Promise<T>;
     function applyStyle(element: HTMLElement, value: CSSStyleDeclaration | string): void;
+    class Callback<S, A> {
+        private funcs;
+        constructor();
+        add(func: (sender: S, args: A) => any): void;
+        remove(func: (sender: S, args: A) => any): void;
+        fire(sender: S, args: A): void;
+    }
     function callbacks<S, A>(): Callback<S, A>;
-    function fireCallback<S, A>(callback: Callback<S, A>, sender: S, args: A): Callback<S, A>;
+    function fireCallback<S, A>(callback: Callback<S, A>, sender: S, args: A): void;
 }
 declare namespace wuzhui {
     class GridViewCell extends Control<HTMLTableCellElement> {
@@ -346,7 +301,7 @@ declare namespace wuzhui {
             sortType: string;
         }>;
         constructor(field: DataControlField);
-        handleSort(): JQueryPromise<any[] | DataSourceSelectResult<any>>;
+        handleSort(): Promise<void>;
         private defaultHeaderText();
         sortType: "desc" | "asc";
         clearSortIcon(): void;
@@ -374,7 +329,7 @@ declare namespace wuzhui {
         footerStyle: string | CSSStyleDeclaration;
         headerStyle: string | CSSStyleDeclaration;
         readonly visible: boolean;
-        gridView: GridView;
+        gridView: GridView<any>;
         /**
          * Gets a sort expression that is used by a data source control to sort data.
          */
@@ -487,7 +442,7 @@ declare namespace wuzhui {
     interface CustomFieldParams extends DataControlFieldParams {
         createHeaderCell?: () => GridViewCell;
         createFooterCell?: () => GridViewCell;
-        createItemCell: (field: CustomField, dataItem: any) => GridViewCell;
+        createItemCell: (dataItem: any) => GridViewCell;
     }
     class CustomField extends DataControlField {
         constructor(params: CustomFieldParams);
