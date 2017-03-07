@@ -59,7 +59,7 @@ export default function (page: chitu.Page) {
                         header={
                             <div>
                                 <button onClick={() => this.closeDialog()} type="button" className="close"><span>&times;</span></button>
-                                <h4 class="modal-title">&nbsp;</h4>
+                                <h4 className="modal-title">&nbsp;</h4>
                             </div>
                         }
                         content={

@@ -5,7 +5,7 @@ let menus = [
          "url": "#home/users"
     },
     {
-        "title": "URL设置",
+        "title": "URL拦截",
         "icon": "icon-bullhorn",
          "url": "#permission/urlSetting"
     }
