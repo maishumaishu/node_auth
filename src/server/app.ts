@@ -278,7 +278,7 @@ async function getRedirectInfo(applicationId: string): Promise<{ host: string, p
     }
 
     let u = url.parse(application.targetUrl);
-    u.hostname = '115.29.169.7'
+    // u.hostname = '115.29.169.7'
     //u.hostname = '115.29.169.7'; //01f2023c-4f87-4964-83fe-8d3f4585deb0 01f2023c-4f87-4964-83fe-8d3f4585deb0
     //+		dc.ApplicationId	{7bbfa36c-8115-47ad-8d47-9e52b58e7efd}	System.Guid
     //+		dc.ApplicationId	{747227bc-f935-4fce-9462-9df4f89c40fc}	System.Guid
