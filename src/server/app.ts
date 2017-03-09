@@ -6,7 +6,7 @@ import * as mongodb from 'mongodb';
 import * as url from 'url';
 import { AppRequest, Controller } from './common'
 import { Token, SystemDatabase } from './database';
-
+import * as logger from './logger' 
 
 
 const HEADER_APP_TOKEN = 'application-token';
@@ -38,6 +38,8 @@ function setHeaders(res: express.Response) {
 
 app.use('/*', async function (req: express.Request & AppInfo, res, next) {
     try {
+        
+        logger.log(req);
         setHeaders(res);
 
         let applicationToken = req.headers[HEADER_APP_TOKEN] || req.query[HEADER_APP_TOKEN];
