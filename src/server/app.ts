@@ -300,10 +300,10 @@ async function getRedirectInfo(applicationId: string, req: express.Request): Pro
     let redirects = application.redirects || [];
     for (let i = 0; i < redirects.length; i++) {
         let regexp = new RegExp(redirects[i].urlPattern);
-        var arr = regexp.exec(req.originalUrl);
-        if (arr.length > 0) {
+        var arr = regexp.exec(req.originalUrl) || [];
+        if (arr.length == 2) {
             targetUrl = redirects[i].target;
-            path = arr[0];
+            path = arr[1];
             break;
         }
     }
