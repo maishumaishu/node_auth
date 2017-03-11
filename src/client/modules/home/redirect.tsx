@@ -7,7 +7,12 @@ import { Dialog, Button } from 'controls';
 export default function (page: chitu.Page) {
     var appId = page.routeData.values.appId;
 
-    class PageComponent extends PanelPage<{}, { items: appService.RedirectInfo[], requestUrl: string, targetUrl: string }>{
+    type PageState = {
+        items: appService.RedirectInfo[],
+        requestUrl: string, targetUrl: string,
+        itemIndex: number
+    };
+    class PageComponent extends PanelPage<{}, PageState>{
         private table: HTMLTableElement;
         private dialog: Dialog;
         private app: appService.Application;
@@ -25,26 +30,39 @@ export default function (page: chitu.Page) {
         showDialog() {
             this.dialog.show();
         }
-        addItem() {
+        saveItem() {
 
-            let item = {
-                urlPattern: this.state.requestUrl,
-                target: this.state.targetUrl
-            } as appService.RedirectInfo;
+            let item: appService.RedirectInfo;
+            if (this.state.itemIndex == null) {
+                item = {} as appService.RedirectInfo;
+                this.state.items.push(item);
+            }
+            else {
+                item = this.state.items[this.state.itemIndex];
+                console.assert(item != null);
+            }
 
-
-            this.state.items.push(item);
+            item.target = this.state.targetUrl;
+            item.urlPattern = this.state.requestUrl;
             this.app.redirects = this.state.items;
             return appService.save(this.app).then(o => {
                 this.setState(this.state);
             })
         }
+
         renderMain() {
             let items = this.state.items || [];
             return (
                 <div>
                     <div className="pull-right">
-                        <button className="btn btn-sm btn-primary" onClick={() => this.showDialog()}>添加</button>
+                        <button className="btn btn-sm btn-primary"
+                            onClick={() => {
+                                this.state.requestUrl = '';
+                                this.state.targetUrl = '';
+                                this.state.itemIndex = null;
+                                this.setState(this.state);
+                                this.showDialog();
+                            }}>添加</button>
                     </div>
                     <table className={settings.tableClassName} ref={(o: HTMLTableElement) => this.table = o}>
                         <thead>
@@ -61,6 +79,16 @@ export default function (page: chitu.Page) {
                                         <td>{o.urlPattern}</td>
                                         <td>{o.target}</td>
                                         <td style={{ textAlign: 'center' }}>
+                                            <button className="btn btn-minier btn-info" style={{ marginRight: 4 }}
+                                                onClick={() => {
+                                                    this.state.requestUrl = o.urlPattern;
+                                                    this.state.targetUrl = o.target;
+                                                    this.state.itemIndex = i;
+                                                    this.setState(this.state);
+                                                    this.showDialog();
+                                                }}>
+                                                <i className="icon-pencil"></i>
+                                            </button>
                                             <Button className="btn btn-minier btn-danger"
                                                 confirm={"确定要删除该记录吗？"}
                                                 onClick={() => {
@@ -96,11 +124,13 @@ export default function (page: chitu.Page) {
                                     <label className="control-label" style={{ float: 'left' }}>请求路径</label>
                                     <div style={{ marginLeft: 100 }}>
                                         <input type="text" className="form-control" placeholder="请输入请求URL的匹配"
-                                            value={this.state.requestUrl}
+                                            ref={(e) => {
+                                                if (!e) return;
+                                                e.value = this.state.requestUrl;
+                                            }}
                                             onChange={(e) => {
                                                 if (!e) return;
                                                 this.state.requestUrl = (e.target as HTMLInputElement).value;
-                                                this.setState(this.state);
                                             }} />
                                     </div>
                                 </div>
@@ -108,11 +138,13 @@ export default function (page: chitu.Page) {
                                     <label className="control-label" style={{ float: 'left' }}>目标地址</label>
                                     <div style={{ marginLeft: 100 }}>
                                         <input type="text" className="form-control" placeholder="请输入转发的目标URL"
-                                            value={this.state.targetUrl}
+                                            ref={(e) => {
+                                                if (!e) return;
+                                                e.value = this.state.targetUrl;
+                                            }}
                                             onChange={(e) => {
                                                 if (!e) return;
                                                 this.state.targetUrl = (e.target as HTMLInputElement).value;
-                                                this.setState(this.state);
                                             }}
                                         />
                                     </div>
@@ -125,7 +157,7 @@ export default function (page: chitu.Page) {
                                     onClick={() => this.dialog.hide()}>取消</button>
                                 <Button className="btn btn-primary"
                                     onClick={() => {
-                                        return this.addItem().then(() => {
+                                        return this.saveItem().then(() => {
                                             this.dialog.hide();
                                         });
                                     }}>确定</Button>
