@@ -123,28 +123,28 @@ declare namespace wuzhui {
         Paging = 3,
         Empty = 4,
     }
-    class GridViewRow<T> extends Control<HTMLTableRowElement> {
+    class GridViewRow extends Control<HTMLTableRowElement> {
         private _rowType;
         private _gridView;
         constructor(rowType: GridViewRowType);
         readonly rowType: GridViewRowType;
-        readonly gridView: GridView<T>;
+        readonly gridView: GridView;
         readonly cells: GridViewCell[];
     }
-    class GridViewDataRow<T> extends GridViewRow<T> {
+    class GridViewDataRow extends GridViewRow {
         private _dataItem;
-        constructor(gridView: GridView<T>, dataItem: any);
+        constructor(gridView: GridView, dataItem: any);
         readonly dataItem: any;
     }
-    interface GridViewArguments<T> {
-        dataSource: DataSource<T>;
+    interface GridViewArguments {
+        dataSource: DataSource<any>;
         columns: Array<DataControlField>;
         showHeader?: boolean;
         showFooter?: boolean;
         element?: HTMLTableElement;
         emptyDataRowStyle?: string;
     }
-    class GridView<T> extends Control<HTMLTableElement> {
+    class GridView extends Control<HTMLTableElement> {
         private _pageSize;
         private _selectedRowStyle;
         private _showFooter;
@@ -160,12 +160,12 @@ declare namespace wuzhui {
         static emptyRowClassName: string;
         static dataRowClassName: string;
         emptyDataText: string;
-        rowCreated: Callback<GridView<T>, {
-            row: GridViewRow<T>;
+        rowCreated: Callback<GridView, {
+            row: GridViewRow;
         }>;
-        constructor(params: GridViewArguments<T>);
+        constructor(params: GridViewArguments);
         readonly columns: DataControlField[];
-        readonly dataSource: DataSource<T>;
+        readonly dataSource: DataSource<any>;
         private appendEmptyRow();
         private appendDataRow(dataItem);
         private on_sort(sender, args);
@@ -329,7 +329,7 @@ declare namespace wuzhui {
         footerStyle: string | CSSStyleDeclaration;
         headerStyle: string | CSSStyleDeclaration;
         readonly visible: boolean;
-        gridView: GridView<any>;
+        gridView: GridView;
         /**
          * Gets a sort expression that is used by a data source control to sort data.
          */

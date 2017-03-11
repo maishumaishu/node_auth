@@ -68,9 +68,9 @@ export default function (page: chitu.Page) {
                     <table className={settings.tableClassName} ref={(o: HTMLTableElement) => this.table = o}>
                         <thead>
                             <tr>
-                                <td style={{ width: 200, textAlign: 'center' }}>请求路径</td>
+                                <td style={{ width: 300, textAlign: 'center' }}>请求路径</td>
                                 <td style={{ textAlign: 'center' }}>目标地址</td>
-                                <td style={{ width: 100, textAlign: 'center' }}>操作</td>
+                                <td style={{ width: 140, textAlign: 'center' }}>操作</td>
                             </tr>
                         </thead>
                         <tbody>
@@ -102,6 +102,9 @@ export default function (page: chitu.Page) {
                                                 }}>
                                                 <i className="icon-trash"></i>
                                             </Button>
+                                            <button className="btn btn-minier btn-primary" style={{ marginLeft: 4 }}>
+                                                测试
+                                            </button>
                                         </td>
                                     </tr>
                                 )) :

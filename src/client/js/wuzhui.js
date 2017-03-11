@@ -832,7 +832,6 @@ var wuzhui;
                     let err = new AjaxError(options.method);
                     err.name = 'timeout';
                     reject(err);
-                    this.error.fire(this, err);
                     clearTimeout(timeId);
                 }, wuzhui.ajaxTimeout);
             }
@@ -844,7 +843,6 @@ var wuzhui;
             })
                 .catch(err => {
                 reject(err);
-                this.error.fire(this, err);
                 if (timeId)
                     clearTimeout(timeId);
             });
@@ -853,36 +851,34 @@ var wuzhui;
     wuzhui.ajax = ajax;
     function _ajax(url, options) {
         return __awaiter(this, void 0, void 0, function* () {
-            try {
-                let response = yield fetch(url, options);
-                if (response.status >= 300) {
-                    let err = new AjaxError(options.method);
-                    err.name = `${response.status}`;
-                    err.message = response.statusText;
-                    throw err;
-                }
-                let responseText = response.text();
-                let p;
-                if (typeof responseText == 'string') {
-                    p = new Promise((reslove, reject) => {
-                        reslove(responseText);
-                    });
-                }
-                else {
-                    p = responseText;
-                }
-                let text = yield responseText;
-                let textObject = JSON.parse(text);
-                let err = isError(textObject);
-                if (err)
-                    throw err;
-                textObject = this.travelJSON(textObject);
-                return textObject;
-            }
-            catch (err) {
-                this.error.fire(this, err);
+            // try {
+            let response = yield fetch(url, options);
+            if (response.status >= 300) {
+                let err = new AjaxError(options.method);
+                err.name = `${response.status}`;
+                err.message = response.statusText;
                 throw err;
             }
+            let responseText = response.text();
+            let p;
+            if (typeof responseText == 'string') {
+                p = new Promise((reslove, reject) => {
+                    reslove(responseText);
+                });
+            }
+            else {
+                p = responseText;
+            }
+            let text = yield responseText;
+            let textObject = JSON.parse(text);
+            let err = isError(textObject);
+            if (err)
+                throw err;
+            return textObject;
+            // }
+            // catch (err) {
+            //     throw err;
+            // }
         });
     }
     function applyStyle(element, value) {

@@ -76,7 +76,9 @@ app.use('/*', async function (req: express.Request & AppInfo, res, next) {
     }
 });
 
-let moduleNames = ['user', 'sms', 'application'];
+let userControllers = ['user', 'sms'];
+let adminControllers = ['application', 'log', 'adminUser'];
+let moduleNames = userControllers.concat(adminControllers);
 app.use('/:controller/:action', executeAction);
 function executeAction(req: AppRequest & AppInfo, res, next) {
 
@@ -88,7 +90,10 @@ function executeAction(req: AppRequest & AppInfo, res, next) {
         return;
     }
 
-    let controllerPath = `./controllers/${controllerName}`;
+    let controllerPath = userControllers.indexOf(controllerName) >= 0 ?
+        `./userControllers/${controllerName}` :
+        `./adminControllers/${controllerName}`;
+
     let controllerModule = require(controllerPath);
     if (controllerModule == null) {
         let result = errors.controllerNotExist(controllerPath);
@@ -221,7 +226,6 @@ async function redirectRequest(req: express.Request & AppInfo, res: express.Resp
         if (req.userId)
             headers[HEADER_USER_ID] = req.userId;
 
-        // let requestUrl = combinePaths(path, req.originalUrl);
         if (req.userId) {
             if (path.indexOf('?') < 0)
                 path = path + '?';
@@ -232,7 +236,6 @@ async function redirectRequest(req: express.Request & AppInfo, res: express.Resp
         }
 
 
-        let logRecordPromise = logger.logRedirectRequest(req);
 
         let request = http.request(
             {
@@ -258,6 +261,9 @@ async function redirectRequest(req: express.Request & AppInfo, res: express.Resp
                 })
             },
         );
+
+        let logRecordPromise = logger.logRedirectRequest(request);
+
 
         request.on('error', function (err) {
             outputError(res, err);

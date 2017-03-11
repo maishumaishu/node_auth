@@ -43,7 +43,7 @@ export class Table<T extends Entity>{
             });
         });
     }
-    updateOne(entity: T): Promise<Error | T> {
+    updateItem(entity: T): Promise<Error | T> {
         if (typeof entity._id == 'string') {
             entity._id = new mongodb.ObjectID(entity._id);
         }
@@ -78,6 +78,18 @@ export class Table<T extends Entity>{
                 reslove(obj);
                 return;
             });
+        })
+    }
+    updateOne(filter: Object, update: any) {
+        return new Promise((resolve, reject) => {
+            this.source.updateOne(filter, update, (err, result) => {
+                if (err) {
+                    reject(err);
+                }
+                else {
+                    resolve(result);
+                }
+            })
         })
     }
     deleteOne(filter: any): Promise<Error> {
@@ -134,6 +146,12 @@ export class Table<T extends Entity>{
             });
         });
     }
+}
+
+export const tableNames = {
+    RedirectLog: 'RedirectLog',
+    RequestLog: 'RequestLog',
+    User: 'User',
 }
 
 export class DataContext {
@@ -251,7 +269,7 @@ export class ApplicationDatabase {
 
     static async createInstance(appId: string) {
         return new Promise<ApplicationDatabase>((reslove, reject) => {
-            let connectionString = `mongodb://${settings.monogoHost}/${appId}`;
+            let connectionString = appConn(appId); //`mongodb://${settings.monogoHost}/${appId}`;
             MongoClient.connect(connectionString, { maxPoolSize: 50 }, (err, db) => {
                 if (err != null) {
                     reject(err);
@@ -276,6 +294,11 @@ export class ApplicationDatabase {
         console.assert(this.source != null);
         this.source.close();
     }
+}
+
+export function appConn(appId: string) {
+    let connectionString = `mongodb://${settings.monogoHost}/${appId}`;
+    return connectionString;
 }
 
 export class SystemDatabase {
@@ -328,7 +351,7 @@ export class SystemDatabase {
 
 export class Users extends Table<User> {
     constructor(db: mongodb.Db) {
-        super(db, 'User');
+        super(db, tableNames.User);
     }
 }
 
@@ -360,18 +383,12 @@ export interface Appliation extends Entity {
         /** 允许访问的用户组，为空则允许全部 */
         allowGroups: string[]
     }],
-    redirects:{
+    redirects: {
         urlPattern: string,
         target: string,
     }[]
-    
-}
 
-// interface UrlRedirect {
-//     urlPattern: string,
-//     target: string,
-//     applicationId: ObjectID
-// }
+}
 
 /**
  * 验证短信

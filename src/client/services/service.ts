@@ -20,8 +20,8 @@ export let error = chitu.Callbacks();
 export let ajaxTimeout = 5000;
 
 let HTTP = 'http://';
-let host = 'http://localhost:2800/';
-let appToken = '58424781034ff82470d06d3e';
+export let host = 'http://localhost:2800/';
+export let appToken = '58424781034ff82470d06d3e';
 const HTTP_LENGTH = 7;
 
 type AjaxType = 'post' | 'get' | 'put';

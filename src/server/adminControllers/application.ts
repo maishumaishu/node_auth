@@ -8,14 +8,14 @@ import * as settings from '../settings';
 type ChangeArguments = { app: Appliation };
 
 export default class AppliationController extends Controller {
-    async  list() {
+    async list() {
         let db = await data.SystemDatabase.createInstance();
         let apps = await db.applications.find({});
         db.close();
         return apps;
     }
 
-    async  save({ app }: ChangeArguments) {
+    async save({ app }: ChangeArguments) {
         if (app._id) {
             return this.update({ app });
         }
@@ -32,12 +32,12 @@ export default class AppliationController extends Controller {
 
         let db = await data.SystemDatabase.createInstance();
         let item = await db.applications.findOne({ name: app.name });
-        let error = await db.applications.updateOne(app);
+        let error = await db.applications.updateItem(app);
         db.close();
         return error;
     }
 
-    async  add({ app }: { app: data.Appliation }): Promise<Appliation> {
+    async add({ app }: { app: data.Appliation }): Promise<Appliation> {
         if (!app) throw errors.argumentNull('app');
         if (!app.name) throw errors.fieldNull('name', 'app');
 
@@ -60,7 +60,7 @@ export default class AppliationController extends Controller {
         if (!appId) throw errors.argumentNull('appId');
         let db = await data.SystemDatabase.createInstance();
         let tokenObject = await Token.create(appId, 'app');
-        db.applications.updateOne(<any>{ _id: new ObjectID(appId), token: tokenObject._id.toString() })
+        db.applications.updateItem(<any>{ _id: new ObjectID(appId), token: tokenObject._id.toString() })
             .then(() => db.close())
             .catch(() => db.close());
 

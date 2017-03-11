@@ -4,8 +4,6 @@ import * as settings from '../settings';
 import * as mongodb from 'mongodb';
 import { Controller } from '../common';
 
-//export let config: { appId: string, userId: string };
-
 export default class UserController extends Controller {
     async  test() {
         let db = await Database.createInstance(this.appId);
@@ -35,7 +33,7 @@ export default class UserController extends Controller {
             console.assert(user.username != null);
             u = await db.users.findOne({ username: user.username });
             if (u != null)
-                result = Promise.reject(Errors.usernameExists(user.username)); //throw Errors.usernameExists(user.username);
+                result = Promise.reject(Errors.usernameExists(user.username));
         }
 
         if (result == null) {
@@ -59,7 +57,7 @@ export default class UserController extends Controller {
 
         return this.createUser(user);
     }
-    async  registerByMobile({user, smsId, verifyCode}): Promise<any> {
+    async  registerByMobile({ user, smsId, verifyCode }): Promise<any> {
         if (user == null)
             return Promise.reject(Errors.argumentNull('user'));
 
@@ -89,7 +87,7 @@ export default class UserController extends Controller {
 
         return this.createUser(user);
     }
-    async  register(args) {
+    async register(args) {
         let user: User;
         if (settings.registerMode == 'username')
             user = await this.registerByUserName(args);
@@ -103,7 +101,7 @@ export default class UserController extends Controller {
         let token = await Token.create(user._id.toHexString(), 'user');
         return { token: token._id.toHexString(), userId: token.objectId };
     }
-    async  login({username, password}): Promise<{ token: string } | Error> {
+    async  login({ username, password }): Promise<{ token: string } | Error> {
         if (username == null) {
             return Promise.reject<Error>(Errors.argumentNull('username'));
         }
@@ -123,9 +121,10 @@ export default class UserController extends Controller {
         }
         let token = await Token.create(user._id.toHexString(), 'user');
         db.close();
-        
+
         return { token: token._id.toHexString(), userId: token.objectId };
     }
+
 }
 
 
