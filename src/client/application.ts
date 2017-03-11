@@ -10,17 +10,17 @@ class Application extends chitu.Application {
         this.pageDisplayType = PageDisplayerImplement;
     }
 
-    protected createPageElement(routeData: chitu.RouteData) {
-        let element: HTMLElement = document.createElement('div');
-        element.className = 'page';
-        if (routeData.pageName == 'home.applications') {
-            document.getElementById('applications-container').appendChild(element);
-        }
-        else {
-            document.getElementById('mainContent').appendChild(element);
-        }
-        return element;
-    }
+    // protected createPageElement(routeData: chitu.RouteData) {
+    //     let element: HTMLElement = document.createElement('div');
+    //     element.className = 'page';
+    //     if (routeData.pageName == 'home.applications') {
+    //         document.getElementById('applications-container').appendChild(element);
+    //     }
+    //     else {
+    //         document.getElementById('mainContent').appendChild(element);
+    //     }
+    //     return element;
+    // }
 
     protected parseRouteString(routeString: string) {
         let routeData = super.parseRouteString(routeString);
@@ -70,32 +70,32 @@ export = app;
 
 //=========================================================================
 // 菜单
-import menus = require('menus');
+// import menus = require('menus');
 
-let data = menus;//JSON.parse(text);
-var stack = [];
-for (var i = 0; i < data.length; i++)
-    stack.push(data[i]);
+// let data = menus;//JSON.parse(text);
+// var stack = [];
+// for (var i = 0; i < data.length; i++)
+//     stack.push(data[i]);
 
-while (stack.length > 0) {
-    var item = stack.pop();
-    item.url = item.url || '';
-    item.children = item.children || [];
-    item.icon = item.icon || '';
-    item.visible = (item.visible === undefined) ? true : item.visible;
-    item.visibleChildren = [];
+// while (stack.length > 0) {
+//     var item = stack.pop();
+//     item.url = item.url || '';
+//     item.children = item.children || [];
+//     item.icon = item.icon || '';
+//     item.visible = (item.visible === undefined) ? true : item.visible;
+//     item.visibleChildren = [];
 
-    for (var i = 0; i < item.children.length; i++) {
-        if (item.children[i].visible === undefined || item.children[i].visible !== false)
-            item.visibleChildren.push(item.children[i]);
+//     for (var i = 0; i < item.children.length; i++) {
+//         if (item.children[i].visible === undefined || item.children[i].visible !== false)
+//             item.visibleChildren.push(item.children[i]);
 
-        stack.push(item.children[i]);
-    }
-}
-var model = {
-    menus: data
-};
+//         stack.push(item.children[i]);
+//     }
+// }
+// var model = {
+//     menus: data
+// };
 
-ko.applyBindings(model, document.getElementById('sidebar'));
-ko.applyBindings(model, document.getElementById('navbar'))
+// ko.applyBindings(model, document.getElementById('sidebar'));
+// ko.applyBindings(model, document.getElementById('navbar'))
 //=========================================================================
