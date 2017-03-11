@@ -6,7 +6,7 @@ import * as errors from './errors';
 let MongoClient = mongodb.MongoClient;
 
 export class Table<T extends Entity>{
-    private source: mongodb.Collection;
+    public source: mongodb.Collection;
     constructor(db: mongodb.Db, name: string) {
         if (!db) throw errors.argumentNull('db');
         if (!name) throw errors.argumentNull('name');

@@ -1,6 +1,5 @@
 import * as http from 'http';
 import * as express from 'express';
-import * as controller from './modules/application';
 import * as errors from './errors';
 import * as url from 'url';
 import { AppRequest, Controller } from './common'
@@ -38,7 +37,7 @@ function setHeaders(res: express.Response) {
 app.use('/*', async function (req: express.Request & AppInfo, res, next) {
     try {
 
-        logger.log(req);
+        logger.logUserRequest(req);
         setHeaders(res);
 
         let applicationToken = req.headers[HEADER_APP_TOKEN] || req.query[HEADER_APP_TOKEN];
@@ -89,7 +88,7 @@ function executeAction(req: AppRequest & AppInfo, res, next) {
         return;
     }
 
-    let controllerPath = `./modules/${controllerName}`;
+    let controllerPath = `./controllers/${controllerName}`;
     let controllerModule = require(controllerPath);
     if (controllerModule == null) {
         let result = errors.controllerNotExist(controllerPath);
@@ -131,7 +130,7 @@ function executeAction(req: AppRequest & AppInfo, res, next) {
 }
 
 app.use('/*', function (req: express.Request & AppInfo, res, next) {
-    request(req, res);
+    redirectRequest(req, res);
 });
 
 app.use('/*', async function (value, req, res, next) {
@@ -208,7 +207,7 @@ function getPostObject(request: http.IncomingMessage & Express.Request): Promise
     });
 }
 
-async function request(req: express.Request & AppInfo, res: express.Response) {
+async function redirectRequest(req: express.Request & AppInfo, res: express.Response) {
     try {
         let { host, path, port } = await getRedirectInfo(req.applicationId, req);
         //TODO:返回值为空，返回 404
@@ -232,6 +231,9 @@ async function request(req: express.Request & AppInfo, res: express.Response) {
             path = path + `userId=${req.userId}`;
         }
 
+
+        let logRecordPromise = logger.logRedirectRequest(req);
+
         let request = http.request(
             {
                 host: host,
@@ -249,6 +251,11 @@ async function request(req: express.Request & AppInfo, res: express.Response) {
                 res.statusMessage = response.statusMessage;
                 res.setHeader('Access-Control-Allow-Origin', '*');
                 response.pipe(res);
+
+                console.assert(logRecordPromise != null);
+                logRecordPromise.then((record) => {
+                    return logger.logRedirectResponse(record._id, response);
+                })
             },
         );
 
@@ -267,6 +274,7 @@ async function request(req: express.Request & AppInfo, res: express.Response) {
         req.on('end', (data) => {
             request.end();
         })
+
     }
     catch (err) {
         outputError(res, err);

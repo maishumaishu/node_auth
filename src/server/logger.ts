@@ -1,12 +1,27 @@
 import * as express from 'express';
-import { MongoClient } from 'mongodb';
+import { MongoClient, ObjectID } from 'mongodb';
 import * as settings from './settings';
+import { DataContext } from './database';
+import * as http from 'http';
 
-export function log(request: express.Request) {
-    /** 说明：连接mongodb，简单即可，不需要按应用里的方法写． */
-    let connectionString = `mongodb://${settings.monogoHost}/log`;
-    MongoClient.connect(connectionString, { maxPoolSize: 50 }, (err, db) => {
-        // 记住一定要关闭连接
-        db.close();
+export function logUserRequest(request: express.Request) {
+    return DataContext.execute(settings.conn.log, "RequestLog", function (table) {
+        let { baseUrl, headers, host, originalUrl, ip, path, query } = request;
+        return table.insertOne({ baseUrl, headers, host, originalUrl, ip, path, query });
+    });
+}
+
+export function logRedirectRequest(request: express.Request) {
+    return DataContext.execute(settings.conn.log, "RedirectLog", function (table) {
+        let { baseUrl, headers, host, originalUrl, query } = request;
+        return table.insertOne({ request: { baseUrl, headers, host, originalUrl, query } });
+    });
+}
+
+export function logRedirectResponse(_id: ObjectID, response: http.IncomingMessage) {
+    return DataContext.execute(settings.conn.log, 'RedirectLog', function (table) {
+        let { headers, statusCode, statusMessage } = response;
+        table.source.findOneAndUpdate({ _id }, { $set: { response: { headers, statusCode, statusMessage } } });
+        return Promise.resolve();
     })
 }

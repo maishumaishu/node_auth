@@ -68,7 +68,7 @@ export default class AppliationController extends Controller {
     }
 
     async get({ appId }) {
-        let item = await DataContext.execute(settings.conn, 'Appliation', (table: Table<Appliation>) => {
+        let item = await DataContext.execute(settings.conn.auth, 'Appliation', (table: Table<Appliation>) => {
             return table.findOne({ _id: new ObjectID(appId) });
         })
 

@@ -10,7 +10,7 @@ export default function (page: chitu.Page) {
     type PageState = {
         items: appService.RedirectInfo[],
         requestUrl: string, targetUrl: string,
-        itemIndex: number
+        itemIndex: number, dialogTitle: string
     };
     class PageComponent extends PanelPage<{}, PageState>{
         private table: HTMLTableElement;
@@ -60,6 +60,7 @@ export default function (page: chitu.Page) {
                                 this.state.requestUrl = '';
                                 this.state.targetUrl = '';
                                 this.state.itemIndex = null;
+                                this.state.dialogTitle = '添加';
                                 this.setState(this.state);
                                 this.showDialog();
                             }}>添加</button>
@@ -84,6 +85,7 @@ export default function (page: chitu.Page) {
                                                     this.state.requestUrl = o.urlPattern;
                                                     this.state.targetUrl = o.target;
                                                     this.state.itemIndex = i;
+                                                    this.state.dialogTitle = '编辑';
                                                     this.setState(this.state);
                                                     this.showDialog();
                                                 }}>
@@ -115,7 +117,7 @@ export default function (page: chitu.Page) {
                         header={
                             <div>
                                 <button onClick={() => this.dialog.hide()} type="button" className="close"><span>&times;</span></button>
-                                <h4 className="modal-title">&nbsp;</h4>
+                                <h4 className="modal-title">{this.state.dialogTitle}</h4>
                             </div>
                         }
                         content={

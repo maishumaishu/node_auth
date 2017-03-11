@@ -12,7 +12,7 @@ interface UrlRedirect {
 const urlPatterns = 'UrlRedirect';
 export default class urlRedirectController extends Controller {
     async list() {
-        var dc = new DataContext(settings.conn);
+        var dc = this.createDataContext();
         this.appId
         try {
             let table = await dc.table<UrlRedirect>(urlPatterns);
@@ -24,7 +24,7 @@ export default class urlRedirectController extends Controller {
         }
     }
     async add(item: UrlRedirect) {
-        var dc = new DataContext(settings.conn);
+        var dc = this.createDataContext();
         try {
             let table = await dc.table<UrlRedirect>(urlPatterns);
             let items = await table.insertOne(item);
@@ -35,7 +35,7 @@ export default class urlRedirectController extends Controller {
         }
     }
     async update(item: UrlRedirect) {
-        var dc = new DataContext(settings.conn);
+        var dc = this.createDataContext();
         try {
 
         }
@@ -44,7 +44,7 @@ export default class urlRedirectController extends Controller {
         }
     }
     async delete(id: string) {
-        var dc = new DataContext(settings.conn);
+        var dc = this.createDataContext();
         try {
             let table = await dc.table<UrlRedirect>(urlPatterns);
             table.deleteOne({ _id: new ObjectID(id) });
@@ -52,6 +52,10 @@ export default class urlRedirectController extends Controller {
         finally {
             dc.close();
         }
+    }
+
+    private createDataContext() {
+        return new DataContext(settings.conn.auth);
     }
 }
 

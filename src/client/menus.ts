@@ -13,10 +13,10 @@ export default function () {
     let appId = app.currentPage.routeData.values.appId;
     let menus: MenuItem[] = [
         {
-            name: 'home.users',
+            name: 'user.users',
             title: "用户列表",
             icon: "icon-bullhorn",
-            url: `home/users?appId=${appId}`
+            url: `user/users?appId=${appId}`
         } as MenuItem,
         {
             name: 'urlSetting',
@@ -24,16 +24,22 @@ export default function () {
             icon: 'icon-bullhorn',
             children: [
                 {
-                    name: 'permission.urlSetting',
+                    name: 'url.urlSetting',
                     title: "URL拦截",
-                    url: `permission/urlSetting?appId=${appId}`
+                    url: `url/urlSetting?appId=${appId}`
                 } as MenuItem,
                 {
-                    name: 'home.redirect',
+                    name: 'url.redirect',
                     title: 'URL转发',
-                    url: `home/redirect?appId=${appId}`
+                    url: `url/redirect?appId=${appId}`
                 } as MenuItem
             ]
+        } as MenuItem,
+        {
+            name: 'log.request',
+            title: '请求日志',
+            icon: 'icon-bullhorn',
+            url: `log/request?appId=${appId}`
         } as MenuItem
     ];
 
