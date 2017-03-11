@@ -2,11 +2,10 @@ import * as http from 'http';
 import * as express from 'express';
 import * as controller from './modules/application';
 import * as errors from './errors';
-import * as mongodb from 'mongodb';
 import * as url from 'url';
 import { AppRequest, Controller } from './common'
 import { Token, SystemDatabase } from './database';
-import * as logger from './logger' 
+import * as logger from './logger'
 
 
 const HEADER_APP_TOKEN = 'application-token';
@@ -38,7 +37,7 @@ function setHeaders(res: express.Response) {
 
 app.use('/*', async function (req: express.Request & AppInfo, res, next) {
     try {
-        
+
         logger.log(req);
         setHeaders(res);
 
@@ -211,7 +210,8 @@ function getPostObject(request: http.IncomingMessage & Express.Request): Promise
 
 async function request(req: express.Request & AppInfo, res: express.Response) {
     try {
-        let { host, path, port } = await getRedirectInfo(req.applicationId);
+        let { host, path, port } = await getRedirectInfo(req.applicationId, req);
+        //TODO:返回值为空，返回 404
 
         let headers: any = req.headers;
         headers.host = host;
@@ -222,15 +222,20 @@ async function request(req: express.Request & AppInfo, res: express.Response) {
         if (req.userId)
             headers[HEADER_USER_ID] = req.userId;
 
-        let requestUrl = combinePaths(path, req.originalUrl);
+        // let requestUrl = combinePaths(path, req.originalUrl);
         if (req.userId) {
-            requestUrl = requestUrl + `&userId=${req.userId}`;
+            if (path.indexOf('?') < 0)
+                path = path + '?';
+            else
+                path = path + '&';
+
+            path = path + `userId=${req.userId}`;
         }
 
         let request = http.request(
             {
                 host: host,
-                path: requestUrl,
+                path: path,
                 method: req.method,
                 headers: headers,
                 port: port,
@@ -243,7 +248,6 @@ async function request(req: express.Request & AppInfo, res: express.Response) {
                 res.statusCode = response.statusCode;
                 res.statusMessage = response.statusMessage;
                 res.setHeader('Access-Control-Allow-Origin', '*');
-                // res.setHeader('Access-Control-Allow-Headers', this.allowHeaders);
                 response.pipe(res);
             },
         );
@@ -269,22 +273,35 @@ async function request(req: express.Request & AppInfo, res: express.Response) {
     }
 }
 
-async function getRedirectInfo(applicationId: string): Promise<{ host: string, path: string, port: number }> {
-    let db = await SystemDatabase.createInstance();
-    let application = await db.applications.findOne({ _id: new mongodb.ObjectID(applicationId) });
-    db.close();
-
+type RediectInfo = { host: string, path: string, port: number };
+async function getRedirectInfo(applicationId: string, req: express.Request): Promise<RediectInfo> {
+    let application = await SystemDatabase.application(applicationId);
     if (!application) {
         let err = errors.objectNotExistWithId(applicationId, 'Application');
         return Promise.reject<any>(err);
     }
 
-    let u = url.parse(application.targetUrl);
-    // u.hostname = '115.29.169.7'
-    //u.hostname = '115.29.169.7'; //01f2023c-4f87-4964-83fe-8d3f4585deb0 01f2023c-4f87-4964-83fe-8d3f4585deb0
-    //+		dc.ApplicationId	{7bbfa36c-8115-47ad-8d47-9e52b58e7efd}	System.Guid
-    //+		dc.ApplicationId	{747227bc-f935-4fce-9462-9df4f89c40fc}	System.Guid
-    return { host: u.hostname, path: u.path, port: new Number(u.port).valueOf() };
+    let targetUrl: string;
+    let path: string;
+    let redirects = application.redirects || [];
+    for (let i = 0; i < redirects.length; i++) {
+        let regexp = new RegExp(redirects[i].urlPattern);
+        var arr = regexp.exec(req.originalUrl);
+        if (arr.length > 0) {
+            targetUrl = redirects[i].target;
+            path = arr[0];
+            break;
+        }
+    }
+
+    if (!targetUrl) {
+        targetUrl = application.targetUrl;
+        path = req.originalUrl;
+    }
+
+    let u = url.parse(targetUrl);
+    path = combinePaths(u.path, path);
+    return { host: u.hostname, path, port: new Number(u.port).valueOf() };
 }
 
 function combinePaths(path1: string, path2: string) {

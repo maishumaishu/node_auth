@@ -106,7 +106,7 @@ export class Table<T extends Entity>{
             });
         });
     }
-    find(selector): Promise<Array<T>> {
+    find(selector?: Object): Promise<Array<T>> {
         return new Promise((reslove, reject) => {
             this.source.find(selector, (err: Error, result: mongodb.Cursor) => {
                 if (err != null) {
@@ -139,6 +139,8 @@ export class Table<T extends Entity>{
 export class DataContext {
     private db: mongodb.Db;
     private connectionString: string;
+    private tables: { [propName: string]: Table<any> };
+
     constructor(connectionString: string) {
         if (!connectionString)
             throw errors.argumentNull('connectionString');
@@ -175,6 +177,52 @@ export class DataContext {
             })
         });
     }
+
+    async table<T>(name: string): Promise<Table<T>> {
+        if (this.db) {
+            await this.open();
+        }
+        if (this.tables[name] == null) {
+            this.tables[name] = new Table<T>(this.db, name);
+        }
+        return this.tables[name];
+    }
+
+    static execute<T>(connectionString: string, tableName: string, action: (table: Table<any>) => Promise<T>) {
+        if (!connectionString)
+            throw errors.argumentNull('connectionString');
+        if (!tableName)
+            throw errors.argumentNull('tableName');
+        if (action == null)
+            throw errors.argumentNull('action');
+
+        return new Promise<T>((reslove, reject) => {
+            MongoClient.connect(connectionString, (err, db) => {
+                if (err) {
+                    reject(err);
+                    return;
+                }
+
+                var table = new Table<T>(db, tableName);
+                let result = action(table);
+                if (result == null) {
+                    reject();
+                    db.close();
+                }
+                else {
+                    result
+                        .then((data) => {
+                            reslove(data);
+                            db.close();
+                        })
+                        .catch(() => db.close());
+                }
+
+                return;
+            })
+        });
+
+    }
 }
 
 function guid() {
@@ -194,6 +242,7 @@ export class ApplicationDatabase {
     private _verifyMessages: Table<VerifyMessage>;
 
     constructor(source: mongodb.Db) {
+
         this.source = source;
         this._users = new Users(source);
         this._applications = new Table<Appliation>(source, 'Appliation');
@@ -215,7 +264,7 @@ export class ApplicationDatabase {
         });
     }
 
-    get users(): Users {
+    get users() {
         return this._users;
     }
 
@@ -263,6 +312,13 @@ export class SystemDatabase {
         return this._tokens;
     }
 
+    static async application(id: string) {
+        let db = await SystemDatabase.createInstance();
+        var app = await db.applications.findOne({ _id: new mongodb.ObjectID(id) });
+        db.close();
+        return app;
+    }
+
     close() {
         console.assert(this.source != null);
         this.source.close(true);
@@ -298,13 +354,24 @@ export interface Appliation extends Entity {
     /** 请求的路径信息 */
     pathInfos: [{
         /** 匹配请求路径的正则表达式 */
-        pattern: string, 
+        pattern: string,
         /** 请求转发的URL地址 */
         forwardTo: string,
-        /** 允许访问的用户组，为空则允许全部 */ 
+        /** 允许访问的用户组，为空则允许全部 */
         allowGroups: string[]
-    }]
+    }],
+    redirects:{
+        urlPattern: string,
+        target: string,
+    }[]
+    
 }
+
+// interface UrlRedirect {
+//     urlPattern: string,
+//     target: string,
+//     applicationId: ObjectID
+// }
 
 /**
  * 验证短信

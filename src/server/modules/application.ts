@@ -1,8 +1,9 @@
 import * as data from '../database';
 import * as errors from '../errors';
 import { ObjectID } from 'mongodb';
-import { Appliation, Token } from '../database';
+import { Appliation, Token, DataContext, Table } from '../database';
 import { Controller } from '../common';
+import * as settings from '../settings';
 
 type ChangeArguments = { app: Appliation };
 
@@ -22,7 +23,7 @@ export default class AppliationController extends Controller {
         return this.add({ app });
     }
 
-    async update({app}: { app: data.Appliation }) {
+    async update({ app }: { app: data.Appliation }) {
         if (app == null)
             return errors.argumentNull('app');
 
@@ -36,7 +37,7 @@ export default class AppliationController extends Controller {
         return error;
     }
 
-    async  add({app}: { app: data.Appliation }): Promise<Appliation> {
+    async  add({ app }: { app: data.Appliation }): Promise<Appliation> {
         if (!app) throw errors.argumentNull('app');
         if (!app.name) throw errors.fieldNull('name', 'app');
 
@@ -55,7 +56,7 @@ export default class AppliationController extends Controller {
         return result;
     }
 
-    async newToken({appId}) {
+    async newToken({ appId }) {
         if (!appId) throw errors.argumentNull('appId');
         let db = await data.SystemDatabase.createInstance();
         let tokenObject = await Token.create(appId, 'app');
@@ -64,6 +65,14 @@ export default class AppliationController extends Controller {
             .catch(() => db.close());
 
         return { token: tokenObject._id };
+    }
+
+    async get({ appId }) {
+        let item = await DataContext.execute(settings.conn, 'Appliation', (table: Table<Appliation>) => {
+            return table.findOne({ _id: new ObjectID(appId) });
+        })
+
+        return item;
     }
 }
 

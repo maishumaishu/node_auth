@@ -21,14 +21,33 @@ export class ProxyServer {
         this.port = params.port;
     }
 
-    private async getRedirectInfo(applicationId: string): Promise<{ host: string, path: string, port: number }> {
+    private async getRedirectInfo(applicationId: string, requestUrl: string): Promise<{ host: string, path: string, port: number }> {
         let db = await SystemDatabase.createInstance();
         let application = await db.applications.findOne({ _id: new mongodb.ObjectID(applicationId) });
         db.close();
-        
+
         if (!application) {
             let err = Errors.objectNotExistWithId(applicationId, 'Application');
             return Promise.reject<any>(err);
+        }
+
+
+        let targetUrl: string;
+        let redirects = application.redirects || [];
+        for (let i = 0; i < redirects.length; i++) {
+            var regexp = new RegExp(redirects[i].urlPattern);
+            var arr = regexp.exec(requestUrl) || [];
+            if (arr.length > 0) {
+                targetUrl = redirects[i].target;
+                break;
+            }
+        }
+
+        if (targetUrl == null)
+            targetUrl = application.targetUrl;
+
+        if (targetUrl == null) {
+            return null;
         }
 
         let u = url.parse(application.targetUrl);
@@ -92,7 +111,7 @@ export class ProxyServer {
         this.server = http.createServer(async (req, res) => {
             try {
                 let { applicationId } = await this.attachHeaderInfo(req);
-                let { host, path, port } = await this.getRedirectInfo(applicationId);
+                let { host, path, port } = await this.getRedirectInfo(applicationId, req.url);
 
                 let headers: any = req.headers;
                 headers.host = host;

@@ -1,15 +1,16 @@
 import { settings } from 'site';
 import { Dialog } from 'controls';
+import { PanelPage } from 'modules/panelPage';
 
 export default function (page: chitu.Page) {
     page.element.innerHTML = "hello world";
-    class UrlSettingsPage extends React.Component<{}, {}>{
+    class UrlSettingsPage extends PanelPage<{}, {}>{
         private settingsTable: HTMLTableElement;
         private dialog: Dialog;
         componentDidMount() {
             let dataSource = new wuzhui.ArrayDataSource([
-                { name: '前端接口', url: '', groups: ['user', 'seller'] },
-                { name: '后台接口', url: '', groups: ['admin'] }
+                // { name: '前端接口', url: '', groups: ['user', 'seller'] },
+                // { name: '后台接口', url: '', groups: ['admin'] }
             ])
             let component = this;
             let gridView = new wuzhui.GridView({
@@ -50,9 +51,15 @@ export default function (page: chitu.Page) {
         closeDialog() {
             this.dialog.hide();
         }
-        render() {
+        showDialog(){
+            this.dialog.show();
+        }
+        renderMain() {
             return (
                 <div>
+                    <div className="pull-right">
+                        <button className="btn btn-sm btn-primary" onClick={() => this.showDialog()}>添加</button>
+                    </div>
                     <table className={settings.tableClassName} ref={(o: HTMLTableElement) => this.settingsTable = o}>
                     </table>
                     <Dialog ref={o => this.dialog = o}

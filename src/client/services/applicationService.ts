@@ -1,13 +1,16 @@
 import * as service from './service';
-import * as ko from 'knockout';
-import * as mapping from 'knockout.mapping';
 
-export class Application {
-    _id: string = null;
-    name: string = null;
-    targetUrl: string = null;
-    allowRegister: boolean = null;
-    token: string = '';
+export interface RedirectInfo {
+    urlPattern: string,
+    target: string,
+}
+export interface Application {
+    _id: string;
+    name: string;
+    targetUrl: string;
+    allowRegister: boolean;
+    token: string;
+    redirects: RedirectInfo[]
 }
 
 export function save(app: Application) {
@@ -18,4 +21,7 @@ export function list() {
 }
 export function newToken(app: Application) {
     return service.post<{ token: string }>('application/newToken');
+}
+export function get(appId: string) {
+    return service.get<Application>('application/get', { appId });
 }
