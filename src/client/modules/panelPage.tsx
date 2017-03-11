@@ -146,7 +146,7 @@ export class PanelPage<P, S> extends React.Component<P, S> {
                                 <ul className="breadcrumb">
                                     <li>
                                         <i className="icon-home home-icon"></i>
-                                        <a href="#Home/Index">首页</a>
+                                        <a href="#home/applications">首页</a>
                                     </li>
                                     <li className="active">
                                         <span data-bind="html:$data"></span>

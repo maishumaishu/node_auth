@@ -126,7 +126,7 @@ export default function action(page: chitu.Page) {
                                         <button onClick={() => { }} className="btn btn-primary btn-block">编辑</button>
                                     </div>
                                     <div className="col-xs-6">
-                                        <a href={`#home/index?appId=${o._id}`} className="btn btn-success btn-block">详细</a>
+                                        <a href={`#user/users?appId=${o._id}`} className="btn btn-success btn-block">详细</a>
                                     </div>
                                 </div>
                             </li>

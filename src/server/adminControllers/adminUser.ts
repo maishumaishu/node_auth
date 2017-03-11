@@ -25,7 +25,7 @@ export default class AdminUserController extends Controller {
             });
         });
 
-        let p2 = DataContext.execute(conn.auth, tableNames.User, (table) => {
+        let p2 = DataContext.execute(appConn(appId), tableNames.User, (table) => {
             return new Promise((resolve, reject) => {
                 table.source.count((err, result) => {
                     if (err)
