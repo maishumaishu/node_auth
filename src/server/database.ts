@@ -152,6 +152,7 @@ export const tableNames = {
     RedirectLog: 'RedirectLog',
     RequestLog: 'RequestLog',
     User: 'User',
+    Token: 'Token',
 }
 
 export class DataContext {
@@ -215,25 +216,19 @@ export class DataContext {
             throw errors.argumentNull('action');
 
         return new Promise<T>((reslove, reject) => {
-            MongoClient.connect(connectionString, (err, db) => {
+            MongoClient.connect(connectionString, async (err, db) => {
                 if (err) {
                     reject(err);
                     return;
                 }
 
                 var table = new Table<T>(db, tableName);
-                let result = action(table);
-                if (result == null) {
-                    reject();
-                    db.close();
+                try {
+                    let data = await action(table);
+                    reslove(data);
                 }
-                else {
-                    result
-                        .then((data) => {
-                            reslove(data);
-                            db.close();
-                        })
-                        .catch(() => db.close());
+                finally {
+                    db.close();
                 }
 
                 return;
@@ -309,12 +304,12 @@ export class SystemDatabase {
     constructor(source: mongodb.Db) {
         this.source = source;
         this._applications = new Table<Appliation>(source, 'Appliation');
-        this._tokens = new Table<Token>(source, 'Token');
+        this._tokens = new Table<Token>(source, tableNames.Token);// 'Token');
     }
 
     static async createInstance() {
         return new Promise<SystemDatabase>((reslove, reject) => {
-            let connectionString = `mongodb://${settings.monogoHost}/node_auth`;
+            let connectionString = settings.conn.auth; //`mongodb://${settings.monogoHost}/node_auth`;
             MongoClient.connect(connectionString, { maxPoolSize: 50 }, (err, db) => {
                 if (err != null) {
                     reject(err);
@@ -426,13 +421,8 @@ export class Token implements Entity {
      * @tokenValue 令牌字符串
      */
     static async parse(tokenValue: string): Promise<Token> {
-        let db = await SystemDatabase.createInstance();
-        let token = await db.tokens.findOne({ _id: new mongodb.ObjectID(tokenValue) });
-        db.close();
-        if (token == null) {
-            throw errors.invalidToken(tokenValue);
-        }
-        db.close();
-        return token;
+        return DataContext.execute<Token>(settings.conn.auth, tableNames.Token, (table: Table<Token>) => {
+            return table.findOne({ _id: new mongodb.ObjectID(tokenValue) });
+        })
     }
 }
