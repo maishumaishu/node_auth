@@ -9,3 +9,10 @@ export let conn = {
     auth: `mongodb://${monogoHost}/node_auth`,
     log: `mongodb://${monogoHost}/log`
 }
+
+//====================================
+// 测试配置
+export let test = {
+    mobile: '18502146746'
+}
+//====================================

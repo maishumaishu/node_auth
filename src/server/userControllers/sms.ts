@@ -10,7 +10,7 @@ export default class SMSController extends Controller {
     async  sendVerifyCode(args: SendCodeArgumentType): Promise<{ smsId: string } | Error> {
         console.assert(this.appId != null);
 
-        let {mobile, type} = args;
+        let { mobile, type } = args;
         if (mobile == null)
             throw Errors.argumentNull('mobile');
         if (type == null)
@@ -67,6 +67,12 @@ function sendMobileMessage(mobile: string, content: string): Promise<string> {
         return Promise.reject<any>(Errors.argumentNull('mobile'));
     if (content == null)
         return Promise.reject<any>(Errors.argumentNull('content'));
+
+    //=====================================
+    // 如果测试模式，则短信发送到测试手机
+    if (settings.test != null && settings.test.mobile)
+        mobile = settings.test.mobile;
+    //=====================================
 
     return new Promise<string>((reslove, rejct) => {
         //'欢迎关注零食有约，您的验证码是1234【零食有约】';
