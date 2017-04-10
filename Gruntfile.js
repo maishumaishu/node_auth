@@ -1,6 +1,7 @@
 
-let build = 'build';
+// let build = 'build';
 let release = 'release';
+let debug = 'debug';
 module.exports = function (grunt) {
     var config = {
         shell: {
@@ -32,7 +33,7 @@ module.exports = function (grunt) {
                     expand: true,
                     cwd: 'src/client/css/',
                     src: ['**/*.styl'],
-                    dest: `${build}/client/css`,
+                    dest: `${debug}/client/css`,
                     ext: '.css'
                 }]
             },
@@ -43,12 +44,7 @@ module.exports = function (grunt) {
                     {
                         expand: true, cwd: 'src/client',
                         src: ['**/*.html', '**/*.js', '**/*.css', 'font/*.*'],
-                        dest: `${build}/client`
-                    },
-                    {
-                        expand: true, cwd: `${build}/client`,
-                        src: ['**/*.html', '**/*.js', '**/*.css', 'font/*.*'],
-                        dest: `${release}/client`
+                        dest: `${debug}/client`
                     }
                 ]
             }

@@ -153,6 +153,7 @@ export const tableNames = {
     RequestLog: 'RequestLog',
     User: 'User',
     Token: 'Token',
+    Application: 'Application'
 }
 
 export class DataContext {
@@ -215,28 +216,22 @@ export class DataContext {
         if (action == null)
             throw errors.argumentNull('action');
 
-        return new Promise<T>((reslove, reject) => {
-            MongoClient.connect(connectionString, async (err, db) => {
-                if (err) {
-                    reject(err);
-                    return;
-                }
+        return new Promise<T>(async (reslove, reject) => {
+            let db = await MongoClient.connect(connectionString);
+            var table = new Table<T>(db, tableName);
+            try {
+                let data = await action(table);
+                reslove(data);
+            }
+            finally {
+                db.close();
+            }
 
-                var table = new Table<T>(db, tableName);
-                try {
-                    let data = await action(table);
-                    reslove(data);
-                }
-                finally {
-                    db.close();
-                }
-
-                return;
-            })
-        });
-
+            return;
+        })
     }
 }
+
 
 function guid() {
     function s4() {
@@ -248,81 +243,88 @@ function guid() {
         s4() + '-' + s4() + s4() + s4();
 }
 
-export class ApplicationDatabase {
+// export class ApplicationDatabase {
+//     private source: mongodb.Db;
+//     private _users: Users;
+//     private _applications: Table<Appliation>;
+//     private _verifyMessages: Table<VerifyMessage>;
+
+//     constructor(source: mongodb.Db) {
+
+//         this.source = source;
+//         this._users = new Users(source);
+//         this._applications = new Table<Appliation>(source, 'Appliation');
+//         this._verifyMessages = new Table<VerifyMessage>(source, 'VerifyMessage');
+//     }
+
+//     static async createInstance(appId: string) {
+//         return new Promise<ApplicationDatabase>((reslove, reject) => {
+//             let connectionString = appConn(appId); //`mongodb://${settings.monogoHost}/${appId}`;
+//             MongoClient.connect(connectionString, (err, db) => {
+//                 if (err != null) {
+//                     reject(err);
+//                     return;
+//                 }
+
+//                 let instance = new ApplicationDatabase(db);
+//                 reslove(instance);
+//             })
+//         });
+//     }
+
+//     get users() {
+//         return this._users;
+//     }
+
+//     get verifyMessages(): Table<VerifyMessage> {
+//         return this._verifyMessages;
+//     }
+
+//     close() {
+//         console.assert(this.source != null);
+//         this.source.close();
+//     }
+// }
+
+export async function execute(connectionString: string, tableName: string, callback: (collection: mongodb.Collection) => Promise<any>) {
+    if (!connectionString) return Promise.reject(errors.argumentNull('connectionString'));
+    if (!tableName) return Promise.reject(errors.argumentNull('tableName'));
+    if (!callback) return Promise.reject(errors.argumentNull('callback'));
+
+    let db = await MongoClient.connect(connectionString);
+    let collection = db.collection(tableName);
+    return callback(collection);
+}
+
+export class Database {
     private source: mongodb.Db;
-    private _users: Users;
-    private _applications: Table<Appliation>;
+    private _applications: Table<Application>;
+    private _tokens: Table<Token>;
+    private _users: Table<User>;
     private _verifyMessages: Table<VerifyMessage>;
 
     constructor(source: mongodb.Db) {
-
         this.source = source;
-        this._users = new Users(source);
-        this._applications = new Table<Appliation>(source, 'Appliation');
-        this._verifyMessages = new Table<VerifyMessage>(source, 'VerifyMessage');
-    }
-
-    static async createInstance(appId: string) {
-        return new Promise<ApplicationDatabase>((reslove, reject) => {
-            let connectionString = appConn(appId); //`mongodb://${settings.monogoHost}/${appId}`;
-            MongoClient.connect(connectionString, { maxPoolSize: 50 }, (err, db) => {
-                if (err != null) {
-                    reject(err);
-                    return;
-                }
-
-                let instance = new ApplicationDatabase(db);
-                reslove(instance);
-            })
-        });
-    }
-
-    get users() {
-        return this._users;
-    }
-
-    get verifyMessages(): Table<VerifyMessage> {
-        return this._verifyMessages;
-    }
-
-    close() {
-        console.assert(this.source != null);
-        this.source.close();
-    }
-}
-
-export function appConn(appId: string) {
-    let connectionString = `mongodb://${settings.monogoHost}/${appId}`;
-    return connectionString;
-}
-
-export class SystemDatabase {
-    private source: mongodb.Db;
-    private _applications: Table<Appliation>;
-    private _tokens: Table<Token>;
-
-    constructor(source: mongodb.Db) {
-        this.source = source;
-        this._applications = new Table<Appliation>(source, 'Appliation');
+        this._applications = new Table<Application>(source, 'Appliation');
         this._tokens = new Table<Token>(source, tableNames.Token);// 'Token');
     }
 
     static async createInstance() {
-        return new Promise<SystemDatabase>((reslove, reject) => {
+        return new Promise<Database>((reslove, reject) => {
             let connectionString = settings.conn.auth; //`mongodb://${settings.monogoHost}/node_auth`;
-            MongoClient.connect(connectionString, { maxPoolSize: 50 }, (err, db) => {
+            MongoClient.connect(connectionString, (err, db) => {
                 if (err != null) {
                     reject(err);
                     return;
                 }
 
-                let instance = new SystemDatabase(db);
+                let instance = new Database(db);
                 reslove(instance);
             })
         })
     }
 
-    get applications(): Table<Appliation> {
+    get applications(): Table<Application> {
         return this._applications;
     }
 
@@ -330,11 +332,21 @@ export class SystemDatabase {
         return this._tokens;
     }
 
-    static async application(id: string) {
-        let db = await SystemDatabase.createInstance();
-        var app = await db.applications.findOne({ _id: new mongodb.ObjectID(id) });
-        db.close();
-        return app;
+    get users(): Table<User> {
+        return this._users;
+    }
+
+    get verifyMessages(): Table<VerifyMessage> {
+        return this._verifyMessages;
+    }
+
+    static async application(id: string): Promise<Application> {
+        if (!id) throw errors.argumentNull('id');
+
+        return execute(settings.conn.auth, tableNames.Application, async (collection) => {
+            let item = await collection.findOne({ _id: new mongodb.ObjectID(id) });
+            return item;
+        })
     }
 
     close() {
@@ -361,9 +373,10 @@ export interface User extends Entity {
     group?: string,
     mobile?: string,
     email?: string,
+    applicationId: mongodb.ObjectID,
 }
 
-export interface Appliation extends Entity {
+export interface Application extends Entity {
     name: string,
     /** 默认的转发路径 */
     targetUrl: string,
@@ -392,7 +405,8 @@ export interface VerifyMessage extends Entity {
     /** 短信内容 */
     content: string,
     /** 验证码 */
-    verifyCode: string
+    verifyCode: string,
+    applicationId: mongodb.ObjectID
 }
 
 /**
@@ -401,18 +415,22 @@ export interface VerifyMessage extends Entity {
 export class Token implements Entity {
     _id?: mongodb.ObjectID;
     objectId: string;
-    type: string
+    type: string;
+    createDateTime: Date;
 
     static async create(objectId: string, type: 'user' | 'app'): Promise<Token> {
         let token = new Token();
-        //token.value = guid();
         token.objectId = objectId;
         token.type = type;
 
-        let db = await SystemDatabase.createInstance();
-        token = await db.tokens.insertOne(token);
-        db.close();
-        return token;
+        token._id = new mongodb.ObjectID();
+        token.createDateTime = new Date(Date.now());
+        
+        return execute(settings.conn.auth, tableNames.Token, async (collection) => {
+            await collection.insert(token);
+            return token;
+        });
+
     }
 
     /**
@@ -421,8 +439,23 @@ export class Token implements Entity {
      * @tokenValue 令牌字符串
      */
     static async parse(tokenValue: string): Promise<Token> {
-        return DataContext.execute<Token>(settings.conn.auth, tableNames.Token, (table: Table<Token>) => {
-            return table.findOne({ _id: new mongodb.ObjectID(tokenValue) });
+        if (!tokenValue)
+            return Promise.reject(errors.argumentNull('tokenValue'));
+
+        if (tokenValue.length != 24)
+            return Promise.reject(errors.invalidObjectId(tokenValue));
+
+        // return DataContext.execute<Token>(settings.conn.auth, tableNames.Token, (table: Table<Token>) => {
+        //     return table.findOne({ _id: new mongodb.ObjectID(tokenValue) });
+        // })
+
+        return execute(settings.conn.auth, tableNames.Token, async (collection) => {
+            var token = await collection.findOne({ _id: new mongodb.ObjectID(tokenValue) }) as any;
+            if (token == null)
+                throw errors.objectNotExistWithId(tokenValue, tableNames.Token);
+
+            return token as Token;
         })
+
     }
 }

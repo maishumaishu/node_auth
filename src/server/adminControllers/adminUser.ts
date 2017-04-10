@@ -1,4 +1,4 @@
-import { DataContext, tableNames, appConn } from '../database';
+import { DataContext, tableNames, execute } from '../database';
 import { Controller } from '../common';
 import { conn, pageSize } from '../settings';
 import * as errors from '../errors';
@@ -10,30 +10,15 @@ export default class AdminUserController extends Controller {
         if (pageIndex == null)
             pageIndex = 0;
 
-        var p1 = DataContext.execute(appConn(appId), tableNames.User, (table) => {
-            let items = [];
-            return new Promise((resolve, reject) => {
-                var c = table.source.find().sort({ createDateTime: -1 })
-                    .skip(pageSize * pageIndex).limit(pageSize);
-
-                c.toArray((err, results) => {
-                    if (err)
-                        reject(err);
-                    else
-                        resolve(results);
-                });
-            });
+        var p1 = execute(conn.auth, tableNames.User, (collection) => {
+            var cursor = collection.find().sort({ createDateTime: -1 });
+            return cursor.toArray();
         });
 
-        let p2 = DataContext.execute(appConn(appId), tableNames.User, (table) => {
-            return new Promise((resolve, reject) => {
-                table.source.count((err, result) => {
-                    if (err)
-                        reject(err);
-                    else
-                        resolve(result);
-                });
-            })
+        let p2 = execute(conn.auth, tableNames.User, async (collection) => {
+            // return new Promise((resolve, reject) => {
+            var c = await collection.count();
+            return c;
         });
 
         let result = await Promise.all([p1, p2]);

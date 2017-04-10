@@ -3,8 +3,9 @@ import * as data from './../database';
 import * as settings from '../settings';
 import * as Errors from '../errors'
 import * as http from 'http';
+import * as mongodb from 'mongodb';
 import { UserSubmitData, Controller } from '../common';
-import { ApplicationDatabase, VerifyMessage } from '../database';
+import { Database, VerifyMessage } from '../database';
 
 export default class SMSController extends Controller {
     async  sendVerifyCode(args: SendCodeArgumentType): Promise<{ smsId: string } | Error> {
@@ -32,10 +33,11 @@ export default class SMSController extends Controller {
         let msg = settings.verifyCodeText.replace('{0}', verifyCode);
 
         await sendMobileMessage(mobile, msg);
-        let db = await ApplicationDatabase.createInstance(this.appId);
+        let db = await Database.createInstance();//this.appId
         let verifyMessage: VerifyMessage = {
             verifyCode,
-            content: msg
+            content: msg,
+            applicationId: new mongodb.ObjectID(this.appId),
         }
         let result = await db.verifyMessages.insertOne(verifyMessage);
         db.close();

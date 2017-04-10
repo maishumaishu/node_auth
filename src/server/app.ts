@@ -3,14 +3,14 @@ import * as express from 'express';
 import * as errors from './errors';
 import * as url from 'url';
 import { AppRequest, Controller } from './common'
-import { Token, SystemDatabase } from './database';
+import { Token, Database } from './database';
 import * as logger from './logger'
+import * as settings from './settings';
 
-
-const HEADER_APP_TOKEN = 'application-token';
-const HEADER_APP_ID = 'application-id';
-const HEADER_USER_TOKEN = 'user-token';
-const HEADER_USER_ID = 'user-id';
+const APP_KEY = 'application-key';
+const APP_ID = 'application-id';
+const USER_TOKEN = 'user-token';
+const USER_ID = 'user-id';
 const POST_DATA = 'postData';
 
 let app = express();
@@ -30,7 +30,7 @@ app.options('/*', function (req, res) {
 function setHeaders(res: express.Response) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Content-Type', 'application/json;charset=utf-8');
-    res.setHeader('Access-Control-Allow-Headers', `${HEADER_APP_TOKEN},${HEADER_USER_TOKEN}, content-type`);
+    res.setHeader('Access-Control-Allow-Headers', settings.allowHeaders);
     res.setHeader('Access-Control-Allow-Methods', `POST, GET, OPTIONS, PUT, DELETE`);
 }
 
@@ -40,15 +40,15 @@ app.use('/*', async function (req: express.Request & AppInfo, res, next) {
         logger.logUserRequest(req);
         setHeaders(res);
 
-        let applicationToken = req.headers[HEADER_APP_TOKEN] || req.query[HEADER_APP_TOKEN];
+        let applicationToken = req.headers[APP_KEY] || req.query[APP_KEY];
         if (!applicationToken) {
-            let err = errors.canntGetHeader(HEADER_APP_TOKEN);
+            let err = errors.canntGetHeader(APP_KEY);
             throw err;
         }
 
         req.applicationToken = applicationToken;
         let tasks = [Token.parse(applicationToken)];
-        let userTokenString = req.headers[HEADER_USER_TOKEN];
+        let userTokenString = req.headers[USER_TOKEN];
         if (userTokenString != null) {
             tasks.push(Token.parse(userTokenString));
         }
@@ -57,7 +57,7 @@ app.use('/*', async function (req: express.Request & AppInfo, res, next) {
             .then(results => {
                 let appToken = results[0] as Token;
                 let userToken = results[1] as Token;
-                console.assert(appToken != null);
+                console.assert(appToken != null, "app Token is null.");
 
                 req.applicationId = appToken.objectId;
                 if (userToken != null) {
@@ -221,10 +221,10 @@ async function redirectRequest(req: express.Request & AppInfo, res: express.Resp
         headers.host = host;
 
         if (req.applicationId)
-            headers[HEADER_APP_ID] = req.applicationId;
+            headers[APP_ID] = req.applicationId;
 
         if (req.userId)
-            headers[HEADER_USER_ID] = req.userId;
+            headers[USER_ID] = req.userId;
 
         if (req.userId) {
             if (path.indexOf('?') < 0)
@@ -289,7 +289,7 @@ async function redirectRequest(req: express.Request & AppInfo, res: express.Resp
 
 type RediectInfo = { host: string, path: string, port: number };
 async function getRedirectInfo(applicationId: string, req: express.Request): Promise<RediectInfo> {
-    let application = await SystemDatabase.application(applicationId);
+    let application = await Database.application(applicationId);
     if (!application) {
         let err = errors.objectNotExistWithId(applicationId, 'Application');
         return Promise.reject<any>(err);

@@ -20,7 +20,7 @@ export default function (page: chitu.Page) {
                     new wuzhui.BoundField({ dataField: 'url', headerText: '连接' }),
                     new wuzhui.CustomField({
                         createItemCell(dataItem) {
-                            let cell = new wuzhui.GridViewCell(this);
+                            let cell = new wuzhui.GridViewCell();
                             let deleteButton = document.createElement('button');
                             deleteButton.className = 'btn btn-minier btn-danger';
                             deleteButton.innerHTML = '<i class="icon-trash"></i>';

@@ -1,4 +1,4 @@
-import { ApplicationDatabase as Database, User, Token } from './../database';
+import { Database, User, Token, DataContext } from './../database';
 import * as Errors from '../errors';
 import * as settings from '../settings';
 import * as mongodb from 'mongodb';
@@ -6,45 +6,72 @@ import { Controller } from '../common';
 
 export default class UserController extends Controller {
     async  test() {
-        let db = await Database.createInstance(this.appId);
+        let db = await Database.createInstance();
+        //this.appId
         await db.users.deleteMany({ username: 'maishu' });
         let user = <User>{
             username: 'maishu',
             password: '1234',
             mobile: '13431426607',
-            email: '81232259@qq.com'
+            email: '81232259@qq.com',
+            applicationId: new mongodb.ObjectID(this.appId),
         }
         return this.register(user);
     }
-    async  createUser(user: User) {
+    createUser(user: User) {
         if (user == null)
             throw Errors.argumentNull('user');
 
         console.assert(this.appId != null);
-        let db = await Database.createInstance(this.appId)
-        let u: User;
-        let result: Promise<any>;
-        if (user.mobile != null) {
-            u = await db.users.findOne({ mobile: user.mobile });
-            if (u != null)
-                result = Promise.reject(Errors.mobileExists(user.mobile));
-        }
-        else {
-            console.assert(user.username != null);
-            u = await db.users.findOne({ username: user.username });
-            if (u != null)
-                result = Promise.reject(Errors.usernameExists(user.username));
-        }
 
-        if (result == null) {
-            u = await db.users.insertOne(user);
-            result = Promise.resolve(u);
-        }
+        return DataContext.execute(settings.conn.auth, 'User', async function (collection) {
+            let result: Promise<any>;
+            let u: User;
+            if (user.mobile != null) {
+                u = await collection.findOne({ $and: [{ mobile: user.mobile }, { applicationId: this.appId }] });
+                if (u != null) {
+                    result = Promise.reject(Errors.mobileExists(user.mobile));
+                }
+            }
+            else {
+                console.assert(user.username != null);
+                u = await collection.findOne({ $and: [{ username: user.username }, { applicationId: this.appId }] });
+                if (u != null) {
+                    result = Promise.reject(Errors.usernameExists(user.username));
+                }
+            }
 
-        db.close();
-        return result;
+            if (result == null) {
+                u = await collection.insertOne(user);
+                result = Promise.resolve(u);
+            }
+            return result;
+        });
+
+        // let db = await Database.createInstance(this.appId)
+        // let u: User;
+        // let result: Promise<any>;
+        // if (user.mobile != null) {
+        //     u = await db.users.findOne({ mobile: user.mobile });
+        //     if (u != null)
+        //         result = Promise.reject(Errors.mobileExists(user.mobile));
+        // }
+        // else {
+        //     console.assert(user.username != null);
+        //     u = await db.users.findOne({ username: user.username });
+        //     if (u != null)
+        //         result = Promise.reject(Errors.usernameExists(user.username));
+        // }
+
+        // if (result == null) {
+        //     u = await db.users.insertOne(user);
+        //     result = Promise.resolve(u);
+        // }
+
+        // db.close();
+        // return result;
     }
-    async  registerByUserName(user) {
+    async registerByUserName(user) {
         if (user == null)
             throw Errors.argumentNull('user');
 
@@ -57,7 +84,7 @@ export default class UserController extends Controller {
 
         return this.createUser(user);
     }
-    async  registerByMobile({ user, smsId, verifyCode }): Promise<any> {
+    async registerByMobile({ user, smsId, verifyCode }): Promise<any> {
         if (user == null)
             return Promise.reject(Errors.argumentNull('user'));
 
@@ -75,7 +102,7 @@ export default class UserController extends Controller {
         }
 
         console.assert(this.appId != null);
-        let db = await Database.createInstance(this.appId);
+        let db = await Database.createInstance();//this.appId
         let msg = await db.verifyMessages.findOne({ _id: new mongodb.ObjectID(smsId) });
         db.close();
 
@@ -101,7 +128,7 @@ export default class UserController extends Controller {
         let token = await Token.create(user._id.toHexString(), 'user');
         return { token: token._id.toHexString(), userId: token.objectId };
     }
-    async  login({ username, password }): Promise<{ token: string } | Error> {
+    async login({ username, password }): Promise<{ token: string } | Error> {
         if (username == null) {
             return Promise.reject<Error>(Errors.argumentNull('username'));
         }
@@ -110,9 +137,9 @@ export default class UserController extends Controller {
         }
 
         console.assert(this.appId != null);
-        let db = await Database.createInstance(this.appId);
+        let db = await Database.createInstance();//this.appId)
         //TODO:根据 username 格式进行选择
-        let user = await db.users.findOne({ $or: [{ username }, { mobile: username }] });
+        let user = await db.users.findOne({ $and: [{ $or: [{ username }, { mobile: username }] }, { applicationId: this.appId }] });
         if (user == null) {
             return Promise.reject<Error>(Errors.userNotExists(username));
         }

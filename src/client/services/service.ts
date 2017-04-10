@@ -21,7 +21,7 @@ export let ajaxTimeout = 5000;
 
 let HTTP = 'http://';
 export let host = 'http://localhost:2800/';
-export let appToken = '58424781034ff82470d06d3e';
+export let appkey = '58424781034ff82470d06d3e';
 const HTTP_LENGTH = 7;
 
 type AjaxType = 'post' | 'get' | 'put';
@@ -33,7 +33,7 @@ async function ajax<T>(url: string, type: AjaxType, obj?: any): Promise<T> {
     }
 
     let headers = {
-        ['application-token']: appToken
+        ['application-key']: appkey
     }
 
     let body: string;

@@ -1,6 +1,8 @@
 import { PanelPage } from 'modules/panelPage';
 import { settings } from 'site';
-import { appToken, host } from 'services/service'
+import { appkey, host } from 'services/service';
+import * as userService from 'services/userService';
+
 export default function (page: chitu.Page) {
     let appId = page.routeData.values.appId;
     class Page extends PanelPage<{}, {}> {
@@ -9,7 +11,7 @@ export default function (page: chitu.Page) {
 
         componentDidMount() {
             let dataSource = new wuzhui.WebDataSource({
-                selectUrl: `${host}adminUser/list?application-token=${appToken}&appId=${appId}`
+                select: (args) => userService.list(args)
             });
             let gridView = new wuzhui.GridView({
                 element: this.tableElement,
