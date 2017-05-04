@@ -6,6 +6,7 @@ import { AppRequest, Controller } from './common'
 import { Token, Database } from './database';
 import * as logger from './logger'
 import * as settings from './settings';
+import * as mongodb from 'mongodb';
 
 const APP_KEY = 'application-key';
 const APP_ID = 'application-id';
@@ -125,8 +126,11 @@ function executeAction(req: AppRequest & AppInfo, res, next) {
         dataPromise = getPostObject(req);
     }
 
-    controller.appId = req.applicationId;
-    controller.userId = req.userId;
+    if (req.applicationId)
+        controller.appId = new mongodb.ObjectID(req.applicationId);
+
+    if (req.userId)
+        controller.userId = new mongodb.ObjectID(req.userId);
 
     dataPromise.then((data) => {
         let result = action.apply(controller, [data]);

@@ -207,7 +207,7 @@ export function postDataNotJSON(data: string): Error {
 }
 
 export function invalidObjectId(objectId:string){
-    let msg = `非法的 Object:'${objectId}'`;
+    let msg = `非法的 ObjectId:'${objectId}'`;
     let err = new Error(msg) as MyError;
     err.name = 'invalidObjectId';
     return err;
