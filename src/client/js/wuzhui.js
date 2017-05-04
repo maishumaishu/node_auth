@@ -466,6 +466,8 @@ var wuzhui;
                 this.appendChild(this._header);
                 this.appendHeaderRow();
             }
+            this.emptyDataHTML = params.emptyDataHTML;
+            this.initDataHTML = params.initDataHTML;
             this._body = new wuzhui.Control(document.createElement('tbody'));
             this.appendChild(this._body);
             this.appendEmptyRow();

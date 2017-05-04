@@ -151,6 +151,8 @@ declare namespace wuzhui {
         emptyDataRowStyle?: string;
         pageSize?: number;
         pagerSettings?: PagerSettings;
+        emptyDataHTML?: string;
+        initDataHTML?: string;
     }
     class GridView extends Control<HTMLTableElement> {
         private _pageSize;
@@ -168,8 +170,8 @@ declare namespace wuzhui {
         static emptyRowClassName: string;
         static dataRowClassName: string;
         static pagingBarClassName: string;
-        emptyDataHTML: string;
-        initDataHTML: string;
+        private emptyDataHTML;
+        private initDataHTML;
         rowCreated: Callback<GridView, {
             row: GridViewRow;
         }>;
