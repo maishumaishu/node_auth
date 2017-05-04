@@ -13,6 +13,6 @@ export interface AppRequest extends Request {
 }
 
 export class Controller {
-    appId: string;
-    userId: string
+    appId: ObjectID;
+    userId: ObjectID;
 }

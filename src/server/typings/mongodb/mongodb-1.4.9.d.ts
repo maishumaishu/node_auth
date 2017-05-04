@@ -346,6 +346,7 @@ declare module "mongodb" {
     update(selector: Object, document: any, options: { safe?: boolean; upsert?: any; multi?: boolean; serializeFunctions?: boolean; }, callback?: (err: Error, result: any) => void): void;
 
     // Documentation : http://mongodb.github.io/node-mongodb-native/2.0/api/Collection.html#updateOne
+    updateOne(filter: Object, update: any): Promise<any>;
     updateOne(filter: Object, update: any, callback?: (err: Error, result: any) => void): void;
     updateOne(filter: Object, update: any, options: { upsert?: boolean; w?: any; wtimeout?: number; j?: boolean; }, callback?: (err: Error, result: any) => void): void;
 
@@ -383,6 +384,7 @@ declare module "mongodb" {
     findOneAndReplace(filter: any, replacement: any, options: { projection?: any; sort?: any; maxTimeMS?: number; upsert?: boolean; returnOriginal?: boolean }, callback?: (err: Error, result: any) => void): void;
 
     // Documentation : http://mongodb.github.io/node-mongodb-native/2.0/api/Collection.html#findOneAndUpdate
+    findOneAndUpdate(filter: any, update: any): Promise<any>;
     findOneAndUpdate(filter: any, update: any, callback?: (err: Error, result: any) => void): void;
     findOneAndUpdate(filter: any, update: any, options: { projection?: any; sort?: any; maxTimeMS?: number; upsert?: boolean; returnOriginal?: boolean }, callback?: (err: Error, result: any) => void): void;
 
@@ -395,6 +397,7 @@ declare module "mongodb" {
     find(selector: Object, fields: any, skip: number, limit: number, callback?: (err: Error, result: Cursor) => void): Cursor;
     find(selector: Object, fields: any, skip: number, limit: number, timeout: number, callback?: (err: Error, result: Cursor) => void): Cursor;
 
+    findOne<T>(selector: Object): Promise<T>;
     findOne(callback?: (err: Error, result: any) => void): Cursor;
     findOne(selector: Object, callback?: (err: Error, result: any) => void): Cursor;
     findOne(selector: Object, fields: any, callback?: (err: Error, result: any) => void): Cursor;

@@ -153,7 +153,8 @@ export const tableNames = {
     RequestLog: 'RequestLog',
     User: 'User',
     Token: 'Token',
-    Application: 'Application'
+    Application: 'Appliation',
+    VerifyMessage: 'VerifyMessage'
 }
 
 export class DataContext {
@@ -293,7 +294,29 @@ export async function execute(connectionString: string, tableName: string, callb
 
     let db = await MongoClient.connect(connectionString);
     let collection = db.collection(tableName);
-    return callback(collection);
+    try {
+        let result = await callback(collection)
+        return result;
+    }
+    finally {
+        db.close();
+    }
+
+}
+
+export async function createDB(connectionString: string, callback: (db: mongodb.Db) => Promise<any>) {
+    if (!connectionString) return Promise.reject(errors.argumentNull('connectionString'));
+    if (!callback) return Promise.reject(errors.argumentNull('callback'));
+
+    let db = await MongoClient.connect(connectionString);
+
+    try {
+        let result = await callback(db)
+        return result;
+    }
+    finally {
+        db.close();
+    }
 }
 
 export class Database {
@@ -425,7 +448,7 @@ export class Token implements Entity {
 
         token._id = new mongodb.ObjectID();
         token.createDateTime = new Date(Date.now());
-        
+
         return execute(settings.conn.auth, tableNames.Token, async (collection) => {
             await collection.insert(token);
             return token;
