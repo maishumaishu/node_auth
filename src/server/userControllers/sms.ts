@@ -5,10 +5,10 @@ import * as Errors from '../errors'
 import * as http from 'http';
 import * as mongodb from 'mongodb';
 import { UserSubmitData, Controller } from '../common';
-import { Database, VerifyMessage } from '../database';
+import { Database, VerifyMessage, execute, tableNames } from '../database';
 
 export default class SMSController extends Controller {
-    async  sendVerifyCode(args: SendCodeArgumentType): Promise<{ smsId: string } | Error> {
+    async sendVerifyCode(args: SendCodeArgumentType): Promise<{ smsId: string } | Error> {
         console.assert(this.appId != null);
 
         let { mobile, type } = args;
@@ -30,18 +30,37 @@ export default class SMSController extends Controller {
         let str = num.toString().substr(2) + '0'.repeat(verifyCodeLength);
         //=======================================
         let verifyCode = str.substr(0, verifyCodeLength);
-        let msg = settings.verifyCodeText.replace('{0}', verifyCode);
+        let verifyCodeText: string;
+        switch (type) {
+            case 'register':
+                verifyCodeText = settings.verifyCodeText.register;
+                break;
+            case 'changeMobile':
+                verifyCodeText = settings.verifyCodeText.changeMobile;
+                break;
+            case 'receivePassword':
+                verifyCodeText = settings.verifyCodeText.receivePassword;
+                break;
+            default:
+                verifyCodeText = settings.verifyCodeText.default;
+                break;
+        }
+        let msg = verifyCodeText.replace('{0}', verifyCode);
 
         await sendMobileMessage(mobile, msg);
-        let db = await Database.createInstance();//this.appId
         let verifyMessage: VerifyMessage = {
+            _id: new mongodb.ObjectID(),
+            createDateTime: new Date(Date.now()),
             verifyCode,
             content: msg,
-            applicationId: new mongodb.ObjectID(this.appId),
+            applicationId: this.appId,
         }
-        let result = await db.verifyMessages.insertOne(verifyMessage);
-        db.close();
-        return { smsId: result._id.toHexString() };
+
+        await execute(settings.conn.auth, tableNames.VerifyMessage, async (collection) => {
+            return collection.insertOne(verifyMessage);
+        });
+
+        return { smsId: verifyMessage._id.toHexString() };
     }
 }
 
@@ -51,18 +70,9 @@ export default class SMSController extends Controller {
 let verifyCodeLength = settings.verifyCodeLength;
 type SendCodeArgumentType = {
     mobile: string,
-    type: 'register' | 'receivePassword'
+    type: 'register' | 'receivePassword' | 'changeMobile'
 } & UserSubmitData;
 // export class SMSController extends BaseController {
-
-function verifyCode(smsId: string, code: string): Promise<boolean> {
-    return new Promise((reslove, reject) => {
-
-    });
-}
-function test() {
-    sendMobileMessage('18502146746', '');
-}
 
 function sendMobileMessage(mobile: string, content: string): Promise<string> {
     if (mobile == null)
