@@ -24,9 +24,11 @@ export let names = {
     PostIsRequired: 'PostIsRequired',
     Success: 'Success',
     UserExists: 'UserExists',
+    UserIdRequired: 'UserIdRequired',
     UserNotExists: 'UserNotExists',
     UpdateResultZero: 'UpdateResultZero',
-    VerifyCodeIncorrect: 'VerifyCodeIncorrect'
+    VerifyCodeIncorrect: 'VerifyCodeIncorrect',
+    VerifyCodeNotMatchMobile: 'VerifyCodeNotMatchMobile',
 }
 
 export function fieldNull(fieldName: string, objectName: string): Error {
@@ -112,6 +114,14 @@ export function applicationExists(name: string): Error {
     return error;
 }
 
+export function applicationNotExists(name: string): Error {
+    let msg = `Application with name '${name}' is not exists.`;
+    let error = new Error(msg) as MyError;
+    error.name = names.ApplicationExists;
+    error.arguments = { name };
+    return error;
+}
+
 export function deleteResultZero(): Error {
     let msg = 'Deleted count is zero, maybe the object is not exists.'
     let error = new Error(msg);
@@ -176,6 +186,14 @@ export function applicationIdRequired(): Error {
     return err;
 }
 
+export function userIdRequired(): Error {
+    let msg = `User id is required.`;
+    let err = new Error(msg);
+    err.name = names.UserIdRequired;
+
+    return err;
+}
+
 export function applicationTokenRequired(): Error {
     let msg = `Application token is required.`;
     let err = new Error(msg);
@@ -184,13 +202,26 @@ export function applicationTokenRequired(): Error {
     return err;
 }
 
+//==================================================================
+// 验证码
+
 export function verifyCodeIncorrect(verifyCode: string): Error {
-    let msg = `Verify code incorrect.`
+    let msg = `验证码不正确`
     let err = new Error(msg) as MyError;
     err.name = names.VerifyCodeIncorrect;
     err.arguments = { verifyCode };
     return err;
 }
+
+export function verifyCodeNotMatchMobile(mobile: string): Error {
+    let msg = `验证码与手机号码'${mobile}'不匹配`
+    let err = new Error(msg) as MyError;
+    err.name = names.VerifyCodeNotMatchMobile;
+    err.arguments = { mobile };
+    return err;
+}
+
+//==================================================================
 
 export function mobileIsBind(mobile: string): Error {
     let msg = `手机号码'${mobile}'已被绑定。`;
@@ -206,7 +237,7 @@ export function postDataNotJSON(data: string): Error {
     return err;
 }
 
-export function invalidObjectId(objectId:string){
+export function invalidObjectId(objectId: string) {
     let msg = `非法的 ObjectId:'${objectId}'`;
     let err = new Error(msg) as MyError;
     err.name = 'invalidObjectId';

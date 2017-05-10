@@ -25,6 +25,10 @@ declare module "mongodb" {
     public connect(): any;
   }
 
+  type TypeCollection<T> = {
+    findOne(selector: Object): Promise<T>,
+  } & Collection
+
   // Class documentation : http://mongodb.github.io/node-mongodb-native/api-generated/db.html
   export class Db {
     constructor(databaseName: string, serverConfig: Server, dbOptions?: DbCreateOptions);
@@ -40,6 +44,7 @@ declare module "mongodb" {
     public collection(collectionName: string): Collection;
     public collection(collectionName: string, callback?: (err: Error, collection: Collection) => void): Collection;
     public collection(collectionName: string, options: MongoCollectionOptions, callback?: (err: Error, collection: Collection) => void): Collection;
+    public collection<T>(collectionName: string): TypeCollection<T>;
 
     public collections(callback?: (err: Error, collections: Collection[]) => void): void;
     public eval(code: any, parameters: any[], options?: any, callback?: (err: Error, result: any) => void): void;

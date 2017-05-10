@@ -32,12 +32,6 @@ export default class AppliationController extends Controller {
         if (app._id == null)
             return errors.fieldNull('_id', 'app');
 
-        // let db = await data.SystemDatabase.createInstance();
-        // let item = await db.applications.findOne({ name: app.name });
-        // let error = await db.applications.updateItem(app);
-        // db.close();
-        // return error;
-
         return DataContext.execute(settings.conn.auth, tableNames.Application, (collection) => {
             return collection.updateItem(app);
         });
@@ -47,20 +41,22 @@ export default class AppliationController extends Controller {
     async add({ app }: { app: data.Application }): Promise<Application> {
         if (!app) throw errors.argumentNull('app');
         if (!app.name) throw errors.fieldNull('name', 'app');
+        let db = await this.createDatabaseInstance(settings.conn.auth);
+        // return DataContext.execute(settings.conn.auth, tableNames.Application, async function (table) {
+        let table = db.collection(tableNames.Application);
+        let item: Application = await table.findOne<Application>({ name: app.name });
+        if (item != null) {
+            return Promise.reject(errors.applicationExists(app.name));
+        }
 
-        return DataContext.execute(settings.conn.auth, tableNames.Application, async function (table) {
-            let item: Application = await table.findOne({ name: app.name });
-            if (item != null) {
-                return Promise.reject(errors.applicationExists(app.name));
-            }
-
-            item = {} as Application;
-            item._id = new ObjectID();
-            item.name = app.name;
-            let tokenObject = await Token.create(item._id.toHexString(), 'app');
-            item.token = tokenObject._id.toHexString();
-            return table.insertOne(app);
-        });
+        // item = {} as Application;
+        app._id = new ObjectID();
+        // app.name = app.name;
+        let tokenObject = await Token.create(app._id, 'app');
+        app.token = tokenObject._id.toHexString();
+        await table.insertOne(app);
+        return app;
+        // });
     }
 
     async newToken({ appId }) {

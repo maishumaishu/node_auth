@@ -25,6 +25,10 @@ export let conn = {
 export let test = {
     mobile: '18502146746'
 }
+
+verifyCodeText.default = verifyCodeText.register;
+verifyCodeText.changeMobile = verifyCodeText.register;
+verifyCodeText.receivePassword = verifyCodeText.register;
 // if (test) {
 //     monogoHost = '192.168.1.1:27017';
 // }

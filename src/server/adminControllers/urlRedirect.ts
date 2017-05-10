@@ -13,7 +13,6 @@ const urlPatterns = 'UrlRedirect';
 export default class urlRedirectController extends Controller {
     async list() {
         var dc = this.createDataContext();
-        this.appId
         try {
             let table = await dc.table<UrlRedirect>(urlPatterns);
             let items = await table.find();

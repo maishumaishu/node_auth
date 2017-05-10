@@ -234,7 +234,7 @@ export class DataContext {
 }
 
 
-function guid() {
+export function guid() {
     function s4() {
         return Math.floor((1 + Math.random()) * 0x10000)
             .toString(16)
@@ -287,7 +287,7 @@ function guid() {
 //     }
 // }
 
-export async function execute(connectionString: string, tableName: string, callback: (collection: mongodb.Collection) => Promise<any>) {
+export async function execute<T>(connectionString: string, tableName: string, callback: (collection: mongodb.Collection) => Promise<T>): Promise<T> {
     if (!connectionString) return Promise.reject(errors.argumentNull('connectionString'));
     if (!tableName) return Promise.reject(errors.argumentNull('tableName'));
     if (!callback) return Promise.reject(errors.argumentNull('callback'));
@@ -304,7 +304,7 @@ export async function execute(connectionString: string, tableName: string, callb
 
 }
 
-export async function createDB(connectionString: string, callback: (db: mongodb.Db) => Promise<any>) {
+export async function createDatabaseInstance(connectionString: string, callback: (db: mongodb.Db) => Promise<any>) {
     if (!connectionString) return Promise.reject(errors.argumentNull('connectionString'));
     if (!callback) return Promise.reject(errors.argumentNull('callback'));
 
@@ -363,11 +363,11 @@ export class Database {
         return this._verifyMessages;
     }
 
-    static async application(id: string): Promise<Application> {
+    static async application(id: mongodb.ObjectID): Promise<Application> {
         if (!id) throw errors.argumentNull('id');
 
-        return execute(settings.conn.auth, tableNames.Application, async (collection) => {
-            let item = await collection.findOne({ _id: new mongodb.ObjectID(id) });
+        return execute<any>(settings.conn.auth, tableNames.Application, async (collection) => {
+            let item = await collection.findOne({ _id: id });
             return item;
         })
     }
@@ -393,6 +393,7 @@ export interface Entity {
 export interface User extends Entity {
     username: string,
     password: string,
+    role?: string,
     group?: string,
     mobile?: string,
     email?: string,
@@ -429,7 +430,8 @@ export interface VerifyMessage extends Entity {
     content: string,
     /** 验证码 */
     verifyCode: string,
-    applicationId: mongodb.ObjectID
+    mobile: string,
+    applicationId?: mongodb.ObjectID
 }
 
 /**
@@ -437,11 +439,11 @@ export interface VerifyMessage extends Entity {
  */
 export class Token implements Entity {
     _id?: mongodb.ObjectID;
-    objectId: string;
+    objectId: mongodb.ObjectID;
     type: string;
     createDateTime: Date;
 
-    static async create(objectId: string, type: 'user' | 'app'): Promise<Token> {
+    static async create(objectId: mongodb.ObjectID, type: 'user' | 'app'): Promise<Token> {
         let token = new Token();
         token.objectId = objectId;
         token.type = type;

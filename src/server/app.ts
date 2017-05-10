@@ -2,7 +2,7 @@ import * as http from 'http';
 import * as express from 'express';
 import * as errors from './errors';
 import * as url from 'url';
-import { AppRequest, Controller } from './common'
+import { AppRequest, Controller, UserController } from './common'
 import { Token, Database } from './database';
 import * as logger from './logger'
 import * as settings from './settings';
@@ -17,9 +17,9 @@ const POST_DATA = 'postData';
 let app = express();
 
 interface AppInfo {
-    applicationId: string,
+    applicationId: mongodb.ObjectID,
     applicationToken: string,
-    userId: string,
+    userId: mongodb.ObjectID,
     userToken: string,
 }
 
@@ -41,14 +41,13 @@ app.use('/*', async function (req: express.Request & AppInfo, res, next) {
         logger.logUserRequest(req);
         setHeaders(res);
 
+        let tasks = [];
         let applicationToken = req.headers[APP_KEY] || req.query[APP_KEY];
-        if (!applicationToken) {
-            let err = errors.canntGetHeader(APP_KEY);
-            throw err;
+        if (applicationToken != null) {
+            req.applicationToken = applicationToken;
+            tasks.push(Token.parse(applicationToken));
         }
 
-        req.applicationToken = applicationToken;
-        let tasks = [Token.parse(applicationToken)];
         let userTokenString = req.headers[USER_TOKEN];
         if (userTokenString != null) {
             tasks.push(Token.parse(userTokenString));
@@ -58,9 +57,12 @@ app.use('/*', async function (req: express.Request & AppInfo, res, next) {
             .then(results => {
                 let appToken = results[0] as Token;
                 let userToken = results[1] as Token;
-                console.assert(appToken != null, "app Token is null.");
+                // console.assert(appToken != null, "app Token is null.");
 
-                req.applicationId = appToken.objectId;
+                if (appToken != null) {
+                    req.applicationId = appToken.objectId;
+                }
+
                 if (userToken != null) {
                     req.userId = userToken.objectId;
                 }
@@ -78,7 +80,7 @@ app.use('/*', async function (req: express.Request & AppInfo, res, next) {
 });
 
 let userControllers = ['user', 'sms'];
-let adminControllers = ['application', 'log', 'adminUser'];
+let adminControllers = ['application', 'log', 'admin'];
 let moduleNames = userControllers.concat(adminControllers);
 app.use('/:controller/:action', executeAction);
 function executeAction(req: AppRequest & AppInfo, res, next) {
@@ -111,7 +113,7 @@ function executeAction(req: AppRequest & AppInfo, res, next) {
 
     let controller = new controllerClass() as Controller;
 
-    let action = controller[actionName] as Function;
+    let action = controller[actionName] as Function; controller
     if (action == null) {
         console.log(`Action '${actionName}' is not exists in '${controllerName}'`);
         next();
@@ -127,15 +129,34 @@ function executeAction(req: AppRequest & AppInfo, res, next) {
     }
 
     if (req.applicationId)
-        controller.appId = new mongodb.ObjectID(req.applicationId);
+        (controller as UserController).appId = req.applicationId;
 
     if (req.userId)
-        controller.userId = new mongodb.ObjectID(req.userId);
+        (controller as UserController).userId = req.userId;
 
     dataPromise.then((data) => {
-        let result = action.apply(controller, [data]);
+        let result: any;
+        result = action.apply(controller, [data]);
+        if (result instanceof Promise) {
+            result.then(() => {
+                disposeController(controller);
+            }).catch((err: Error) => {
+                disposeController(controller)
+            });
+        }
+        else {
+            disposeController(controller);
+        }
         next(result);
     });
+
+    let disposeController = function (controller: Controller) {
+        if (controller.databaseInstances) {
+            controller.databaseInstances.forEach(db => {
+                db.close();
+            })
+        }
+    }
 }
 
 app.use('/*', function (req: express.Request & AppInfo, res, next) {
@@ -171,14 +192,15 @@ async function parseUserToken(appId: string, userToken: string) {
 
 
 function outputToResponse(response: http.ServerResponse, obj: any) {
-    console.assert(obj != null);
+    console.assert(obj != null, 'obj can not be null.');
     response.statusCode = 200;
     response.write(JSON.stringify(obj));
     response.end();
 }
 
 function outputError(response: http.ServerResponse, err: Error) {
-    console.assert(err != null);
+    debugger;
+    console.assert(err != null, 'error is null');
     response.statusCode = 200;
     let outputObject = { message: err.message, name: err.name, stack: err.stack };
     response.write(JSON.stringify(outputObject));
@@ -292,10 +314,11 @@ async function redirectRequest(req: express.Request & AppInfo, res: express.Resp
 }
 
 type RediectInfo = { host: string, path: string, port: number };
-async function getRedirectInfo(applicationId: string, req: express.Request): Promise<RediectInfo> {
+async function getRedirectInfo(applicationId: mongodb.ObjectID, req: express.Request): Promise<RediectInfo> {
+    console.assert(applicationId != null, 'applicationId can not be null.');
     let application = await Database.application(applicationId);
     if (!application) {
-        let err = errors.objectNotExistWithId(applicationId, 'Application');
+        let err = errors.objectNotExistWithId(applicationId.toHexString(), 'Application');
         return Promise.reject<any>(err);
     }
 

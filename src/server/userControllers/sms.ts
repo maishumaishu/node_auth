@@ -4,18 +4,26 @@ import * as settings from '../settings';
 import * as Errors from '../errors'
 import * as http from 'http';
 import * as mongodb from 'mongodb';
-import { UserSubmitData, Controller } from '../common';
-import { Database, VerifyMessage, execute, tableNames } from '../database';
+import { UserSubmitData, UserController, Controller } from '../common';
+import { Database, VerifyMessage, execute, tableNames, User } from '../database';
 
 export default class SMSController extends Controller {
     async sendVerifyCode(args: SendCodeArgumentType): Promise<{ smsId: string } | Error> {
-        console.assert(this.appId != null);
+        // console.assert(this.appId != null);
 
-        let { mobile, type } = args;
+        let { mobile, type, checkMobileExists } = args;
         if (mobile == null)
             throw Errors.argumentNull('mobile');
         if (type == null)
             throw Errors.argumentNull('type');
+
+        let db = await this.createDatabaseInstance(settings.conn.auth);
+        if (checkMobileExists == true) {
+            let users = db.collection<User>(tableNames.User);
+            let user = await users.findOne({ mobile });
+            if (user != null)
+                throw Errors.mobileExists(mobile);
+        }
         //TODO:验证参数的正确性
 
         //=======================================
@@ -53,14 +61,24 @@ export default class SMSController extends Controller {
             createDateTime: new Date(Date.now()),
             verifyCode,
             content: msg,
-            applicationId: this.appId,
+            mobile: mobile,
+            // applicationId: this.appId,
         }
 
-        await execute(settings.conn.auth, tableNames.VerifyMessage, async (collection) => {
-            return collection.insertOne(verifyMessage);
-        });
+        let verifyMessages = db.collection<VerifyMessage>(tableNames.VerifyMessage);
+        await verifyMessages.insertOne(verifyMessage);
 
         return { smsId: verifyMessage._id.toHexString() };
+    }
+
+    async checkVerifyCode({ verifyCode, smsId }) {
+        let msg = await execute(settings.conn.auth, tableNames.VerifyMessage, async (collection) => {
+            return collection.findOne<VerifyMessage>({ _id: new mongodb.ObjectID(smsId) });
+        });
+        if (msg == null)
+            throw Errors.objectNotExistWithId(smsId, 'VerifyMessages');
+
+        return msg.verifyCode == verifyCode;
     }
 }
 
@@ -70,8 +88,9 @@ export default class SMSController extends Controller {
 let verifyCodeLength = settings.verifyCodeLength;
 type SendCodeArgumentType = {
     mobile: string,
-    type: 'register' | 'receivePassword' | 'changeMobile'
-} & UserSubmitData;
+    type: 'register' | 'receivePassword' | 'changeMobile',
+    checkMobileExists: boolean
+};
 // export class SMSController extends BaseController {
 
 function sendMobileMessage(mobile: string, content: string): Promise<string> {
