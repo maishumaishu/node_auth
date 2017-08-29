@@ -240,6 +240,8 @@ declare namespace __React {
         componentWillUpdate?(nextProps: P, nextState: S, nextContext: any): void;
         componentDidUpdate?(prevProps: P, prevState: S, prevContext: any): void;
         componentWillUnmount?(): void;
+        props: P & { children?: ReactNode };
+        state: S;
     }
 
     interface Mixin<P, S> extends ComponentLifecycle<P, S> {

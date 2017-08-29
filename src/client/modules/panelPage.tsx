@@ -1,5 +1,5 @@
 import { default as menuItems, MenuItem } from 'menus';
-import * as app from 'application';
+import { app } from 'application';
 
 class SiteBar extends React.Component<{ menuItems: MenuItem[] }, {}>{
     private element: HTMLElement;

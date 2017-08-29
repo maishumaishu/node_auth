@@ -1,3 +1,4 @@
+import { Application } from './database';
 
 export const monogoHost = 'localhost:27017';//'alinq.cn:27017';
 export const registerMode: 'username' | 'mobile' | 'notAllow' = 'mobile';
@@ -33,3 +34,39 @@ verifyCodeText.receivePassword = verifyCodeText.register;
 //     monogoHost = '192.168.1.1:27017';
 // }
 //====================================
+
+// export let defaultApplication: Application = {
+//     name: 'ShopCloud',
+//     targetUrl: 'http://localhost:3010',
+//     token: '0000000',
+//     pathInfos:[
+
+//     ]
+// }
+
+let host = 'localhost'
+export let redirectInfos = {
+    pathInfos: [
+        { rootDir: 'AdminSite', targetUrl: `http://${host}:9000` },
+        { rootDir: 'AdminShop', targetUrl: `http://${host}:9010` },
+        { rootDir: 'AdminMember', targetUrl: `http://${host}:9020` },
+        { rootDir: 'AdminWeiXin', targetUrl: `http://${host}:9030` },
+
+        { rootDir: 'UserShop', targetUrl: `http://${host}:9040` },
+        { rootDir: 'UserSite', targetUrl: `http://${host}:9050` },
+        { rootDir: 'UserMember', targetUrl: `http://${host}:9060` },
+        { rootDir: 'UserWeiXin', targetUrl: `http://${host}:9070` },
+        { rootDir: 'UserAccount', targetUrl: `http://${host}:9080` },
+
+        { rootDir: 'AdminSiteTest', targetUrl: `http://${host}:9000` },
+        { rootDir: 'AdminShopTest', targetUrl: `http://${host}:9010` },
+        { rootDir: 'AdminMemberTest', targetUrl: `http://${host}:9020` },
+        { rootDir: 'AdminWeiXinTest', targetUrl: `http://${host}:9030` },
+
+        { rootDir: 'UserShopTest', targetUrl: `http://${host}:9040` },
+        { rootDir: 'UserSiteTest', targetUrl: `http://${host}:9050` },
+        { rootDir: 'UserMemberTest', targetUrl: `http://${host}:9060` },
+        { rootDir: 'UserWeiXinTest', targetUrl: `http://${host}:9070` },
+        { rootDir: 'UserAccountTest', targetUrl: `http://${host}:9080` },
+    ]
+}

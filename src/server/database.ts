@@ -149,6 +149,7 @@ export class Table<T extends Entity>{
 }
 
 export const tableNames = {
+    Admin: 'Admin',
     RedirectLog: 'RedirectLog',
     RequestLog: 'RequestLog',
     User: 'User',
@@ -391,7 +392,7 @@ export interface Entity {
 }
 
 export interface User extends Entity {
-    username: string,
+    username?: string,
     password: string,
     role?: string,
     group?: string,
@@ -400,12 +401,21 @@ export interface User extends Entity {
     applicationId: mongodb.ObjectID,
 }
 
+export interface Admin extends Entity {
+    username?: string,
+    password: string,
+    role?: string,
+    group?: string,
+    mobile?: string,
+    email?: string,
+}
+
 export interface Application extends Entity {
     name: string,
     /** 默认的转发路径 */
     targetUrl: string,
     /** 即 appkey */
-    token: string,
+    token?: string,
     /** 请求的路径信息 */
     pathInfos: [{
         /** 匹配请求路径的正则表达式 */
@@ -415,11 +425,11 @@ export interface Application extends Entity {
         /** 允许访问的用户组，为空则允许全部 */
         allowGroups: string[]
     }],
-    redirects: {
+    redirects?: {
         urlPattern: string,
         target: string,
-    }[]
-
+    }[],
+    adminId: mongodb.ObjectID
 }
 
 /**
@@ -443,7 +453,7 @@ export class Token implements Entity {
     type: string;
     createDateTime: Date;
 
-    static async create(objectId: mongodb.ObjectID, type: 'user' | 'app'): Promise<Token> {
+    static async create(objectId: mongodb.ObjectID, type: 'user' | 'app' | 'admin'): Promise<Token> {
         let token = new Token();
         token.objectId = objectId;
         token.type = type;

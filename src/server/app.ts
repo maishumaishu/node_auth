@@ -47,6 +47,9 @@ app.use('/*', async function (req: express.Request & AppInfo, res, next) {
             req.applicationToken = applicationToken;
             tasks.push(Token.parse(applicationToken));
         }
+        else {
+            tasks.push(Promise.resolve());
+        }
 
         let userTokenString = req.headers[USER_TOKEN];
         if (userTokenString != null) {
@@ -116,7 +119,8 @@ function executeAction(req: AppRequest & AppInfo, res, next) {
     let action = controller[actionName] as Function; controller
     if (action == null) {
         console.log(`Action '${actionName}' is not exists in '${controllerName}'`);
-        next();
+        let result = errors.actionNotExists(actionName, controllerName);
+        next(result);
         return;
     }
 
@@ -199,7 +203,6 @@ function outputToResponse(response: http.ServerResponse, obj: any) {
 }
 
 function outputError(response: http.ServerResponse, err: Error) {
-    debugger;
     console.assert(err != null, 'error is null');
     response.statusCode = 200;
     let outputObject = { message: err.message, name: err.name, stack: err.stack };
@@ -247,10 +250,10 @@ async function redirectRequest(req: express.Request & AppInfo, res: express.Resp
         headers.host = host;
 
         if (req.applicationId)
-            headers[APP_ID] = req.applicationId;
+            headers[APP_ID] = req.applicationId.toHexString();
 
         if (req.userId)
-            headers[USER_ID] = req.userId;
+            headers[USER_ID] = req.userId.toHexString();
 
         if (req.userId) {
             if (path.indexOf('?') < 0)
@@ -258,10 +261,8 @@ async function redirectRequest(req: express.Request & AppInfo, res: express.Resp
             else
                 path = path + '&';
 
-            path = path + `userId=${req.userId}`;
+            path = path + `userId=${req.userId.toHexString()}`;
         }
-
-
 
         let request = http.request(
             {
@@ -269,7 +270,7 @@ async function redirectRequest(req: express.Request & AppInfo, res: express.Resp
                 path: path,
                 method: req.method,
                 headers: headers,
-                port: port,
+                port: port
             },
             (response) => {
                 console.assert(response != null);
@@ -315,34 +316,30 @@ async function redirectRequest(req: express.Request & AppInfo, res: express.Resp
 
 type RediectInfo = { host: string, path: string, port: number };
 async function getRedirectInfo(applicationId: mongodb.ObjectID, req: express.Request): Promise<RediectInfo> {
-    console.assert(applicationId != null, 'applicationId can not be null.');
+    // console.assert(applicationId != null, 'applicationId can not be null.');
+    if (applicationId == null)
+        throw errors.applicationIdRequired();
+
     let application = await Database.application(applicationId);
     if (!application) {
         let err = errors.objectNotExistWithId(applicationId.toHexString(), 'Application');
         return Promise.reject<any>(err);
     }
 
-    let targetUrl: string;
-    let path: string;
-    let redirects = application.redirects || [];
-    for (let i = 0; i < redirects.length; i++) {
-        let regexp = new RegExp(redirects[i].urlPattern);
-        var arr = regexp.exec(req.originalUrl) || [];
-        if (arr.length == 2) {
-            targetUrl = redirects[i].target;
-            path = arr[1];
-            break;
-        }
-    }
+    let redirectInfos = settings.redirectInfos; //application.redirects || [];
 
-    if (!targetUrl) {
-        targetUrl = application.targetUrl;
-        path = req.originalUrl;
-    }
+    let u1 = url.parse(req.originalUrl);
+    let arr = u1.path.split('/').filter(o => o);
+    let rootDir = arr.shift();      // 获取请求路径的根目录
+    let path = arr.join('/');       // 获取相对于根目录的路径
 
-    let u = url.parse(targetUrl);
-    path = combinePaths(u.path, path);
-    return { host: u.hostname, path, port: new Number(u.port).valueOf() };
+    let redirectInfo = redirectInfos.pathInfos.filter(o => o.rootDir == rootDir)[0];
+    if (redirectInfo == null)
+        throw errors.canntGetRedirectUrl(rootDir);
+
+    let target = combinePaths(redirectInfo.targetUrl, path);
+    let u = url.parse(target);
+    return { host: u.hostname, path: u.path, port: new Number(u.port).valueOf() };
 }
 
 function combinePaths(path1: string, path2: string) {

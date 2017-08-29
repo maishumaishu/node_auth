@@ -54,11 +54,13 @@ async function ajax<T>(url: string, type: AjaxType, obj?: any): Promise<T> {
             url = url + '?' + urlParams;
     }
 
+// fetch()
+
     let options = {
         headers,
         body,
         method: type,
-    } as FetchOptions;
+    };
 
     let response: Response;
     try {

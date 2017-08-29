@@ -24,16 +24,16 @@ module.exports = function (grunt) {
                 }
             },
         },
-        stylus: {
-            app: {
+        less: {
+            client: {
                 options: {
                     compress: false,
                 },
                 files: [{
                     expand: true,
-                    cwd: 'src/client/css/',
-                    src: ['**/*.styl'],
-                    dest: `${debug}/client/css`,
+                    cwd: 'src/client',
+                    src: ['**/*.less'],
+                    dest: `${debug}/client`,
                     ext: '.css'
                 }]
             },
@@ -55,7 +55,7 @@ module.exports = function (grunt) {
     grunt.initConfig(config);
 
     grunt.loadNpmTasks('grunt-contrib-copy');
-    grunt.loadNpmTasks('grunt-contrib-stylus');
+    grunt.loadNpmTasks('grunt-contrib-less');
     grunt.loadNpmTasks('grunt-shell');
 
     grunt.registerTask('default', ['shell', 'stylus', 'copy']);

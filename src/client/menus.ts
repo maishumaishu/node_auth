@@ -1,4 +1,4 @@
-import * as app from 'application';
+import { app } from 'application';
 
 export interface MenuItem {
     name: string,

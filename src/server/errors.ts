@@ -7,6 +7,7 @@ interface MyError extends Error {
 //export class Errors {
 export let names = {
     ActionNotExists: 'ActionNotExists',
+    AdminNotExists: 'AdminNotExists',    
     ApplicationExists: 'ApplicationExists',
     ApplicationIdRequired: 'ApplicationIdRequired',
     ApplicationTokenRequired: 'ApplicationTokenRequired',
@@ -18,7 +19,7 @@ export let names = {
     InvalidToken: 'InvalidToken',
     NotAllowRegister: 'NotAllowRegister',
     NotImplement: 'NotImplement',
-    MobileIsBind: 'MobileIsBind',
+    mobileIsBind: 'MobileIsBind',
     ObjectNotExistWithId: 'ObjectNotExistWithId',
     PasswordIncorect: 'PasswordIncorect',
     PostIsRequired: 'PostIsRequired',
@@ -29,6 +30,7 @@ export let names = {
     UpdateResultZero: 'UpdateResultZero',
     VerifyCodeIncorrect: 'VerifyCodeIncorrect',
     VerifyCodeNotMatchMobile: 'VerifyCodeNotMatchMobile',
+    CanntGetRedirectUrl: 'CanntGetRedirectUrl'
 }
 
 export function fieldNull(fieldName: string, objectName: string): Error {
@@ -94,6 +96,14 @@ export function userNotExists(username: string): Error {
     let msg = `User '${username}' is not exists.`
     let error = new Error(msg) as MyError;
     error.name = names.UserNotExists;
+    error.arguments = { username };
+    return error;
+}
+
+export function adminNotExists(username: string): Error {
+    let msg = `Admin '${username}' is not exists.`
+    let error = new Error(msg) as MyError;
+    error.name = names.AdminNotExists;
     error.arguments = { username };
     return error;
 }
@@ -226,7 +236,7 @@ export function verifyCodeNotMatchMobile(mobile: string): Error {
 export function mobileIsBind(mobile: string): Error {
     let msg = `手机号码'${mobile}'已被绑定。`;
     let err = new Error(msg) as MyError;
-    err.name = names.MobileIsBind;
+    err.name = names.mobileIsBind;
     return err;
 }
 
@@ -241,5 +251,12 @@ export function invalidObjectId(objectId: string) {
     let msg = `非法的 ObjectId:'${objectId}'`;
     let err = new Error(msg) as MyError;
     err.name = 'invalidObjectId';
+    return err;
+}
+
+export function canntGetRedirectUrl(rootDir: string) {
+    let msg = `Can not find redirect url for '${rootDir}'`;
+    let err = new Error(msg) as MyError;
+    err.name = names.CanntGetRedirectUrl;
     return err;
 }

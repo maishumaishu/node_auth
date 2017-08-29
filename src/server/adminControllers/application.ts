@@ -27,10 +27,10 @@ export default class AppliationController extends Controller {
 
     async update({ app }: { app: data.Application }) {
         if (app == null)
-            return errors.argumentNull('app');
+            throw errors.argumentNull('app');
 
         if (app._id == null)
-            return errors.fieldNull('_id', 'app');
+            throw errors.fieldNull('_id', 'app');
 
         return DataContext.execute(settings.conn.auth, tableNames.Application, (collection) => {
             return collection.updateItem(app);

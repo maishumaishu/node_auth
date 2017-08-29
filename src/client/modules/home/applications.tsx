@@ -4,17 +4,17 @@ import { BasePage } from 'modules/basePage';
 
 export default function action(page: chitu.Page) {
 
-    let loadPromise = new Promise((reslove, reject) => {
-        //page.load.add(() => reslove());
-        requirejs([`text!${page.routeData.actionPath}.html`, `c!css/${page.routeData.actionPath}.css`],
-            // (html: string) => {
-            //     let section = document.createElement('section');
-            //     section.innerHTML = html;
-            //     page.element.appendChild(section);
-            //     reslove();
-            // }
-        );
-    });
+    // let loadPromise = new Promise((reslove, reject) => {
+    //page.load.add(() => reslove());
+    requirejs([`text!${page.routeData.actionPath}.html`, `css!${page.routeData.actionPath}`],
+        // (html: string) => {
+        //     let section = document.createElement('section');
+        //     section.innerHTML = html;
+        //     page.element.appendChild(section);
+        //     reslove();
+        // }
+    );
+    // });
 
     class PageComponent extends BasePage<React.Props<PageComponent>, { items: Application[] }>{
         private dialogElement: HTMLElement;

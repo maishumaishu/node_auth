@@ -3,8 +3,10 @@ import * as service from './service';
 interface User {
 
 }
-export function login(username: string, password: string): JQueryPromise<any> {
-    return $.Deferred().resolve();
+export function login(username: string, password: string): Promise<any> {
+    // return Promise.resolve();
+    let args = { username, password };
+    return service.post<string>('adminUser/login', args);
 }
 
 export function list(args) {
