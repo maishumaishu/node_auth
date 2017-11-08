@@ -1,11 +1,3 @@
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments)).next());
-    });
-};
 var wuzhui;
 (function (wuzhui) {
     const CONTROL_DATA_NAME = 'Control';
@@ -65,7 +57,7 @@ var wuzhui;
 var wuzhui;
 (function (wuzhui) {
     class DataSource {
-        constructor(primaryKeys) {
+        constructor(args) {
             this.inserting = wuzhui.callbacks();
             this.inserted = wuzhui.callbacks();
             this.deleting = wuzhui.callbacks();
@@ -74,23 +66,42 @@ var wuzhui;
             this.updated = wuzhui.callbacks();
             this.selecting = wuzhui.callbacks();
             this.selected = wuzhui.callbacks();
-            this.primaryKeys = primaryKeys || [];
+            this.error = wuzhui.callbacks();
+            this.args = args;
+            this.primaryKeys = args.primaryKeys || [];
             this._currentSelectArguments = new DataSourceSelectArguments();
+        }
+        get canDelete() {
+            return this.args.delete != null && this.primaryKeys.length > 0;
+        }
+        get canInsert() {
+            return this.args.insert != null && this.primaryKeys.length > 0;
+        }
+        get canUpdate() {
+            return this.args.update != null && this.primaryKeys.length > 0;
+        }
+        executeInsert(item) {
+            if (!item)
+                throw wuzhui.Errors.argumentNull("item");
+            return this.args.insert(item);
+        }
+        executeDelete(item) {
+            if (!item)
+                throw wuzhui.Errors.argumentNull("item");
+            return this.args.delete(item);
+        }
+        executeUpdate(item) {
+            if (!item)
+                throw wuzhui.Errors.argumentNull("item");
+            return this.args.update(item);
+        }
+        executeSelect(args) {
+            if (!args)
+                throw wuzhui.Errors.argumentNull("args");
+            return this.args.select(args);
         }
         get selectArguments() {
             return this._currentSelectArguments;
-        }
-        executeInsert(item) {
-            throw wuzhui.Errors.notImplemented();
-        }
-        executeDelete(item) {
-            throw wuzhui.Errors.notImplemented();
-        }
-        executeUpdate(item) {
-            throw wuzhui.Errors.notImplemented();
-        }
-        executeSelect(args) {
-            throw wuzhui.Errors.notImplemented();
         }
         insert(item) {
             if (!this.canInsert)
@@ -98,8 +109,11 @@ var wuzhui;
             this.checkPrimaryKeys(item);
             wuzhui.fireCallback(this.inserting, this, { item });
             return this.executeInsert(item).then((data) => {
-                $.extend(item, data);
+                Object.assign(item, data);
                 wuzhui.fireCallback(this.inserted, this, { item });
+                return data;
+            }).catch(exc => {
+                this.processError(exc, 'insert');
             });
         }
         delete(item) {
@@ -107,8 +121,11 @@ var wuzhui;
                 throw wuzhui.Errors.dataSourceCanntDelete();
             this.checkPrimaryKeys(item);
             wuzhui.fireCallback(this.deleting, this, { item });
-            return this.executeDelete(item).then(() => {
+            return this.executeDelete(item).then((data) => {
                 wuzhui.fireCallback(this.deleted, this, { item });
+                return data;
+            }).catch(exc => {
+                this.processError(exc, 'delete');
             });
         }
         update(item) {
@@ -117,8 +134,11 @@ var wuzhui;
             this.checkPrimaryKeys(item);
             wuzhui.fireCallback(this.updating, this, { item });
             return this.executeUpdate(item).then((data) => {
-                $.extend(item, data);
+                Object.assign(item, data);
                 wuzhui.fireCallback(this.updated, this, { item });
+                return data;
+            }).catch((exc) => {
+                this.processError(exc, 'update');
             });
         }
         isSameItem(theItem, otherItem) {
@@ -160,18 +180,16 @@ var wuzhui;
                     throw new Error('Type of the query result is expected as Array or DataSourceSelectResult.');
                 }
                 wuzhui.fireCallback(this.selected, this, { selectArguments: args, items: data_items });
+                return data;
+            }).catch(exc => {
+                this.processError(exc, 'select');
             });
         }
-        //===============================================
-        //Virtual Properties
-        get canDelete() {
-            return false;
-        }
-        get canInsert() {
-            return false;
-        }
-        get canUpdate() {
-            return false;
+        processError(exc, method) {
+            exc.method = method;
+            this.error.fire(this, exc);
+            if (!exc.handled)
+                throw exc;
         }
     }
     wuzhui.DataSource = DataSource;
@@ -183,144 +201,9 @@ var wuzhui;
     }
     wuzhui.DataSourceSelectArguments = DataSourceSelectArguments;
     class WebDataSource extends DataSource {
-        constructor(args) {
-            super(args.primaryKeys);
-            this.ajaxMethods = {
-                select: 'get',
-                update: 'post',
-                insert: 'post',
-                delete: 'post'
-            };
-            this.args = args;
-        }
-        get canDelete() {
-            return this.args.delete != null && this.primaryKeys.length > 0;
-        }
-        get canInsert() {
-            return this.args.insert != null && this.primaryKeys.length > 0;
-        }
-        get canUpdate() {
-            return this.args.update != null && this.primaryKeys.length > 0;
-        }
-        executeInsert(item) {
-            if (!item)
-                throw wuzhui.Errors.argumentNull("item");
-            if (typeof this.args.insert == 'string')
-                return wuzhui.ajax(this.args.insert, { body: this.formatData(item), method: this.ajaxMethods.insert });
-            return this.args.insert(item);
-        }
-        executeDelete(item) {
-            if (!item)
-                throw wuzhui.Errors.argumentNull("item");
-            if (typeof this.args.delete == 'string')
-                return wuzhui.ajax(this.args.delete, { body: this.formatData(item), method: this.ajaxMethods.delete });
-            return this.args.delete(item);
-        }
-        executeUpdate(item) {
-            if (!item)
-                throw wuzhui.Errors.argumentNull("item");
-            if (typeof this.args.update == 'string')
-                return wuzhui.ajax(this.args.update, { body: this.formatData(item), method: this.ajaxMethods.update });
-            return this.args.update(item);
-        }
-        executeSelect(args) {
-            if (!args)
-                throw wuzhui.Errors.argumentNull("args");
-            if (typeof this.args.select == 'string')
-                return wuzhui.ajax(this.args.select, { body: args, method: this.ajaxMethods.select });
-            return this.args.select(args);
-        }
-        formatData(data) {
-            let obj = $.extend({}, data);
-            for (let name in obj) {
-                if (data[name] instanceof Date) {
-                    // 说明：对于MVC3，必须把日期时间转换成'yyyy-MM-dd HH:mm'这种格式。
-                    let date = obj[name];
-                    let y = date.getFullYear();
-                    let m = date.getMonth() + 1;
-                    let d = date.getDate();
-                    let h = date.getHours();
-                    let M = date.getMinutes();
-                    let s = date.getSeconds();
-                    obj[name] = y + "-" + m + "-" + d + " " + h + ":" + M + ":" + s;
-                }
-            }
-            return obj;
-        }
     }
     wuzhui.WebDataSource = WebDataSource;
     class ArrayDataSource extends DataSource {
-        constructor(items, primaryKeys) {
-            if (items == null)
-                throw wuzhui.Errors.argumentNull('items');
-            super(primaryKeys);
-            this.source = items;
-        }
-        executeInsert(item) {
-            if (item == null)
-                throw wuzhui.Errors.argumentNull('item');
-            this.source.push(item);
-            return Promise.resolve();
-        }
-        executeDelete(item) {
-            if (item == null)
-                throw wuzhui.Errors.argumentNull('item');
-            let pkValues = this.getPrimaryKeyValues(item);
-            let itemIndex = this.findItem(pkValues);
-            this.source.filter((value, index, array) => {
-                return index != itemIndex;
-            });
-            return Promise.resolve();
-        }
-        executeUpdate(item) {
-            if (item == null)
-                throw wuzhui.Errors.argumentNull('item');
-            let pkValues = this.getPrimaryKeyValues(item);
-            let itemIndex = this.findItem(pkValues);
-            if (itemIndex >= 0) {
-                let sourceItem = this.source[itemIndex];
-                for (let key in sourceItem) {
-                    sourceItem[key] = item[key];
-                }
-            }
-            return Promise.resolve();
-        }
-        executeSelect(args) {
-            return Promise.resolve(this.source);
-        }
-        get canDelete() {
-            return this.primaryKeys.length > 0;
-        }
-        get canInsert() {
-            return this.primaryKeys.length > 0;
-        }
-        get canUpdate() {
-            return this.primaryKeys.length > 0;
-        }
-        getPrimaryKeyValues(item) {
-            let pkValues = [];
-            for (let i = 0; i < this.primaryKeys.length; i++) {
-                pkValues[i] = item[this.primaryKeys[i]];
-            }
-            return pkValues;
-        }
-        findItem(pkValues) {
-            for (let i = 0; i < this.source.length; i++) {
-                let item = this.source[i];
-                let same = true;
-                for (let j = 0; j < this.primaryKeys.length; j++) {
-                    let primaryKey = this.primaryKeys[j];
-                    if (item[primaryKey] != pkValues[primaryKey]) {
-                        same = false;
-                        break;
-                    }
-                }
-                if (same) {
-                    return i;
-                }
-            }
-            return -1;
-        }
     }
     wuzhui.ArrayDataSource = ArrayDataSource;
 })(wuzhui || (wuzhui = {}));
@@ -360,7 +243,7 @@ var wuzhui;
 })(wuzhui || (wuzhui = {}));
 var wuzhui;
 (function (wuzhui) {
-    var GridViewRowType;
+    let GridViewRowType;
     (function (GridViewRowType) {
         GridViewRowType[GridViewRowType["Header"] = 0] = "Header";
         GridViewRowType[GridViewRowType["Footer"] = 1] = "Footer";
@@ -429,6 +312,7 @@ var wuzhui;
             super(params.element || document.createElement('table'));
             this.emptyDataHTML = '暂无记录';
             this.initDataHTML = '数据正在加载中...';
+            this.loadFailHTML = '加载数据失败，点击重新加载。';
             //========================================================
             // 样式
             // headerStyle: string;
@@ -451,7 +335,7 @@ var wuzhui;
                 column.gridView = this;
             }
             this._dataSource = params.dataSource;
-            this._dataSource.selected.add((sender, e) => this.on_selectExecuted(e.items, e.selectArguments));
+            this._dataSource.selected.add((sender, e) => this.on_selectExecuted(e.items));
             this._dataSource.updated.add((sender, e) => this.on_updateExecuted(e.item));
             this._dataSource.inserted.add((sender, e) => this.on_insertExecuted(e.item, e.index));
             this._dataSource.deleted.add((sender, e) => this.on_deleteExecuted(e.item));
@@ -461,13 +345,24 @@ var wuzhui;
                     this._emtpyRow.element.cells[0].innerHTML = this.initDataHTML;
                 }
             });
+            this._dataSource.error.add((sender, e) => {
+                if (e.method == 'select') {
+                    this.on_selectExecuted([]);
+                    var element = this._emtpyRow.cells[0].element;
+                    element.innerHTML = this.loadFailHTML;
+                    element.onclick = () => {
+                        this._dataSource.select();
+                    };
+                    e.handled = true;
+                }
+            });
             if (params.showHeader) {
                 this._header = new wuzhui.Control(document.createElement('thead'));
                 this.appendChild(this._header);
                 this.appendHeaderRow();
             }
-            this.emptyDataHTML = params.emptyDataHTML;
-            this.initDataHTML = params.initDataHTML;
+            this.emptyDataHTML = params.emptyDataHTML || this.emptyDataHTML;
+            this.initDataHTML = params.initDataHTML || this.initDataHTML;
             this._body = new wuzhui.Control(document.createElement('tbody'));
             this.appendChild(this._body);
             this.appendEmptyRow();
@@ -550,7 +445,7 @@ var wuzhui;
             }
             this._footer.appendChild(row);
         }
-        on_selectExecuted(items, args) {
+        on_selectExecuted(items) {
             var rows = this._body.element.querySelectorAll(`.${GridView.dataRowClassName}`);
             for (let i = 0; i < rows.length; i++)
                 this._body.element.removeChild(rows[i]);
@@ -625,7 +520,7 @@ var wuzhui;
 })(wuzhui || (wuzhui = {}));
 var wuzhui;
 (function (wuzhui) {
-    var PagerPosition;
+    let PagerPosition;
     (function (PagerPosition) {
         PagerPosition[PagerPosition["Bottom"] = 0] = "Bottom";
         PagerPosition[PagerPosition["Top"] = 1] = "Top";
@@ -790,9 +685,9 @@ var wuzhui;
                 },
                 set visible(value) {
                     if (value == true)
-                        $(totalElement).show();
+                        totalElement.style.display = 'block'; //$(totalElement).show();
                     else
-                        $(totalElement).hide();
+                        totalElement.style.display = 'node'; //$(totalElement).hide();
                 }
             };
         }
@@ -880,91 +775,6 @@ var wuzhui;
 })(wuzhui || (wuzhui = {}));
 var wuzhui;
 (function (wuzhui) {
-    /**
-     * 判断服务端返回的数据是否为错误信息
-     * @param responseData 服务端返回的数据
-     */
-    function isError(responseData) {
-        if (responseData.Type == 'ErrorObject') {
-            if (responseData.Code == 'Success') {
-                return null;
-            }
-            let err = new Error(responseData.Message);
-            err.name = responseData.Code;
-            return err;
-        }
-        let err = responseData;
-        if (err.name !== undefined && err.message !== undefined && err['stack'] !== undefined) {
-            return err;
-        }
-        return null;
-    }
-    class AjaxError {
-        constructor(method) {
-            this.name = 'ajaxError';
-            this.message = 'Ajax Error';
-            this.method = method;
-        }
-    }
-    wuzhui.AjaxError = AjaxError;
-    wuzhui.ajaxTimeout = 5000;
-    function ajax(url, options) {
-        return new Promise((reslove, reject) => {
-            let timeId;
-            if (options.method == 'get') {
-                timeId = setTimeout(() => {
-                    let err = new AjaxError(options.method);
-                    err.name = 'timeout';
-                    reject(err);
-                    clearTimeout(timeId);
-                }, wuzhui.ajaxTimeout);
-            }
-            _ajax(url, options)
-                .then(data => {
-                reslove(data);
-                if (timeId)
-                    clearTimeout(timeId);
-            })
-                .catch(err => {
-                reject(err);
-                if (timeId)
-                    clearTimeout(timeId);
-            });
-        });
-    }
-    wuzhui.ajax = ajax;
-    function _ajax(url, options) {
-        return __awaiter(this, void 0, void 0, function* () {
-            // try {
-            let response = yield fetch(url, options);
-            if (response.status >= 300) {
-                let err = new AjaxError(options.method);
-                err.name = `${response.status}`;
-                err.message = response.statusText;
-                throw err;
-            }
-            let responseText = response.text();
-            let p;
-            if (typeof responseText == 'string') {
-                p = new Promise((reslove, reject) => {
-                    reslove(responseText);
-                });
-            }
-            else {
-                p = responseText;
-            }
-            let text = yield responseText;
-            let textObject = JSON.parse(text);
-            let err = isError(textObject);
-            if (err)
-                throw err;
-            return textObject;
-            // }
-            // catch (err) {
-            //     throw err;
-            // }
-        });
-    }
     function applyStyle(element, value) {
         let style = value || '';
         if (typeof style == 'string')
@@ -1014,7 +824,7 @@ var wuzhui;
             super();
             this._valueElement = document.createElement('span');
             this.element.appendChild(this._valueElement);
-            this.nullText = '' || params.nullText;
+            this.nullText = params.nullText != null ? params.nullText : '';
             this.dataFormatString = params.dataFormatString;
             this._dataField = params.dataField;
             this.render = params.render || ((element, value) => {
@@ -1142,7 +952,8 @@ var wuzhui;
                 let labelElement = document.createElement('a');
                 labelElement.href = 'javascript:';
                 labelElement.innerHTML = this.defaultHeaderText();
-                $(labelElement).click(() => this.handleSort());
+                //$(labelElement).click(() => this.handleSort());
+                labelElement.click = () => this.handleSort();
                 this._iconElement = document.createElement('span');
                 this.appendChild(labelElement);
                 this.appendChild(this._iconElement);

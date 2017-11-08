@@ -6,31 +6,34 @@ interface MyError extends Error {
 
 //export class Errors {
 export let names = {
-    ActionNotExists: 'ActionNotExists',
-    AdminNotExists: 'AdminNotExists',    
-    ApplicationExists: 'ApplicationExists',
-    ApplicationIdRequired: 'ApplicationIdRequired',
-    ApplicationTokenRequired: 'ApplicationTokenRequired',
-    ArgumentNull: 'ArgumentNull',
-    CanntGetHeaderFromRequest: 'CanntGetHeaderFromRequest',
-    ControllerNotExist: 'ControllerNotExist',
-    DeleteResultZero: 'DeleteResultZero',
-    FieldNull: 'FieldNull',
-    InvalidToken: 'InvalidToken',
-    NotAllowRegister: 'NotAllowRegister',
-    NotImplement: 'NotImplement',
-    mobileIsBind: 'MobileIsBind',
-    ObjectNotExistWithId: 'ObjectNotExistWithId',
-    PasswordIncorect: 'PasswordIncorect',
-    PostIsRequired: 'PostIsRequired',
-    Success: 'Success',
-    UserExists: 'UserExists',
-    UserIdRequired: 'UserIdRequired',
-    UserNotExists: 'UserNotExists',
-    UpdateResultZero: 'UpdateResultZero',
-    VerifyCodeIncorrect: 'VerifyCodeIncorrect',
-    VerifyCodeNotMatchMobile: 'VerifyCodeNotMatchMobile',
-    CanntGetRedirectUrl: 'CanntGetRedirectUrl'
+    ActionNotExists: '700 ActionNotExists',
+    AdminNotExists: '701 AdminNotExists',
+    ApplicationExists: '702 ApplicationExists',
+    ApplicationIdRequired: '703 ApplicationIdRequired',
+    ApplicationTokenRequired: '704 ApplicationTokenRequired',
+    ArgumentNull: '705 ArgumentNull',
+    CanntGetHeaderFromRequest: '706 CanntGetHeaderFromRequest',
+    ControllerNotExist: '707 ControllerNotExist',
+    DeleteResultZero: '708 DeleteResultZero',
+    FieldNull: '709 FieldNull',
+    InvalidToken: '710 InvalidToken',
+    NotAllowRegister: '711 NotAllowRegister',
+    NotImplement: '712 NotImplement',
+    mobileIsBind: '713 MobileIsBind',
+    ObjectNotExistWithId: '714 ObjectNotExistWithId',
+    PasswordIncorect: '715 PasswordIncorect',
+    PostIsRequired: '716 PostIsRequired',
+    Success: '200 Success',
+    UserExists: '717 UserExists',
+    UserIdRequired: '718 UserIdRequired',
+    userNotExists: '719 userNotExists',
+    UpdateResultZero: '720 UpdateResultZero',
+    VerifyCodeIncorrect: '721 VerifyCodeIncorrect',
+    VerifyCodeNotMatchMobile: '722 VerifyCodeNotMatchMobile',
+    CanntGetRedirectUrl: '723 CanntGetRedirectUrl',
+    // tokenNotExists: '724 tokenNotExists',
+    userTokenNotExists: '724 userTokenNotExists',    
+    appTokenNotExists: '725 appTokenNotExists',
 }
 
 export function fieldNull(fieldName: string, objectName: string): Error {
@@ -95,7 +98,7 @@ export function notImplement(): Error {
 export function userNotExists(username: string): Error {
     let msg = `User '${username}' is not exists.`
     let error = new Error(msg) as MyError;
-    error.name = names.UserNotExists;
+    error.name = names.userNotExists;
     error.arguments = { username };
     return error;
 }
@@ -212,6 +215,13 @@ export function applicationTokenRequired(): Error {
     return err;
 }
 
+// export function tokenNotExists(tokenId: string) {
+//     let msg = `Token not exists with id '${tokenId}'`;
+//     let error = new Error(msg);
+//     error.name = names.tokenNotExists;
+//     return error;
+// }
+
 //==================================================================
 // 验证码
 
@@ -258,5 +268,19 @@ export function canntGetRedirectUrl(rootDir: string) {
     let msg = `Can not find redirect url for '${rootDir}'`;
     let err = new Error(msg) as MyError;
     err.name = names.CanntGetRedirectUrl;
+    return err;
+}
+
+export function appTokenNotExists(token) {
+    let msg = `Application token '${token}' is not exists.`;
+    let err = new Error(msg);
+    err.name = names.appTokenNotExists;
+    return err;
+}
+
+export function userTokenNotExists(token){
+    let msg = `User token '${token}' is not exists.`;
+    let err = new Error(msg);
+    err.name = names.userTokenNotExists;
     return err;
 }

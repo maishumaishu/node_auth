@@ -7,6 +7,7 @@ import { Token, Database } from './database';
 import * as logger from './logger'
 import * as settings from './settings';
 import * as mongodb from 'mongodb';
+import { names as errorNames } from './errors';
 
 const APP_KEY = 'application-key';
 const APP_ID = 'application-id';
@@ -25,7 +26,7 @@ interface AppInfo {
 
 app.options('/*', function (req, res) {
     setHeaders(res);
-    res.send();
+    res.end();
 })
 
 function setHeaders(res: express.Response) {
@@ -42,10 +43,10 @@ app.use('/*', async function (req: express.Request & AppInfo, res, next) {
         setHeaders(res);
 
         let tasks = [];
-        let applicationToken = req.headers[APP_KEY] || req.query[APP_KEY];
-        if (applicationToken != null) {
-            req.applicationToken = applicationToken;
-            tasks.push(Token.parse(applicationToken));
+        let appTokenString = req.headers[APP_KEY] || req.query[APP_KEY];
+        if (appTokenString != null) {
+            req.applicationToken = appTokenString;
+            tasks.push(Token.parse(appTokenString, false));
         }
         else {
             tasks.push(Promise.resolve());
@@ -53,7 +54,7 @@ app.use('/*', async function (req: express.Request & AppInfo, res, next) {
 
         let userTokenString = req.headers[USER_TOKEN];
         if (userTokenString != null) {
-            tasks.push(Token.parse(userTokenString));
+            tasks.push(Token.parse(userTokenString, false));
         }
 
         Promise.all(tasks)
@@ -61,6 +62,14 @@ app.use('/*', async function (req: express.Request & AppInfo, res, next) {
                 let appToken = results[0] as Token;
                 let userToken = results[1] as Token;
                 // console.assert(appToken != null, "app Token is null.");
+
+                if (appToken == null && appTokenString) {
+                    return Promise.reject(errors.appTokenNotExists(appTokenString));
+                }
+
+                if (userToken == null && userTokenString) {
+                    return Promise.reject(errors.userTokenNotExists(userTokenString));
+                }
 
                 if (appToken != null) {
                     req.applicationId = appToken.objectId;
@@ -126,7 +135,8 @@ function executeAction(req: AppRequest & AppInfo, res, next) {
 
     let dataPromise: Promise<any>;
     if (req.method == 'GET') {
-        dataPromise = Promise.resolve(req.query);
+        let queryData = getQueryObject(req);
+        dataPromise = Promise.resolve(queryData);
     }
     else {
         dataPromise = getPostObject(req);
@@ -189,14 +199,8 @@ app.use('/*', async function (value, req, res, next) {
 } as express.ErrorRequestHandler);
 
 
-async function parseUserToken(appId: string, userToken: string) {
-    let token = await Token.parse(userToken);
-    return token.objectId;
-}
-
-
 function outputToResponse(response: http.ServerResponse, obj: any) {
-    console.assert(obj != null, 'obj can not be null.');
+    console.warn(obj != null, 'The output to response is null.');
     response.statusCode = 200;
     response.write(JSON.stringify(obj));
     response.end();
@@ -204,13 +208,47 @@ function outputToResponse(response: http.ServerResponse, obj: any) {
 
 function outputError(response: http.ServerResponse, err: Error) {
     console.assert(err != null, 'error is null');
-    response.statusCode = 200;
+
+    const defaultErrorStatusCode = 600;
+
+    response.statusCode = defaultErrorStatusCode;
+    response.statusMessage = err.name;      // statusMessage 不能为中文，否则会出现 invalid chartset 的异常
+
+    if (/^\d\d\d\s/.test(err.name)) {
+        response.statusCode = Number.parseInt(err.name.substr(0, 3));
+        err.name = err.name.substr(4);
+    }
+
     let outputObject = { message: err.message, name: err.name, stack: err.stack };
-    response.write(JSON.stringify(outputObject));
+    let str = JSON.stringify(outputObject);
+    response.write(str);
     response.end();
 }
 
 import querystring = require('querystring');
+
+/**
+ * 
+ * @param request 获取 QueryString 里的对象
+ */
+function getQueryObject(request: AppRequest) {
+    let contentType = request.headers['content-type'] as string;
+    let obj;
+    if (contentType != null && contentType.indexOf('application/json') >= 0) {
+        let arr = request.originalUrl.split('?');
+        let str = arr[1]
+        if (str != null) {
+            str = decodeURI(str);
+            obj = JSON.parse(str);  //TODO：异常处理
+        }
+    }
+    else {
+        obj = request.query;
+    }
+
+    return obj;
+}
+
 function getPostObject(request: http.IncomingMessage & Express.Request): Promise<any> {
     let method = (request.method || '').toLowerCase();
     let length = request.headers['content-length'] || 0;
@@ -254,15 +292,6 @@ async function redirectRequest(req: express.Request & AppInfo, res: express.Resp
 
         if (req.userId)
             headers[USER_ID] = req.userId.toHexString();
-
-        if (req.userId) {
-            if (path.indexOf('?') < 0)
-                path = path + '?';
-            else
-                path = path + '&';
-
-            path = path + `userId=${req.userId.toHexString()}`;
-        }
 
         let request = http.request(
             {
@@ -355,6 +384,11 @@ function combinePaths(path1: string, path2: string) {
     return path1 + path2;
 }
 
-app.listen(2800);
+app.listen(settings.port, settings.bindIP);
+
+process.on('unhandledRejection', (reason, p) => {
+    debugger;
+    // unhandledRejections.set(p, reason);
+});
 
 

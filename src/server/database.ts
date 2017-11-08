@@ -210,7 +210,7 @@ export class DataContext {
         return this.tables[name];
     }
 
-    static execute<T>(connectionString: string, tableName: string, action: (table: Table<any>) => Promise<T>) {
+    static async execute<T>(connectionString: string, tableName: string, action: (table: Table<any>) => Promise<T>) {
         if (!connectionString)
             throw errors.argumentNull('connectionString');
         if (!tableName)
@@ -218,19 +218,22 @@ export class DataContext {
         if (action == null)
             throw errors.argumentNull('action');
 
-        return new Promise<T>(async (reslove, reject) => {
-            let db = await MongoClient.connect(connectionString);
+        // return new Promise<T>(async (reslove, reject) => {
+        let db: mongodb.Db;
+        try {
+            db = await MongoClient.connect(connectionString);
             var table = new Table<T>(db, tableName);
-            try {
-                let data = await action(table);
-                reslove(data);
-            }
-            finally {
+            let data = await action(table);
+            // reslove(data);
+            return data;
+        }
+        finally {
+            if (db)
                 db.close();
-            }
+        }
 
-            return;
-        })
+        // return;
+        // })
     }
 }
 
@@ -293,14 +296,16 @@ export async function execute<T>(connectionString: string, tableName: string, ca
     if (!tableName) return Promise.reject(errors.argumentNull('tableName'));
     if (!callback) return Promise.reject(errors.argumentNull('callback'));
 
-    let db = await MongoClient.connect(connectionString);
-    let collection = db.collection(tableName);
+    let db;
     try {
+        db = await MongoClient.connect(connectionString);
+        let collection = db.collection(tableName);
         let result = await callback(collection)
         return result;
     }
     finally {
-        db.close();
+        if (db)
+            db.close();
     }
 
 }
@@ -309,14 +314,15 @@ export async function createDatabaseInstance(connectionString: string, callback:
     if (!connectionString) return Promise.reject(errors.argumentNull('connectionString'));
     if (!callback) return Promise.reject(errors.argumentNull('callback'));
 
-    let db = await MongoClient.connect(connectionString);
-
+    let db: mongodb.Db;
     try {
+        db = await MongoClient.connect(connectionString);
         let result = await callback(db)
         return result;
     }
     finally {
-        db.close();
+        if (db != null)
+            db.close();
     }
 }
 
@@ -473,7 +479,10 @@ export class Token implements Entity {
      * @param appId 应用ID
      * @tokenValue 令牌字符串
      */
-    static async parse(tokenValue: string): Promise<Token> {
+    static async parse(tokenValue: string, throwException?: boolean): Promise<Token> {
+
+        throwException == throwException == null ? true : throwException;
+
         if (!tokenValue)
             return Promise.reject(errors.argumentNull('tokenValue'));
 
@@ -483,12 +492,8 @@ export class Token implements Entity {
         // return DataContext.execute<Token>(settings.conn.auth, tableNames.Token, (table: Table<Token>) => {
         //     return table.findOne({ _id: new mongodb.ObjectID(tokenValue) });
         // })
-
         return execute(settings.conn.auth, tableNames.Token, async (collection) => {
             var token = await collection.findOne({ _id: new mongodb.ObjectID(tokenValue) }) as any;
-            if (token == null)
-                throw errors.objectNotExistWithId(tokenValue, tableNames.Token);
-
             return token as Token;
         })
 
