@@ -5,7 +5,7 @@ import * as Errors from '../errors'
 import * as http from 'http';
 import * as mongodb from 'mongodb';
 import { UserSubmitData, UserController, Controller } from '../common';
-import { Database, VerifyMessage, execute, tableNames, User } from '../database';
+import { VerifyMessage, execute, tableNames, User } from '../database';
 
 export default class SMSController extends Controller {
     async sendVerifyCode(args: SendCodeArgumentType): Promise<{ smsId: string } | Error> {

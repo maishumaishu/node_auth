@@ -3,7 +3,7 @@ import * as express from 'express';
 import * as errors from './errors';
 import * as url from 'url';
 import { AppRequest, Controller, UserController } from './common'
-import { Token, Database } from './database';
+import { Token, execute, tableNames, Application } from './database';
 import * as logger from './logger'
 import * as settings from './settings';
 import * as mongodb from 'mongodb';
@@ -349,11 +349,16 @@ async function getRedirectInfo(applicationId: mongodb.ObjectID, req: express.Req
     if (applicationId == null)
         throw errors.applicationIdRequired();
 
-    let application = await Database.application(applicationId);
-    if (!application) {
-        let err = errors.objectNotExistWithId(applicationId.toHexString(), 'Application');
-        return Promise.reject<any>(err);
-    }
+
+    let application = await execute(settings.conn.auth, tableNames.Application, (collection) => {
+        return collection.findOne<Application>({ _id: applicationId });
+    })
+
+    // let application = await Database.application(applicationId);
+    // if (!application) {
+    //     let err = errors.objectNotExistWithId(applicationId.toHexString(), 'Application');
+    //     return Promise.reject<any>(err);
+    // }
 
     let redirectInfos = settings.redirectInfos; //application.redirects || [];
 

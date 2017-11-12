@@ -42,30 +42,26 @@ export default class AppliationController extends Controller {
         if (!app) throw errors.argumentNull('app');
         if (!app.name) throw errors.fieldNull('name', 'app');
         let db = await this.createDatabaseInstance(settings.conn.auth);
-        // return DataContext.execute(settings.conn.auth, tableNames.Application, async function (table) {
         let table = db.collection(tableNames.Application);
         let item: Application = await table.findOne<Application>({ name: app.name });
         if (item != null) {
             return Promise.reject(errors.applicationExists(app.name));
         }
 
-        // item = {} as Application;
         app._id = new ObjectID();
-        // app.name = app.name;
         let tokenObject = await Token.create(app._id, 'app');
         app.token = tokenObject._id.toHexString();
         await table.insertOne(app);
         return app;
-        // });
     }
 
     async newToken({ appId }) {
         if (!appId) throw errors.argumentNull('appId');
-        let db = await data.Database.createInstance();
+        let db = await this.createDatabaseInstance(settings.conn.auth); 
+        let applications = db.collection(tableNames.Application);
         let tokenObject = await Token.create(appId, 'app');
-        db.applications.updateItem(<any>{ _id: new ObjectID(appId), token: tokenObject._id.toString() })
-            .then(() => db.close())
-            .catch(() => db.close());
+        applications.updateOne({ _id: new ObjectID(appId) }, { token: tokenObject._id.toString() })
+
 
         return { token: tokenObject._id };
     }

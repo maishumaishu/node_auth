@@ -326,64 +326,64 @@ export async function createDatabaseInstance(connectionString: string, callback:
     }
 }
 
-export class Database {
-    private source: mongodb.Db;
-    private _applications: Table<Application>;
-    private _tokens: Table<Token>;
-    private _users: Table<User>;
-    private _verifyMessages: Table<VerifyMessage>;
+// export class Database {
+//     private source: mongodb.Db;
+//     private _applications: Table<Application>;
+//     private _tokens: Table<Token>;
+//     private _users: Table<User>;
+//     private _verifyMessages: Table<VerifyMessage>;
 
-    constructor(source: mongodb.Db) {
-        this.source = source;
-        this._applications = new Table<Application>(source, 'Appliation');
-        this._tokens = new Table<Token>(source, tableNames.Token);// 'Token');
-    }
+//     constructor(source: mongodb.Db) {
+//         this.source = source;
+//         this._applications = new Table<Application>(source, 'Appliation');
+//         this._tokens = new Table<Token>(source, tableNames.Token);// 'Token');
+//     }
 
-    static async createInstance() {
-        return new Promise<Database>((reslove, reject) => {
-            let connectionString = settings.conn.auth; //`mongodb://${settings.monogoHost}/node_auth`;
-            MongoClient.connect(connectionString, (err, db) => {
-                if (err != null) {
-                    reject(err);
-                    return;
-                }
+//     static async createInstance() {
+//         return new Promise<Database>((reslove, reject) => {
+//             let connectionString = settings.conn.auth; //`mongodb://${settings.monogoHost}/node_auth`;
+//             MongoClient.connect(connectionString, (err, db) => {
+//                 if (err != null) {
+//                     reject(err);
+//                     return;
+//                 }
 
-                let instance = new Database(db);
-                reslove(instance);
-            })
-        })
-    }
+//                 let instance = new Database(db);
+//                 reslove(instance);
+//             })
+//         })
+//     }
 
-    get applications(): Table<Application> {
-        return this._applications;
-    }
+//     get applications(): Table<Application> {
+//         return this._applications;
+//     }
 
-    get tokens(): Table<Token> {
-        return this._tokens;
-    }
+//     get tokens(): Table<Token> {
+//         return this._tokens;
+//     }
 
-    get users(): Table<User> {
-        return this._users;
-    }
+//     get users(): Table<User> {
+//         return this._users;
+//     }
 
-    get verifyMessages(): Table<VerifyMessage> {
-        return this._verifyMessages;
-    }
+//     get verifyMessages(): Table<VerifyMessage> {
+//         return this._verifyMessages;
+//     }
 
-    static async application(id: mongodb.ObjectID): Promise<Application> {
-        if (!id) throw errors.argumentNull('id');
+//     static async application(id: mongodb.ObjectID): Promise<Application> {
+//         if (!id) throw errors.argumentNull('id');
 
-        return execute<any>(settings.conn.auth, tableNames.Application, async (collection) => {
-            let item = await collection.findOne({ _id: id });
-            return item;
-        })
-    }
+//         return execute<any>(settings.conn.auth, tableNames.Application, async (collection) => {
+//             let item = await collection.findOne({ _id: id });
+//             return item;
+//         })
+//     }
 
-    close() {
-        console.assert(this.source != null);
-        this.source.close(true);
-    }
-}
+//     close() {
+//         console.assert(this.source != null);
+//         this.source.close(true);
+//     }
+// }
 
 
 export class Users extends Table<User> {

@@ -1,10 +1,13 @@
-import { Database, User, Application, Token, DataContext, execute, createDatabaseInstance, tableNames, VerifyMessage } from './../database';
+import { User, Application, Token, DataContext, execute, createDatabaseInstance, tableNames, VerifyMessage } from './../database';
 import * as data from '../database';
 import * as Errors from '../errors';
 import * as settings from '../settings';
 import * as mongodb from 'mongodb';
+import * as os from 'os';
+
 import { Controller } from '../common';
 import { default as AppliationController } from '../adminControllers/application';
+import { ObjectID } from 'mongodb';
 
 async function findUserByMobile(db: mongodb.Db, mobile: string, applicationId: mongodb.ObjectID): Promise<User> {
     let users = db.collection(tableNames.User);
@@ -36,8 +39,9 @@ export default class UserController extends Controller {
     userId: mongodb.ObjectID;
 
     async  test() {
-        let db = await Database.createInstance();
-        await db.users.deleteMany({ username: 'maishu' });
+        let db = await this.createDatabaseInstance(settings.conn.auth);
+        let users = db.collection(tableNames.User);
+        await users.deleteMany({ username: 'maishu' });
         let user = <User>{
             username: 'maishu',
             password: '1234',
@@ -74,6 +78,8 @@ export default class UserController extends Controller {
         user.createDateTime = new Date(Date.now());
         user.applicationId = this.appId;
         await collection.insertOne(user);
+
+        delete user.password;
         return user;
     }
     async registerByUserName(user: User) {
@@ -129,7 +135,7 @@ export default class UserController extends Controller {
         let token = await Token.create(u._id, 'user');
         return { token: token._id.toHexString(), userId: token.objectId };
     }
-    async login({ username, password }): Promise<{ token: string } | Error> {
+    async login({ username, password }): Promise<{ token: string, userId: ObjectID } | Error> {
         if (username == null) {
             return Promise.reject<Error>(Errors.argumentNull('username'));
         }
@@ -138,21 +144,22 @@ export default class UserController extends Controller {
         }
 
 
-        let result = await createDatabaseInstance(settings.conn.auth, async (db) => {
-            let users = db.collection(tableNames.User);
-            let user = await users.findOne<User>({ $and: [{ $or: [{ username }, { mobile: username }] }, { applicationId: this.appId }] });
+        let db = await this.createDatabaseInstance(settings.conn.auth);
+        // let result = await createDatabaseInstance(settings.conn.auth, async (db) => {
+        let users = db.collection(tableNames.User);
+        let user = await users.findOne<User>({ $and: [{ $or: [{ username }, { mobile: username }] }, { applicationId: this.appId }] });
 
-            if (user == null) {
-                return Promise.reject<Error>(Errors.userNotExists(username));
-            }
-            if (user.password != password) {
-                return Promise.reject<Error>(Errors.passwordIncorect(username));
-            }
+        if (user == null) {
+            return Promise.reject<Error>(Errors.userNotExists(username));
+        }
+        if (user.password != password) {
+            return Promise.reject<Error>(Errors.passwordIncorect(username));
+        }
 
-            let token = await Token.create(user._id, 'user');
-            return { token: token._id.toHexString(), userId: token.objectId };
-        });
-        return result;
+        let token = await Token.create(user._id, 'user');
+        return { token: token._id.toHexString(), userId: token.objectId };
+        // });
+        // return result;
     }
 
     /** 重置密码，用户无需登录 */
@@ -170,30 +177,31 @@ export default class UserController extends Controller {
             throw Errors.argumentNull('password');
         }
 
-        let result = await createDatabaseInstance(settings.conn.auth, async (db) => {
-            let verifyMessages = db.collection(tableNames.VerifyMessage);
-            let msg = await verifyMessages.findOne<VerifyMessage>({ _id: new mongodb.ObjectID(smsId) });
-            if (msg == null)
-                throw Errors.objectNotExistWithId(smsId, 'VerifyMessages');
+        let db = await this.createDatabaseInstance(settings.conn.auth);
+        // let result = await createDatabaseInstance(settings.conn.auth, async (db) => {
+        let verifyMessages = db.collection(tableNames.VerifyMessage);
+        let msg = await verifyMessages.findOne<VerifyMessage>({ _id: new mongodb.ObjectID(smsId) });
+        if (msg == null)
+            throw Errors.objectNotExistWithId(smsId, 'VerifyMessages');
 
-            if (msg.verifyCode != verifyCode)
-                throw Errors.verifyCodeIncorrect(verifyCode);
+        if (msg.verifyCode != verifyCode)
+            throw Errors.verifyCodeIncorrect(verifyCode);
 
-            let users = db.collection(tableNames.User);
-            let u = await users.updateOne(
-                { $and: [{ mobile: mobile }, { applicationId: this.appId }] },
-                { $set: { password: password } }
-            );
+        let users = db.collection(tableNames.User);
+        let u = await users.updateOne(
+            { $and: [{ mobile: mobile }, { applicationId: this.appId }] },
+            { $set: { password: password } }
+        );
 
-            // debugger;
-            if (u.matchedCount <= 0) {
-                throw Errors.userNotExists(mobile);
-            }
+        // debugger;
+        if (u.matchedCount <= 0) {
+            throw Errors.userNotExists(mobile);
+        }
 
-            return u;
-        });
+        return u;
+        // });
 
-        return result;
+        // return result;
     }
 
     /** 修改密码，用户需要处于登录状态 */
@@ -210,9 +218,11 @@ export default class UserController extends Controller {
         if (!verifyCode)
             throw Errors.argumentNull('verifyCode');
 
-        let msg = await execute(settings.conn.auth, tableNames.VerifyMessage, async verifyMessages => {
-            return verifyMessages.findOne<VerifyMessage>({ _id: new mongodb.ObjectID(smsId) });
-        });
+        // let msg = await execute(settings.conn.auth, tableNames.VerifyMessage, async verifyMessages => {
+        let db = await this.createDatabaseInstance(settings.conn.auth);
+        let verifyMessages = db.collection(tableNames.VerifyMessage);
+        let msg = await verifyMessages.findOne<VerifyMessage>({ _id: new mongodb.ObjectID(smsId) });
+        // });
 
         if (msg == null)
             throw Errors.objectNotExistWithId(smsId, 'VerifyMessages');
@@ -232,9 +242,12 @@ export default class UserController extends Controller {
     async userInfo() {
         if (!this.userId) return null;
 
-        let user = await execute(settings.conn.auth, tableNames.User, async collection => {
-            return collection.findOne<User>({ _id: this.userId });
-        });
+        // let user = await execute(settings.conn.auth, tableNames.User, async collection => {
+        let db = await this.createDatabaseInstance(settings.conn.auth);
+        let collection = db.collection(tableNames.User);
+        let user = await collection.findOne<User>({ _id: this.userId });
+        // });
+        delete user.password;
 
         return user;
     }
@@ -252,20 +265,9 @@ export default class UserController extends Controller {
         // });
     }
 
-
-
+    /** 用于客户端测试连接速度 */
+    async index() {
+        return os.hostname();
+    }
 }
-
-
-class UserGroups {
-    static normal = 'normal'
-}
-
-
-function update(args: any) {
-    let p = new Promise(() => { });
-}
-// }
-
-
 

@@ -25,6 +25,8 @@ export class Controller {
         this.databaseInstances.push(db);
         return db;
     }
+
+    
 }
 
 export class UserController extends Controller {
