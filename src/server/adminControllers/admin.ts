@@ -1,4 +1,4 @@
-import { DataContext, tableNames, execute, Application, Token, Admin } from '../database';
+import { DataContext, tableNames, Application, Token, Admin } from '../database';
 // import * as data from '../database';
 import { Controller } from '../common';
 import { conn, pageSize } from '../settings';
@@ -20,17 +20,25 @@ export default class AdminController extends Controller {
         if (pageIndex == null)
             pageIndex = 0;
 
-        var p1 = execute(conn.auth, tableNames.User, (collection) => {
-            var cursor = collection.find().sort({ createDateTime: -1 });
-            return cursor.toArray();
-        });
+        // var p1 = execute(conn.auth, tableNames.User, (collection) => {
+        //     var cursor = collection.find().sort({ createDateTime: -1 });
+        //     return cursor.toArray();
+        // });
 
-        let p2 = execute(conn.auth, tableNames.User, async (collection) => {
-            // return new Promise((resolve, reject) => {
-            var c = await collection.count();
-            return c;
-        });
+        // let p2 = execute(conn.auth, tableNames.User, async (collection) => {
+        //     // return new Promise((resolve, reject) => {
+        //     var c = await collection.count();
+        //     return c;
+        // });
 
+        // let result = await Promise.all([p1, p2]);
+
+        let db = await this.createDatabaseInstance(conn.auth);
+        let collection = db.collection(tableNames.User);
+        let cursor = collection.find().sort({ createDateTime: -1 });
+        let p1 = cursor.toArray();
+
+        let p2 = await collection.count();
         let result = await Promise.all([p1, p2]);
         return {
             dataItems: result[0],
@@ -167,21 +175,25 @@ export default class AdminController extends Controller {
 
     /** 获取管理员所创建的应用 */
     async applications() {
-        return execute(settings.conn.auth, tableNames.Application, async (collection) => {
-            let cursor = await collection.find({ adminId: this.userId });
-            console.assert(cursor != null);
-            let items = await cursor.toArray();
-            return items;
-        });
+        let db = await this.createDatabaseInstance(settings.conn.auth);
+        let collection = db.collection(tableNames.Application);
+        // return execute(settings.conn.auth, tableNames.Application, async (collection) => {
+        let cursor = await collection.find({ adminId: this.userId });
+        console.assert(cursor != null);
+        let items = await cursor.toArray();
+        return items;
+        // });
     }
 
     async deleteApplication({ appId }) {
         if (!appId) throw errors.argumentNull('appId');
 
         appId = ObjectID.createFromHexString(appId);
-        return execute(settings.conn.auth, tableNames.Application, async (collection) => {
-            let result = await collection.deleteOne({ _id: appId });
-            return result;
-        });
+        let db = await this.createDatabaseInstance(settings.conn.auth);
+        let collection = db.collection(tableNames.Application);
+        // return execute(settings.conn.auth, tableNames.Application, async (collection) => {
+        let result = await collection.deleteOne({ _id: appId });
+        return result;
+        // });
     }
 }
