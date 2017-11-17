@@ -45,6 +45,7 @@ export let redirectInfos = {
         { rootDir: 'AdminShop', targetUrl: `http://${remote_host}:9010` },
         { rootDir: 'AdminMember', targetUrl: `http://${remote_host}:9020` },
         { rootDir: 'AdminWeiXin', targetUrl: `http://${remote_host}:9030` },
+        { rootDir: 'AdminAccount', targetUrl: `http://${remote_host}:9035` },
 
         { rootDir: 'UserShop', targetUrl: `http://${remote_host}:9040` },
         { rootDir: 'UserSite', targetUrl: `http://${remote_host}:9050` },
