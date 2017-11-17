@@ -265,6 +265,12 @@ export default class UserController extends Controller {
         // });
     }
 
+    async list() {
+        let db = await this.createDatabaseInstance(settings.conn.auth);
+        let users = db.collection<User>(tableNames.User);
+        return users.find({ applicationId: this.appId });
+    }
+
     /** 用于客户端测试连接速度 */
     async index() {
         return os.hostname();
