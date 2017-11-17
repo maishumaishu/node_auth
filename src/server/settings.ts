@@ -16,8 +16,8 @@ const STORE_KEY = 'store-key';
 export let allowHeaders = `${APP_KEY}, ${USER_TOKEN}, ${STORE_KEY}, content-type`;
 //export const conn = `mongodb://${monogoHost}/node_auth`;
 export let conn = {
-    auth: `mongodb://shopcloud:shop81263cloud@shopcloud_server/node_auth?authMechanism=DEFAULT&authSource=admin`,
-    log: `mongodb://shopcloud:shop81263cloud@shopcloud_server/log?authMechanism=DEFAULT&authSource=admin`,
+    auth: `mongodb://shopcloud:shop81263cloud@localhost/node_auth?authMechanism=DEFAULT&authSource=admin`,
+    log: `mongodb://shopcloud:shop81263cloud@localhost/log?authMechanism=DEFAULT&authSource=admin`,
 }
 export let bindIP = '127.0.0.1';
 export let port = 2800;
@@ -38,7 +38,7 @@ verifyCodeText.default = verifyCodeText.register;
 verifyCodeText.changeMobile = verifyCodeText.register;
 verifyCodeText.receivePassword = verifyCodeText.register;
 
-let remote_host = 'shopcloud_server';   //'114.215.175.79';
+let remote_host = 'localhost';   //'114.215.175.79';
 export let redirectInfos = {
     pathInfos: [
         { rootDir: 'AdminSite', targetUrl: `http://${remote_host}:9000` },
