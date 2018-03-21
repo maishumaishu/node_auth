@@ -455,16 +455,18 @@ export interface VerifyMessage extends Entity {
  */
 export class Token implements Entity {
     _id?: mongodb.ObjectID;
-    objectId: mongodb.ObjectID;
-    type: string;
+    // objectId: mongodb.ObjectID;
+    // type: string;
+    content: string;
+    contentType: string;
     createDateTime: Date;
 
-    static async create(objectId: mongodb.ObjectID, type: 'user' | 'app' | 'admin'): Promise<Token> {
+    static async create(content: string, contentType: string): Promise<Token> {
         let token = new Token();
-        token.objectId = objectId;
-        token.type = type;
 
         token._id = new mongodb.ObjectID();
+        token.content = content;
+        token.contentType = contentType;
         token.createDateTime = new Date(Date.now());
 
         return execute(settings.conn.auth, tableNames.Token, async (collection) => {
@@ -479,9 +481,9 @@ export class Token implements Entity {
      * @param appId 应用ID
      * @tokenValue 令牌字符串
      */
-    static async parse(tokenValue: string, throwException?: boolean): Promise<Token> {
+    static async parse(tokenValue: string): Promise<Token> {
 
-        throwException == throwException == null ? true : throwException;
+        // throwException == throwException == null ? true : throwException;
 
         if (!tokenValue)
             return Promise.reject(errors.argumentNull('tokenValue'));

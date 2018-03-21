@@ -71,11 +71,11 @@ declare namespace wuzhui {
         private processError(exc, method);
     }
     class DataSourceSelectArguments {
-        startRowIndex: number;
-        totalRowCount: number;
-        maximumRows: number;
-        sortExpression: string;
-        filter: string;
+        startRowIndex?: number;
+        totalRowCount?: number;
+        maximumRows?: number;
+        sortExpression?: string;
+        filter?: string;
         constructor();
     }
     type DataSourceArguments<T> = {
@@ -251,6 +251,13 @@ declare namespace wuzhui {
     }
 }
 declare namespace wuzhui {
+    class ElementHelper {
+        static showElement(element: HTMLElement): void;
+        static hideElement(element: HTMLElement): void;
+        static isVisible(element: HTMLElement): boolean;
+        static data(element: HTMLElement, name: string, value?: any): any;
+        static findFirstParentByTagName(element: Element, tagName: string): HTMLElement;
+    }
     function applyStyle(element: HTMLElement, value: CSSStyleDeclaration | string): void;
     class Callback<S, A> {
         private funcs;
@@ -372,7 +379,6 @@ declare namespace wuzhui {
         nullText?: string;
     }
     class BoundField extends DataControlField {
-        private _sortType;
         private _valueElement;
         constructor(params: BoundFieldParams);
         private params();
