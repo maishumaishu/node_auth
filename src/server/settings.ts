@@ -1,5 +1,3 @@
-import { Application } from './database';
-
 export const registerMode: 'username' | 'mobile' | 'notAllow' = 'mobile';
 export const verifyCodeText = {
     default: '您的验证码是{0}【零食有约】',

@@ -15,7 +15,7 @@ let server = http.createServer((req, res) => {
 server.listen(settings.port, settings.bindIP);
 async function serverCallback(req: http.IncomingMessage, res: http.ServerResponse) {
     console.assert(req.method != null);
-    setCrossDomainHeaders(res);
+    setHeaders(res);
     if (req.method.toLowerCase() == 'options') {
         res.statusCode = 204;
         res.end();
@@ -52,7 +52,7 @@ async function serverCallback(req: http.IncomingMessage, res: http.ServerRespons
         (response) => {
             console.assert(response != null);
 
-            //TODO: 出来 statusCode 为 666 的情况
+            //TODO: 出了 statusCode 为 666 的情况
             if (response.statusCode == 666) {
                 let responseContent: string;
                 let contentType = response.headers['content-type'] as string;;
@@ -121,7 +121,7 @@ function outputError(response: http.ServerResponse, err: Error) {
 
 
 
-function setCrossDomainHeaders(res: http.ServerResponse) {
+function setHeaders(res: http.ServerResponse) {
     // res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Content-Type', 'application/json;charset=utf-8');
     // res.setHeader('Access-Control-Allow-Headers', settings.allowHeaders);
