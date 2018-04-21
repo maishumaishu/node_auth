@@ -1,6 +1,7 @@
 /build
 /debug
 /release
+/out
 /node_modules
 /.git
 /.tscache

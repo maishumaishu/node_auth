@@ -3,7 +3,7 @@ import * as errors from './errors';
 import * as url from 'url';
 import * as settings from './settings';
 import { debug } from 'util';
-import { Token } from './database';
+import { Token } from './token';
 
 let server = http.createServer((req, res) => {
     serverCallback(req, res)
@@ -22,14 +22,13 @@ async function serverCallback(req: http.IncomingMessage, res: http.ServerRespons
         return;
     }
     let token: Token = null;
-    // res.setHeader('content-type', 'application/json;charset=utf-8');
-    let tokenText = req.headers['token'];
+    let tokenText = req.headers['token'] as string;
+    if (typeof tokenText == "object") {
+        tokenText = tokenText[0];
+    }
+
     if (tokenText) {
         token = await Token.parse(tokenText);
-        // if (!token) {
-        //     outputError(res, errors.invalidToken(tokenText));
-        //     return;
-        // }
     }
 
     let { host, path, port } = await getRedirectInfo(req)
@@ -52,23 +51,22 @@ async function serverCallback(req: http.IncomingMessage, res: http.ServerRespons
         (response) => {
             console.assert(response != null);
 
-            //TODO: 出了 statusCode 为 666 的情况
-            if (response.statusCode == 666) {
+            const StatusCodeGenerateToken = 666; // 生成 Token
+            if (response.statusCode == StatusCodeGenerateToken) {
                 let responseContent: string;
-                let contentType = response.headers['content-type'] as string;;
+                let contentType = response.headers['content-type'] as string;
                 response.on('data', (data: ArrayBuffer) => {
                     responseContent = data.toString();
                 })
                 response.on('end', () => {
                     Token.create(responseContent, contentType)
-                        .catch(err => {
-                            outputError(res, err);
-                        })
                         .then((o: Token) => {
                             res.setHeader("content-type", "application/json");
                             var obj = JSON.stringify({ token: o._id });
                             res.write(obj);
                             res.end();
+                        }).catch(err => {
+                            outputError(res, err);
                         })
                 })
             }
@@ -103,9 +101,9 @@ async function serverCallback(req: http.IncomingMessage, res: http.ServerRespons
 function outputError(response: http.ServerResponse, err: Error) {
     console.assert(err != null, 'error is null');
 
-    const defaultErrorStatusCode = 600;
+    const StatusCodeDefaultError = 600;
 
-    response.statusCode = defaultErrorStatusCode;
+    response.statusCode = StatusCodeDefaultError;
     response.statusMessage = err.name;      // statusMessage 不能为中文，否则会出现 invalid chartset 的异常
 
     if (/^\d\d\d\s/.test(err.name)) {

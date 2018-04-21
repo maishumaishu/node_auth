@@ -14,29 +14,16 @@ const STORE_KEY = 'store-key';
 export let allowHeaders = `${APP_KEY}, ${USER_TOKEN}, ${STORE_KEY}, content-type`;
 //export const conn = `mongodb://${monogoHost}/node_auth`;
 export let conn = {
-    auth: `mongodb://localhost/node_auth`,
-    log: `mongodb://localhost/log`,
+    auth: { host: 'localhost', user: 'liuyunyuan', password: 'Xuan520Lv', database: 'node_auth' },
 }
 export let bindIP = '0.0.0.0';
 export let port = 2800;
-// export let conn = {
-//     auth: `mongodb://shopcloud:shop81263cloud@localhost`,
-//     log:  `mongodb://shopcloud:shop81263cloud@localhost`,//`mongodb://${monogoHost}/log`
-// }
-
-//====================================
-// 测试配置
-/** 将 mobile 设为某个号码，则短信往该号码发，以方便测试 */
-export let test = {
-    mobile: null    //'18502146746'
-}
-//====================================
 
 verifyCodeText.default = verifyCodeText.register;
 verifyCodeText.changeMobile = verifyCodeText.register;
 verifyCodeText.receivePassword = verifyCodeText.register;
 
-let remote_host = '127.0.0.1';   //'114.215.175.79';
+let remote_host = '192.168.1.19';   //'114.215.175.79';
 export let redirectInfos = {
     pathInfos: [
         { rootDir: 'AdminSite', targetUrl: `http://${remote_host}:9000` },
